@@ -4,10 +4,9 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 export function setupSwagger(app: INestApplication, configService: ConfigService): void{
   const config = new DocumentBuilder()
-    .setTitle(configService.get<string>('swagger.title', ''))
+    .setTitle(configService.get<string>('swagger.title', 'API Documentation'))
     .setDescription(configService.get<string>('swagger.description', ''))
-    .setVersion(configService.get<string>('swagger.version', ''))
-    .addServer('http://localhost:3001')
+    .setVersion(configService.get<string>('swagger.version', 'v1'))
     
     .addBearerAuth(
       {
@@ -21,5 +20,5 @@ export function setupSwagger(app: INestApplication, configService: ConfigService
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('v1/api', app, document);
 }
