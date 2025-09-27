@@ -14,6 +14,16 @@ export class RefreshTokensRepository {
 
   }
 
+  async isRevoked(userId: number) {
+    const revoked = await this.db
+      .select({ revoked: refreshTokens.revoked })
+      .from(refreshTokens)
+      .where(eq(refreshTokens.userId, userId))
+      .then(rows => rows[0]);
+
+    return revoked;
+  }
+
   async create(userId: number, rawToken: string, expiresAt: Date, ip?: string, ua?: string) {
     const tokenHash = await argon2Hash(rawToken);
     // Generate a random id (for demo, use timestamp + random)

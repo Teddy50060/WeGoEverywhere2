@@ -101,15 +101,16 @@ export class AuthController {
   @Get('refresh-jwt-token')
   @ApiOperation({ summary: 'Use refresh token to refresh access token' })
   refreshJwtToken(@Req() req, @Res({ passthrough: true }) res: Response) {
-    // TODO: revoke refresh token
-    const refreshToken = this.authService.signJwt(req.user.sub);
-    res.cookie('jwt', refreshToken, { 
+    const userId = req.user.sub;
+    const userEmail = req.user.email;
+    const accessToken = this.authService.refreshAccessToken(userId, userEmail);
+    res.cookie('jwt', accessToken, { 
       httpOnly: true,
       secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
       sameSite: 'strict',
       maxAge: 15 * ONE_MINUTE,
     });
-    return 'Access token refreshed';
+    return { message: 'Access token refreshed' };
   }
 
   // ----------------------------------------------------------------
@@ -265,7 +266,11 @@ export class AuthController {
       const user = await this.usersRepository.findById(authUser.userId);
       // 4) สร้าง JWT token
       const accessToken = this.authService.signJwt(
-        user.userId.toString(),
+        user.userId,
+        authUser.email,
+      );
+      const { refreshToken, tokenId } = this.authService.signRefreshJwt(
+        user.userId,
         authUser.email,
       );
 
@@ -274,7 +279,13 @@ export class AuthController {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
         sameSite: 'strict',
-        maxAge: 1000 * 60 * 15, // 15 นาที
+        maxAge: 15 * ONE_MINUTE, // 15 นาที
+      });
+      res.cookie('refresh_jwt', refreshToken, {
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'strict',
+        maxAge: ONE_WEEK,
       });
 
       // 6) ส่ง response
