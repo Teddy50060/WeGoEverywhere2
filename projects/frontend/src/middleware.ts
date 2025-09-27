@@ -1,29 +1,40 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { AppService, AuthService } from "./lib/api";
 
-export function middleware(req: NextRequest) {
-  // TODO
-  const access_token = req.cookies.get("jwt");
+export async function middleware(req: NextRequest) {
+  const accessToken = req.cookies.get("jwt")?.value;
+  let valid = false;
+  if (accessToken) {
+    const res = await fetch(`${req.nextUrl.origin}/api/auth/verify`, {
+      headers: { cookie: `jwt=${accessToken}` },
+    });
+    const data = await res.json();
+    valid = data.valid;
+  }
+
   const { pathname } = req.nextUrl;
+  
 
   // ยกเว้นไฟล์ระบบและ public assets
-  const isPublicAsset =
-    pathname.startsWith("/_next") ||  // CSS, JS, images
-    pathname.startsWith("/favicon.ico");
+  const isPublicAsset = pathname.startsWith("/_next") || pathname.startsWith("/favicon.ico");
 
-  // if(pathname === "/login" && access_token){
-  //   return NextResponse.redirect(new URL("/", req.url));
-  // }
-  // ถ้าไม่ใช่ public asset และไม่ใช่ /login และไม่มี access_token → redirect
-  if (!isPublicAsset && (pathname !== "/login" && pathname !== "/register" && pathname !== "/profile-setup") && !access_token) {
-    return NextResponse.redirect(new URL("/login", req.url));
+  // ยกเว้น public pages
+  const isPublicPath = ["/login", "/register", "/profile-setup"].includes(pathname);
+
+  // ตรวจว่าเป็น refresh API
+  const isRefreshApi = pathname === "/api/auth/refresh";
+
+  // ถ้าไม่ใช่ public asset, public path, api, และไม่ใช่ refresh API → redirect
+  if (!isPublicAsset && !isPublicPath && !isRefreshApi && !valid) {
+    return NextResponse.redirect(
+      new URL(`/api/auth/refresh?next=${encodeURIComponent(pathname)}`, req.url)
+    );
   }
 
   return NextResponse.next();
 }
 
-// หรือใช้ matcher เพื่อกรอง route เฉพาะ
+// matcher เฉพาะ route ที่ไม่ใช่ _next, favicon.ico, api
 export const config = {
   matcher: ["/((?!_next|favicon.ico|api).*)"],
 };

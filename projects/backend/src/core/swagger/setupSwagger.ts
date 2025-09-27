@@ -7,7 +7,7 @@ export function setupSwagger(app: INestApplication, configService: ConfigService
     .setTitle(configService.get<string>('swagger.title', 'API Documentation'))
     .setDescription(configService.get<string>('swagger.description', ''))
     .setVersion(configService.get<string>('swagger.version', 'v1'))
-    
+    .addServer('http://localhost:3001')
     .addBearerAuth(
       {
         type: 'http',

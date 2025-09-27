@@ -93,24 +93,25 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: ONE_WEEK,
     });
+    // need fix hard code localhost:3000
     return res.redirect('http://localhost:3000/profile-setup');
   }
 
   @Public()
   @UseGuards(RefreshJwtGuard)
-  @Get('refresh-jwt-token')
+  @Post('refresh-jwt-token')
   @ApiOperation({ summary: 'Use refresh token to refresh access token' })
-  refreshJwtToken(@Req() req, @Res({ passthrough: true }) res: Response) {
+  async refreshJwtToken(@Req() req, @Res({ passthrough: true }) res: Response) {
     const userId = req.user.sub;
     const userEmail = req.user.email;
-    const accessToken = this.authService.refreshAccessToken(userId, userEmail);
+    const accessToken = await this.authService.refreshAccessToken(userId, userEmail);
     res.cookie('jwt', accessToken, { 
       httpOnly: true,
       secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
       sameSite: 'strict',
       maxAge: 15 * ONE_MINUTE,
     });
-    return { message: 'Access token refreshed' };
+    return { accessToken };
   }
 
   // ----------------------------------------------------------------
@@ -119,6 +120,7 @@ export class AuthController {
   // ----------------------------------------------------------------
   @Public()
   @UseGuards(RefreshJwtGuard)
+  @ApiOperation({ summary: '[OBSULETE] soon' })
   @Post('refresh-token')
   async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const rawRefresh =
