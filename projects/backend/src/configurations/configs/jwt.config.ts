@@ -8,6 +8,7 @@ export default registerAs(
         secret: process.env.JWT_SECRET,
         signOptions: { 
             expiresIn: process.env.JWT_EXPIRATION_TIME ?? '15m',
+            algorithm: 'HS256',
         },
     }),
 )

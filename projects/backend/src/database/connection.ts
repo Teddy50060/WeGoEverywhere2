@@ -1,18 +1,16 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { poolConfig } from '../configurations/configs';
-import { privacyPolicies } from './schema/privacy-policy.schema';
-import { users } from './schema/users.schema'; 
+import { schema } from './schema';
 
 const pool = new Pool(poolConfig);
 
 // Export drizzle instance with schema
 export const db = drizzle(pool, {
-  schema: {
-    privacyPolicies,
-    users,
-  },
+  schema
 });
+
+export type DbType = typeof db;
 
 // Error handling
 pool.on('error', (err) => {

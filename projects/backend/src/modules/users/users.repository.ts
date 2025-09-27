@@ -1,13 +1,23 @@
 // users.repository.ts
-import { Injectable } from '@nestjs/common';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { Inject, Injectable } from '@nestjs/common';
 import { users } from '@backend/src/database/schema/users.schema';
 import { RegisterDto } from '@backend/src/modules/dto/register.dto';
 import { eq } from 'drizzle-orm';
+import type { DbType } from '@backend/src/database/connection';
 
 @Injectable()
 export class UsersRepository {
+  constructor
+  (
+    @Inject('DatabaseConnection') private readonly db: DbType,
+  ) 
+  {
+
+  }
+  async findAll(){
+    return this.db.query.users.findMany();
+  }
+
   async findById(userId: number) {
     // เลือกเฉพาะคอลัมน์ที่ต้องการ หรือ * ก็ได้
     const [row] = await this.db
@@ -30,11 +40,8 @@ export class UsersRepository {
     // ถ้าไม่พบจะ return undefined
     return row ?? null;
   }
-  private db;
 
-  constructor(private readonly pool: Pool) {
-    this.db = drizzle(this.pool);
-  }
+  
 
   async createUser(input: RegisterDto) {
     const [row] = await this.db

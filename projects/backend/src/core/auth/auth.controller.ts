@@ -52,6 +52,7 @@ export class AuthController {
   // this Route sus
   @Public()
   @Post('bearer')
+  @ApiOperation({ summary: 'For developing only!' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -68,6 +69,7 @@ export class AuthController {
   @Public()
   @UseGuards(GitHubAuthGuard)
   @Get('github')
+  @ApiOperation({ summary: 'Redirect to Github OAuth' })
   async githubAuth() {
     // Redirect to Github
   }
@@ -75,6 +77,7 @@ export class AuthController {
   @Public()
   @UseGuards(GitHubAuthGuard)
   @Get('callback')
+  @ApiOperation({ summary: 'Github OAuth callback' })
   githubCallback(@Req() req, @Res({ passthrough: true }) res: Response) {
     const accessToken = this.authService.signJwt(req.user.id);
     const refreshToken = this.authService.signRefreshJwt(req.user.id);
@@ -90,24 +93,25 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: ONE_WEEK,
     });
+    // need fix hard code localhost:3000
     return res.redirect('http://localhost:3000/profile-setup');
   }
 
   @Public()
   @UseGuards(RefreshJwtGuard)
-  @Get('refresh-jwt-token')
-  refreshJwtToken(@Req() req, @Res({ passthrough: true }) res: Response) {
-    // TODO: revoke refresh token
-    const refreshToken = this.authService.signJwt(req.user.sub);
-    console.log(req)
-    res.cookie('jwt', refreshToken, { 
+  @Post('refresh-jwt-token')
+  @ApiOperation({ summary: 'Use refresh token to refresh access token' })
+  async refreshJwtToken(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const userId = req.user.sub;
+    const userEmail = req.user.email;
+    const accessToken = await this.authService.refreshAccessToken(userId, userEmail);
+    res.cookie('jwt', accessToken, { 
       httpOnly: true,
-      secure: false,
-      sameSite: 'none',
+      secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+      sameSite: 'strict',
       maxAge: 15 * ONE_MINUTE,
     });
-    console.log('Access token refreshed');
-    return 'Access token refreshed';
+    return { accessToken };
   }
 
   // ----------------------------------------------------------------
@@ -116,6 +120,7 @@ export class AuthController {
   // ----------------------------------------------------------------
   @Public()
   @UseGuards(RefreshJwtGuard)
+  @ApiOperation({ summary: '[OBSULETE] soon' })
   @Post('refresh-token')
   async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const rawRefresh =
@@ -210,7 +215,7 @@ export class AuthController {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'lax',
+        sameSite: 'strict',
         maxAge: 1000 * 60 * 15,
       });
 
@@ -238,6 +243,7 @@ export class AuthController {
   
   @Public()
   @Post('login')
+  @ApiOperation({ summary: 'User log in by password' })
   async login(
     @Body() body: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -262,16 +268,26 @@ export class AuthController {
       const user = await this.usersRepository.findById(authUser.userId);
       // 4) สร้าง JWT token
       const accessToken = this.authService.signJwt(
-        user.userId.toString(),
-        user.email,
+        user.userId,
+        authUser.email,
+      );
+      const { refreshToken, tokenId } = this.authService.signRefreshJwt(
+        user.userId,
+        authUser.email,
       );
 
       // 5) set cookie
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'lax',
-        maxAge: 1000 * 60 * 15, // 15 นาที
+        sameSite: 'strict',
+        maxAge: 15 * ONE_MINUTE, // 15 นาที
+      });
+      res.cookie('refresh_jwt', refreshToken, {
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'strict',
+        maxAge: ONE_WEEK,
       });
 
       // 6) ส่ง response
@@ -281,7 +297,7 @@ export class AuthController {
           userId: user.userId,
           firstName: user.firstName,
           lastName: user.lastName,
-          email: user.email,
+          email: authUser.email,
         },
         accessToken,
       };

@@ -1,14 +1,16 @@
-
+// [OBSUELETE] this soon
 export default () => ({
     auth: {
         jwt: {
 			secret: process.env.JWT_SECRET,
 			expiresIn: process.env.JWT_EXPIRATION_TIME ?? '15m',
 			cookies_secure: process.env.NODE_ENV === 'production', 
+			algorithm: 'HS256',
 		},
 		refresh_jwt: {
 			secret: process.env.REFRESH_JWT_SECRET,
 			expiresIn: process.env.REFRESH_JWT_EXPIRATION_TIME ?? '7d',
+			algorithm: 'HS256',
 		},
 		github: {
 			clientId: process.env.GITHUB_OAUTH_CLIENT_ID ?? '',

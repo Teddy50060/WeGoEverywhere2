@@ -11,6 +11,7 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AuthService {
     /**
+     * For developing only!
      * @param requestBody
      * @returns any
      * @throws ApiError
@@ -28,6 +29,7 @@ export class AuthService {
         });
     }
     /**
+     * Redirect to Github OAuth
      * @returns any
      * @throws ApiError
      */
@@ -38,6 +40,7 @@ export class AuthService {
         });
     }
     /**
+     * Github OAuth callback
      * @returns any
      * @throws ApiError
      */
@@ -48,16 +51,18 @@ export class AuthService {
         });
     }
     /**
+     * Use refresh token to refresh access token
      * @returns any
      * @throws ApiError
      */
     public static authControllerRefreshJwtToken(): CancelablePromise<any> {
         return __request(OpenAPI, {
-            method: 'GET',
+            method: 'POST',
             url: '/auth/refresh-jwt-token',
         });
     }
     /**
+     * [OBSULETE] soon
      * @returns any
      * @throws ApiError
      */
@@ -83,6 +88,7 @@ export class AuthService {
         });
     }
     /**
+     * User log in by password
      * @param requestBody
      * @returns any
      * @throws ApiError
