@@ -1,18 +1,15 @@
 // database.module.ts
 import { Module, Global } from '@nestjs/common';
-import { Pool } from 'pg';
-import { poolConfig } from '@backend/src/configurations/configs';
-import { DrizzleService } from './drizzle.service';
+import { db } from './connection';
 
 @Global()
 @Module({
   providers: [
     {
-      provide: Pool,
-      useFactory: () => new Pool(poolConfig),
+      provide: 'DatabaseConnection',     // token สำหรับ DI
+      useValue: db,
     },
-    DrizzleService,
   ],
-  exports: [Pool, DrizzleService],
+  exports: ['DatabaseConnection'],
 })
 export class DatabaseModule {}

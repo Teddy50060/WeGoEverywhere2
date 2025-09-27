@@ -52,6 +52,7 @@ export class AuthController {
   // this Route sus
   @Public()
   @Post('bearer')
+  @ApiOperation({ summary: 'For developing only!' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -68,6 +69,7 @@ export class AuthController {
   @Public()
   @UseGuards(GitHubAuthGuard)
   @Get('github')
+  @ApiOperation({ summary: 'Redirect to Github OAuth' })
   async githubAuth() {
     // Redirect to Github
   }
@@ -75,6 +77,7 @@ export class AuthController {
   @Public()
   @UseGuards(GitHubAuthGuard)
   @Get('callback')
+  @ApiOperation({ summary: 'Github OAuth callback' })
   githubCallback(@Req() req, @Res({ passthrough: true }) res: Response) {
     const accessToken = this.authService.signJwt(req.user.id);
     const refreshToken = this.authService.signRefreshJwt(req.user.id);
@@ -96,17 +99,16 @@ export class AuthController {
   @Public()
   @UseGuards(RefreshJwtGuard)
   @Get('refresh-jwt-token')
+  @ApiOperation({ summary: 'Use refresh token to refresh access token' })
   refreshJwtToken(@Req() req, @Res({ passthrough: true }) res: Response) {
     // TODO: revoke refresh token
     const refreshToken = this.authService.signJwt(req.user.sub);
-    console.log(req)
     res.cookie('jwt', refreshToken, { 
       httpOnly: true,
-      secure: false,
-      sameSite: 'none',
+      secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+      sameSite: 'strict',
       maxAge: 15 * ONE_MINUTE,
     });
-    console.log('Access token refreshed');
     return 'Access token refreshed';
   }
 
@@ -210,7 +212,7 @@ export class AuthController {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'lax',
+        sameSite: 'strict',
         maxAge: 1000 * 60 * 15,
       });
 
@@ -238,6 +240,7 @@ export class AuthController {
   
   @Public()
   @Post('login')
+  @ApiOperation({ summary: 'User log in by password' })
   async login(
     @Body() body: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -263,14 +266,14 @@ export class AuthController {
       // 4) สร้าง JWT token
       const accessToken = this.authService.signJwt(
         user.userId.toString(),
-        user.email,
+        authUser.email,
       );
 
       // 5) set cookie
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'lax',
+        sameSite: 'strict',
         maxAge: 1000 * 60 * 15, // 15 นาที
       });
 
@@ -281,7 +284,7 @@ export class AuthController {
           userId: user.userId,
           firstName: user.firstName,
           lastName: user.lastName,
-          email: user.email,
+          email: authUser.email,
         },
         accessToken,
       };

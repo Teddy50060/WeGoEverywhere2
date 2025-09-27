@@ -24,7 +24,7 @@ export default function LoginPage() {
         overflow-hidden pb-24 sm:pb-28 ">
         {/* หัวข้อ */}
         <h2 className="text-4xl font-extrabold text-center text-gray-800 leading-tight mb-2">
-          Sign In
+          Log In
         </h2>
 
         {/* ฟอร์ม: ดันลงเล็กน้อย + ช่องไฟภายในกว้างขึ้น */}
