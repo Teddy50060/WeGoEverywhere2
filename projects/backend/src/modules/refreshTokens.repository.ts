@@ -27,9 +27,7 @@ export class RefreshTokensRepository {
   async create(userId: number, rawToken: string, expiresAt: Date, ip?: string, ua?: string) {
     const tokenHash = await argon2Hash(rawToken);
     // Generate a random id (for demo, use timestamp + random)
-    const id = Date.now() + Math.floor(Math.random() * 10000);
     await this.db.insert(refreshTokens).values({
-      id,
       userId,
       tokenHash,
       revoked: false,
@@ -37,6 +35,31 @@ export class RefreshTokensRepository {
       createdAt: new Date(),
       createdByIp: ip,
  
+    });
+  }
+
+  async createOrUpdateRefreshToken(userId: number, rawToken: string, expiresAt: Date, ip?: string, ua?: string) {
+    const tokenHash = await argon2Hash(rawToken);
+    await this.db.insert(refreshTokens)
+    .values({
+      userId,
+      tokenHash: tokenHash,
+      revoked: false,
+      expiresAt,
+      createdAt: new Date(),
+      createdByIp: ip,
+      userAgent: ua,
+    })
+    .onConflictDoUpdate({
+      target: refreshTokens.userId,
+      set: {
+        tokenHash: tokenHash,
+        revoked: false,
+        expiresAt,
+        createdAt: new Date(),
+        createdByIp: ip,
+        userAgent: ua,
+      },
     });
   }
 

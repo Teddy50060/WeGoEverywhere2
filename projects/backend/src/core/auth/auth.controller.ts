@@ -210,6 +210,10 @@ export class AuthController {
 
       // 5) Generate JWT token
       const accessToken = this.authService.signJwt(user.userId.toString(), body.email);
+      const { refreshToken, tokenId } = this.authService.signRefreshJwt(
+        user.userId,
+        body.email,
+      );
 
       // 6) Set cookie
       res.cookie('jwt', accessToken, {
@@ -218,6 +222,18 @@ export class AuthController {
         sameSite: 'strict',
         maxAge: 1000 * 60 * 15,
       });
+      res.cookie('refresh_jwt', refreshToken, {
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'strict',
+        maxAge: ONE_WEEK,
+      });
+
+      await this.refreshTokensRepo.createOrUpdateRefreshToken(
+        user.userId,
+        refreshToken,
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      );
 
       // 7) Return success response
       return { 
@@ -289,6 +305,12 @@ export class AuthController {
         sameSite: 'strict',
         maxAge: ONE_WEEK,
       });
+
+      await this.refreshTokensRepo.createOrUpdateRefreshToken(
+        user.userId,
+        refreshToken,
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      );
 
       // 6) ส่ง response
       return {
