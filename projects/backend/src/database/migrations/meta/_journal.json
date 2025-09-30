@@ -36,6 +36,13 @@
       "when": 1757880782540,
       "tag": "0005_fixed_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759223201462,
+      "tag": "0006_secret_silver_sable",
+      "breakpoints": true
     }
   ]
 }
