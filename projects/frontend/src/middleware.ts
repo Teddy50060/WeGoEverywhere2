@@ -24,8 +24,11 @@ export async function middleware(req: NextRequest) {
   // ตรวจว่าเป็น refresh API
   const isRefreshApi = pathname === "/api/auth/refresh";
 
-  // ถ้าไม่ใช่ public asset, public path, api, และไม่ใช่ refresh API → redirect
-  if (!isPublicAsset && !isPublicPath && !isRefreshApi && !valid) {
+  // check for frontend image
+  const isImage = pathname.startsWith("/images");
+
+  // ถ้าไม่ใช่ public asset, public path, api, frontend image และไม่ใช่ refresh API → redirect
+  if (!isPublicAsset && !isPublicPath && !isRefreshApi && !valid && !isImage) {
     return NextResponse.redirect(
       new URL(`/api/auth/refresh?next=${encodeURIComponent(pathname)}`, req.url)
     );
