@@ -5,23 +5,17 @@ import { setupSwagger } from '@core/swagger/setupSwagger';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
-import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
-import * as express from 'express';
+import { setupUploads } from './modules/upload/upload.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
-  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
   );
   const configService = app.get(ConfigService);
+  setupUploads(app); //upload pic
 
-  const uploadDir = join(process.cwd(), 'uploads');
-  if (!existsSync(uploadDir)) {
-    mkdirSync(uploadDir);
-  }
   app.enableCors({
     origin: 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
