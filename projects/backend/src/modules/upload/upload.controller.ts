@@ -31,8 +31,8 @@ export class UploadController {
     type: FileUploadResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Bad Request. No file provided.' })
-  async uploadImage(@UploadedFile() file: Express.Multer.File) {
-        return this.uploadService.handleFileUpload(file);
+  async uploadImage(@UploadedFile() file: Express.Multer.File, subfolder: string) {
+        return this.uploadService.handleFileUpload(file, subfolder);
      
     }
 }
