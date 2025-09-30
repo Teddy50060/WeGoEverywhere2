@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength, IsDateString } from 'class-validator';
+import { IsOptional, IsString, MaxLength, IsDateString, IsUrl} from 'class-validator';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({ maxLength: 20, example: '081-999-1234' })
@@ -44,4 +44,9 @@ export class UpdateUserDto {
   @IsOptional()
   @IsDateString()
   signupDate?: string;
+
+  @ApiPropertyOptional({ example: './uploads/profile-pictures/file-1678886400000.png' })
+  @IsUrl()
+  @IsOptional()
+  profilePicture?: string;
 }
