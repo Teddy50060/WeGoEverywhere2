@@ -7,7 +7,8 @@
     "start:dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-api": "npx openapi -i http://localhost:3001/v1/api-json -o src/lib/api && node scripts/patch-openapi.js"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
