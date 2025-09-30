@@ -2,33 +2,21 @@ import { Module } from '@nestjs/common';
 import { UploadController } from './upload.controller';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-
-const uploadDir = join(process.cwd(), 'uploads');
+import { UploadService } from './upload.service';
 
 @Module({
-imports: [
+  imports: [
     MulterModule.register({
       storage: diskStorage({
-        destination: (req, file, cb) => {
-          cb(null, uploadDir);
-        },
+        destination: './uploads',
         filename: (req, file, cb) => {
-          const ext = extname(file.originalname);
-          const filename = `${Date.now()}${ext}`;
+          const filename = `${Date.now()}-${file.originalname}`;
           cb(null, filename);
         },
       }),
-      fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-          cb(null, true);
-        } else {
-          cb(new Error('Only images are allowed...'), false);
-        }
-      },
     }),
   ],
   controllers: [UploadController],
-  providers: [],
+  providers: [UploadService],
 })
 export class UploadModule {}
