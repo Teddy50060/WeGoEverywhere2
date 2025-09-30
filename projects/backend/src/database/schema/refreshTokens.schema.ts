@@ -1,9 +1,9 @@
-import { pgTable, integer, varchar, boolean, timestamp, bigint } from "drizzle-orm/pg-core";
+import { pgTable, integer, varchar, boolean, timestamp, bigint, serial } from "drizzle-orm/pg-core";
 import { users } from "./users.schema";
 
 export const refreshTokens = pgTable("refresh_tokens", {
-  id: integer("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.userId), // FK
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.userId).unique(), // FK, unique constraint
   tokenHash: varchar("token_hash", { length: 255 }).notNull(),
   revoked: boolean("revoked").default(false),
   expiresAt: timestamp("expires_at").notNull(),

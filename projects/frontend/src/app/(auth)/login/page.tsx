@@ -36,7 +36,6 @@ export default function LoginPage() {
     const password = formData.get("password")?.toString() ?? "";
 
     const loginDto: LoginDto = { email, password };
-
     try {
       await AuthService.authControllerLogin(loginDto);
       console.log("Login success");
