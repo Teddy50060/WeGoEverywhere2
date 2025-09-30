@@ -1,8 +1,11 @@
-import {BadRequestException, Injectable } from '@nestjs/common';
+import {BadRequestException, Injectable, InternalServerErrorException} from '@nestjs/common';
+import { existsSync, mkdirSync } from 'fs';
+import { rename } from 'fs/promises';
+import { extname, join } from 'path';
 
 @Injectable()
 export class UploadService {
-  handleFileUpload(file: Express.Multer.File) {
+  async handleFileUpload(file: Express.Multer.File, subfolder: string) {
     if (!file) {
       throw new BadRequestException('no file uploaded');
     }
@@ -19,6 +22,25 @@ export class UploadService {
       throw new BadRequestException('file is too large!');
     }
 
-    return { message: 'File uploaded successfully', filePath: file.path };
+    const destination = join(process.cwd(), 'uploads', subfolder);
+    const fileExtension = extname(file.originalname);
+    const uniqueFilename = `file-${Date.now()}${fileExtension}`;
+    const newPath = join(destination, uniqueFilename);
+
+    if (!existsSync(destination)) {
+      mkdirSync(destination, { recursive: true });
+    }
+
+    try {
+      // middle ware path -> real path
+      await rename(file.path, newPath);
+    } catch (error) {
+      console.error('Error moving file:', error);
+      throw new InternalServerErrorException('Failed to save the uploaded file.');
+    }
+    
+    // return path for file
+    const webAccessiblePath = `/uploads/${subfolder}/${uniqueFilename}`;
+    return { filePath: webAccessiblePath };
   }
 }

@@ -5,12 +5,15 @@ import { Pool } from 'pg';
 import { schema } from '@backend/src/database/schema';
 import { UpdateUserDto } from './users.dto'; // <-- Import the DTO
 import { UsersRepository } from './users.repository';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class UserService{
     private readonly db: NodePgDatabase<typeof schema>;
 
-  constructor(private readonly usersRepo: UsersRepository) {}
+  constructor(private readonly usersRepo: UsersRepository,
+    private readonly uploadService: UploadService,
+  ) {}
 
   async getAllUsers() {
     return this.usersRepo.findAll();
