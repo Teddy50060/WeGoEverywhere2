@@ -574,7 +574,7 @@ Examples:
         success = generate_api()
 
     elif args.command == "generate-migration":
-        success = generate_migration(args.name, new_terminal=False)
+        success = generate_migration(args.name, cwd=DB_MIGRATION_PATH, new_terminal=False)
     
     if success:
         print_success("Done!")
