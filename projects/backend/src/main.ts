@@ -15,7 +15,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: configService.get<string>('app.frontendUrl') || 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // cookie
   });
