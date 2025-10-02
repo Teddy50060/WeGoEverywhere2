@@ -43,6 +43,13 @@
       "when": 1759054001185,
       "tag": "0006_puzzling_the_leader",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1759386360989,
+      "tag": "0007_AddNotificationTable",
+      "breakpoints": true
     }
   ]
 }
