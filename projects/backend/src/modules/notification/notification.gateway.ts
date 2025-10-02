@@ -1,4 +1,4 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, ConnectedSocket } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { NotificationService } from './notification.service';
 import { NotificationUser } from '@backend/src/database/schema/notification_users.schema';
@@ -21,7 +21,7 @@ export class NotificationGateway {
   handleConnection(client: Socket) {
       // 1️⃣ ดูค่าที่ client ส่งมา
     console.log('Client connected:', client.id);
-    console.log('Handshake query:', client.handshake.query);
+    // console.log('Handshake query:', client.handshake.query);
 
     const userIdRaw = client.handshake.query.userId;
     const userId = Number(userIdRaw);
@@ -38,7 +38,6 @@ export class NotificationGateway {
     // 3️⃣ เรียก service
     this.notificationService.getUnread(userId)
       .then((notifs) => {
-        console.log('Unread notifications:', notifs);
         client.emit('initial_notifications', notifs as NotificationUserWithTemplate[]);
       })
       .catch((err) => {
@@ -51,10 +50,11 @@ export class NotificationGateway {
   @SubscribeMessage('mark_read')
   async markRead(
     @ConnectedSocket() client: Socket,
-    payload: { notificationUserId: number }
+    @MessageBody() payload: { notificationUserId: number }
   ) {
+    // console.log("received mark_read", payload);
     await this.notificationService.markAsRead(payload.notificationUserId);
-    client.emit('notification_updated', { id: payload.notificationUserId, read: true });
+    client.emit('notification_updated', { notificationId: payload.notificationUserId, read: true });
   }
 
   // Server สร้าง notification → push ไป user เฉพาะ

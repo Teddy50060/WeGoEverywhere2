@@ -48,10 +48,15 @@ export default function NotificationListener({ userId }: { userId: number }) {
     });
 
     // 4️⃣ อัปเดตเมื่อ mark read
-    socket.on('notification_updated', ({ id, read }: { id: number; read: boolean }) => {
+    socket.on('notification_updated', ({ notificationId, read }: { notificationId: number; read: boolean }) => {
+      console.log("notification_updated", { notificationId, read });
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read } : n))
+        prev.map((n) => (n.notificationId === notificationId ? { ...n, read } : n))
       );
+    });
+
+    socket.on('error', (err: string) => {
+      console.log('Socket error:', err);
     });
 
     // ✅ cleanup
@@ -61,8 +66,9 @@ export default function NotificationListener({ userId }: { userId: number }) {
   }, [userId]);
 
   // 5️⃣ mark read
-  const markRead = (notifId: number) => {
-    socketRef.current?.emit('mark_read', { notificationUserId: notifId });
+  const markRead = (notificationUserId: number) => {
+    // console.log("emit mark_read", { notificationUserId });
+    socketRef.current?.emit('mark_read', { notificationUserId });
   };
 
   return (
@@ -70,19 +76,27 @@ export default function NotificationListener({ userId }: { userId: number }) {
       {notifications.map((n) => (
         <div
           key={n.id}
-          style={{
-            opacity: n.read ? 0.5 : 1,
-            border: '1px solid #ccc',
-            padding: '0.5rem',
-            marginBottom: '0.5rem',
-          }}
+          className="border border-gray-300 rounded p-2 mb-2"
+          style={{ opacity: n.read ? 0.5 : 1 }}
         >
-          <strong>{n.title || 'No Title'}</strong> ({n.fromService || 'Unknown'})
-          <p>{n.message || 'No message'}</p>
-          {!n.read && <button onClick={() => markRead(n.id)}>Mark read</button>}
+          <p><strong>ID:</strong> {n.id}</p>
+          <p><strong>User ID:</strong> {n.userId}</p>
+          <p><strong>Notification ID:</strong> {n.notificationId}</p>
+          <p><strong>Read:</strong> {n.read ? "true" : "false"}</p>
+          <p><strong>Title:</strong> {n.title}</p>
+          <p><strong>Message:</strong> {n.message}</p>
+          <p><strong>From Service:</strong> {n.fromService}</p>
+
+          {!n.read && (
+            <button
+              onClick={() => markRead(n.id)}
+              className="mt-1 px-2 py-1 bg-blue-500 text-white rounded"
+            >
+              Mark read
+            </button>
+          )}
         </div>
       ))}
-
     </div>
   );
 }
