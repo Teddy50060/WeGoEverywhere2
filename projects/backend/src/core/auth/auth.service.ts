@@ -43,7 +43,7 @@ export class AuthService {
   // ตรวจสอบ refresh token และออก access token ใหม่
   async refreshAccessToken(userId: number, email?: string) {
     const isRevoked = await this.refreshTokenRepo.isRevoked(userId);
-    if (isRevoked) {
+    if (isRevoked.revoked) {
       throw new UnauthorizedException('Refresh token expired or invalid');
     }
     // sign new access token
