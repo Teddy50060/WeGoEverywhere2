@@ -45,8 +45,26 @@ export default async function EventPage() {
       </div>
 
       <div className="flex justify-center mt-4 font-semibold text-2xl">
-        <Link href="/event/create">Link to EventCreatePage</Link>
+        Link to EventPage
       </div>
+
+      {/* <div className="flex flex-col items-center mt-4 text-lg font-medium">
+        {events.length === 0 ? (
+          <div className="text-gray-500">ยังไม่มีอีเวนต์</div>
+        ) : (
+          events.map((ev) => (
+            <Link
+              href={`/event/${ev.eventId}`}
+              key={ev.eventId}
+              className="mb-2"
+            >
+              <div key={ev.eventId}>
+                {ev.name} ({ev.eventId})
+              </div>
+            </Link>
+          ))
+        )}
+      </div> */}
 
       <Navbar />
     </>

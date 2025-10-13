@@ -11,6 +11,7 @@ import {
   toUpdateDtoFromForm,
   buildEventUrl,
 } from "./helpers.action";
+import { time } from "console";
 
 /* ---------- Types ---------- */
 export type EventActionState = {
@@ -65,6 +66,10 @@ export const updateEventWithZod = async (
 ): Promise<EventActionState> => {
   try {
     ensureAuthHeader();
+    console.log(
+      "updateEventWithZod formData:",
+      Object.fromEntries(formData.entries())
+    );
 
     const numericId = Number(id);
     if (Number.isNaN(numericId)) {
@@ -94,6 +99,7 @@ export const deleteEventById = async (
 ): Promise<EventActionState> => {
   try {
     ensureAuthHeader();
+    console.log("deleteEventById id:", id);
 
     const numericId = Number(id);
     if (Number.isNaN(numericId))
@@ -117,21 +123,33 @@ export async function getAllEvents() {
   return EventService.eventControllerGetAll();
 }
 
-/** ---------- Data loader (SSR) ----------
- * ใช้ชั่วคราวรอ BE เขียน service ดึงข้อมูล event by id
- */
+/*ใช้ชั่วคราวรอ BE เขียน service*/
 export async function getEventById(id: number) {
-  const auth = ensureAuthHeader();
-  const url = buildEventUrl(id);
+  const eventData = {
+    id: id,
+    name: "YoGa's Garden",
+    date: "2025-11-12T00:00:00.000Z",
+    place: "Lumpini Park",
+    detail:
+      "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Recusandae at tenetur sed odio eaque culpa rerum laboriosam beatae voluptate sint doloribus nisi tempore nihil ipsa mollitia pariatur expedita, quisquam consequuntur debitis hic optio voluptates? Facere, commodi porro ad consequatur eum tenetur nostrum voluptas doloribus omnis rem tempora assumenda itaque, aliquid quas!",
+    capacity: 150,
+    status: "publish",
+    time: "13:00",
+    userId: 18,
+  };
+  return eventData;
+}
 
-  const res = await fetch(url, {
-    cache: "no-store",
-    headers: { Authorization: auth },
-  });
-  if (!res.ok) {
-    throw new Error(
-      `Fetch event ${id} failed: ${res.status} ${res.statusText}`
-    );
-  }
-  return res.json();
+export async function logUserRegisteredEvent(
+  userId: number | string,
+  eventId: number | string
+) {
+  console.log(`UserID:${userId} has registered to eventID:${eventId}`);
+}
+
+export async function logUserReportEvent(
+  userId: number | string,
+  eventId: number | string
+) {
+  console.log(`UserID:${userId} has reported eventID:${eventId}`);
 }
