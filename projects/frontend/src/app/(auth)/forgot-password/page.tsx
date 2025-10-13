@@ -8,6 +8,7 @@ import { FormInput } from "@/components/form/input/FormInput";
 import { SubmitButton } from "@/components/form/Buttons";
 import { toast } from "react-hot-toast";
 import { apiCall } from "@/utils/api";
+import Image from "next/image";
 
 export default function ForgotPasswordRequestPage() {
   const router = useRouter();
@@ -58,16 +59,23 @@ export default function ForgotPasswordRequestPage() {
       </div>
 
       {/* หัวเรื่อง */}
-      <section className="mx-1 mt-2 rounded-t-[44px] bg-[#FFDCD5] px-10 pt-8 pb-12 text-center">
+      <section className="mx-1 mt-2 rounded-t-[44px] bg-[var(--color-brand-primary)] px-10 pt-8 pb-12 text-center">
         <h2 className="text-3xl font-bold text-gray-900">Forgot Password?</h2>
       </section>
 
       {/* การ์ดเนื้อหา */}
       <div className="relative -mt-10 w-full max-w-sm mx-auto flex-1 rounded-t-[50px] bg-[var(--color-brand-secondary)] p-5 shadow-lg border border-black/5 overflow-hidden pb-24 sm:pb-28">
         {/* ไอคอน */}
-        <div className="mt-4 mb-6 flex items-center justify-center">
-          <div className="h-40 w-40 rounded-full bg-[#F6C7C1] flex items-center justify-center border border-black/10">
-            <Lock className="opacity-80" size={64} />
+        <div className="mt-10 mb-6 flex items-center justify-center">
+          <div className="relative h-40 w-40 rounded-full bg-[var(--color-brand-primary)] flex items-center justify-center overflow-hidden">
+            <Image
+              src="/images/request-password-reset-icon.svg"
+              alt="Forgot password icon"
+              fill
+              className="object-contain scale-[0.75]"
+              sizes="160px" // optional เพื่อบอก browser ขนาดจริง (h-40 = 10rem = 160px)
+              priority
+            />
           </div>
         </div>
 
