@@ -112,7 +112,14 @@ export const deleteEventById = async (
   }
 };
 
-/** ---------- Data loader (SSR) ---------- */
+export async function getAllEvents() {
+  ensureAuthHeader();
+  return EventService.eventControllerGetAll();
+}
+
+/** ---------- Data loader (SSR) ----------
+ * ใช้ชั่วคราวรอ BE เขียน service ดึงข้อมูล event by id
+ */
 export async function getEventById(id: number) {
   const auth = ensureAuthHeader();
   const url = buildEventUrl(id);
