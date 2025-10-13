@@ -5,6 +5,7 @@ import { SubmitButton } from "@/components/form/Buttons";
 import { GoogleButton } from "@/components/button/GoogleButton";
 import { FormInput } from "@/components/form/input/FormInput";
 import PasswordInput from "@/components/form/input/PasswordInput";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -17,8 +18,10 @@ export default function LoginPage() {
       </section>
 
       {/* Card Cream + โค้งบนซ้ายแต่งให้เหมือนดีไซน์ */}
-      <div className="relative -mt-10 w-full max-w-sm mx-auto flex-1 rounded-t-[50px] bg-[var(--color-brand-secondary)] p-5 shadow-lg border border-black/5
-        overflow-hidden pb-24 sm:pb-28 ">
+      <div
+        className="relative -mt-10 w-full max-w-sm mx-auto flex-1 rounded-t-[50px] bg-[var(--color-brand-secondary)] p-5 shadow-lg border border-black/5
+        overflow-hidden pb-24 sm:pb-28 "
+      >
         {/* หัวข้อ */}
         <h2 className="text-4xl font-extrabold text-center text-gray-800 leading-tight mb-2">
           Sign In
@@ -26,7 +29,12 @@ export default function LoginPage() {
 
         {/* ฟอร์ม: ดันลงเล็กน้อย + ช่องไฟภายในกว้างขึ้น */}
         <form className="mt-4 sm:mt-6 space-y-4 sm:space-y-5">
-          <FormInput name="email" label="Email" type="email" placeholder="you@example.com" />
+          <FormInput
+            name="email"
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+          />
 
           <PasswordInput
             name="password"
@@ -68,15 +76,18 @@ export default function LoginPage() {
             hover:!brightness-100 active:!brightness-100 active:scale-90
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-primary)]
             "
-            onclick={() => {}}
+            onClick={() => {}}
           />
 
           <GoogleButton onClick={() => {}} />
         </div>
 
-        <a href="#" className="block mt-4 text-center text-sm text-gray-600 hover:underline">
-          forgot password
-        </a>
+        <Link
+          href="/forgot-password"
+          className="block mt-4 text-center text-sm text-gray-600 hover:underline"
+        >
+          Forgot password?
+        </Link>
       </div>
     </main>
   );
