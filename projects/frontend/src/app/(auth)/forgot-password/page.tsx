@@ -7,6 +7,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { FormInput } from "@/components/form/input/FormInput";
 import { SubmitButton } from "@/components/form/Buttons";
 import { toast } from "react-hot-toast";
+import { apiCall } from "@/utils/api";
 
 export default function ForgotPasswordRequestPage() {
   const router = useRouter();
@@ -21,14 +22,25 @@ export default function ForgotPasswordRequestPage() {
 
   const canSubmit = isValidEmail;
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // เปลี่ยนเป็น async และเพิ่มการเรียก API
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSubmit) {
       toast.error("Please enter a valid email");
       return;
     }
-    // เดโม: ยังไม่ยิง API
-    router.push("/forgot-password/email-sent");
+
+    try {
+      await apiCall("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email: email.trim() }),
+      });
+    } catch {
+      // เงียบเพื่อกัน email enumeration (ไม่แสดงสถานะในหน้านี้)
+    } finally {
+      // ไปหน้าแจ้งเตือนที่คุณมีอยู่แล้ว
+      router.push("/forgot-password/email-sent");
+    }
   };
 
   return (
