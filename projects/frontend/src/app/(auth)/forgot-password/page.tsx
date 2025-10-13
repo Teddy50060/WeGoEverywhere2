@@ -3,28 +3,32 @@
 import Link from "next/link";
 import { ArrowLeft, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { FormInput } from "@/components/form/input/FormInput";
 import { SubmitButton } from "@/components/form/Buttons";
 import { toast } from "react-hot-toast";
 
 export default function ForgotPasswordRequestPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
 
-  // UI-only: แค่เดโม กดแล้วพาไปหน้าถัดไป (ยังไม่ยิง API)
+  // validate email แบบเดียวกับหน้า register
+  const isValidEmail = useMemo(() => {
+    const v = email.trim();
+    if (!v) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  }, [email]);
+
+  const canSubmit = isValidEmail;
+
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement & {
-      email: HTMLInputElement;
-    };
-    const email = form.email.value.trim();
-
-    if (!email) {
-      toast.error("Please enter your email");
+    if (!canSubmit) {
+      toast.error("Please enter a valid email");
       return;
     }
-    toast.success("Check your inbox for the reset link");
-    router.push("/forgot-password/email-sent"); // หน้าคอนเฟิร์มส่งอีเมล (เดี๋ยวอธิบายโครงสร้างไฟล์ด้านล่าง)
+    // เดโม: ยังไม่ยิง API
+    router.push("/forgot-password/email-sent");
   };
 
   return (
@@ -41,14 +45,14 @@ export default function ForgotPasswordRequestPage() {
         </Link>
       </div>
 
-      {/* หัวเรื่องโค้งสีชมพู */}
+      {/* หัวเรื่อง */}
       <section className="mx-1 mt-2 rounded-t-[44px] bg-[#FFDCD5] px-10 pt-8 pb-12 text-center">
         <h2 className="text-3xl font-bold text-gray-900">Forgot Password?</h2>
       </section>
 
-      {/* การ์ดเนื้อหาโทนครีม */}
+      {/* การ์ดเนื้อหา */}
       <div className="relative -mt-10 w-full max-w-sm mx-auto flex-1 rounded-t-[50px] bg-[var(--color-brand-secondary)] p-5 shadow-lg border border-black/5 overflow-hidden pb-24 sm:pb-28">
-        {/* วงกลมไอคอนกุญแจ */}
+        {/* ไอคอน */}
         <div className="mt-4 mb-6 flex items-center justify-center">
           <div className="h-40 w-40 rounded-full bg-[#F6C7C1] flex items-center justify-center border border-black/10">
             <Lock className="opacity-80" size={64} />
@@ -63,20 +67,25 @@ export default function ForgotPasswordRequestPage() {
         </p>
 
         {/* ฟอร์ม */}
-        <form className="space-y-4" onSubmit={onSubmit}>
+        <form className="space-y-4" onSubmit={onSubmit} noValidate>
           <FormInput
             name="email"
             label="E-mail"
             type="email"
             placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.currentTarget.value)}
           />
 
           <SubmitButton
             text="Send reset link"
+            disabled={!canSubmit} // <-- ล็อกปุ่มแบบเดียวกับ register
+            aria-disabled={!canSubmit}
             className="
               mt-2 w-full rounded-3xl border border-black px-4 py-2.5 text-base font-bold text-black
               bg-[#FFDCD5] hover:bg-[#F2C6C6] active:scale-95 transition-all duration-200
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EB6223]
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#FFDCD5] disabled:active:scale-100
             "
           />
         </form>
