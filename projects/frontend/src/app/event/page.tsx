@@ -8,7 +8,7 @@ const EventPage = () => {
         Event Page
       </div>
       <div className="flex justify-center mt-4 font-semibold text-2xl">
-        <Link href="/event/edit"> Link to EventEditPage</Link>
+        <Link href="/event/2/edit"> Link to EventEditPage</Link>
       </div>
       <div className="flex justify-center mt-4 font-semibold text-2xl">
         <Link href="/event/create"> Link to EventCreatePage</Link>
