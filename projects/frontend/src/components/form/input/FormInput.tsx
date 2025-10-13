@@ -57,6 +57,7 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
             h-10 px-4 text-[15px] leading-none
             border border-black/30
             focus-visible:ring-offset-0 focus-visible:ring-1
+            placeholder:text-gray-400 
             ${className ?? ""}
           `}
         />
