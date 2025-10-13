@@ -36,10 +36,12 @@ export default function ForgotPasswordRequestPage() {
         method: "POST",
         body: JSON.stringify({ email: email.trim() }),
       });
+
+      // เก็บ email ไว้ใน sessionStorage
+      sessionStorage.setItem("reset_email", email.trim());
     } catch {
-      // เงียบเพื่อกัน email enumeration (ไม่แสดงสถานะในหน้านี้)
+      // ปล่อยเงียบ
     } finally {
-      // ไปหน้าแจ้งเตือนที่คุณมีอยู่แล้ว
       router.push("/forgot-password/email-sent");
     }
   };
