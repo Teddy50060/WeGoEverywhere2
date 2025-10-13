@@ -75,7 +75,18 @@ export const updateEventWithZod = async (
     if (Number.isNaN(numericId)) {
       return { ok: false, message: "Invalid event id" };
     }
-
+    const candidate = formToDbShape(formData);
+    const parsed = eventFormSchema.safeParse(candidate);
+    if (!parsed.success) {
+      const fieldErrors = mapErrorsToFormKeys(
+        parsed.error.flatten().fieldErrors
+      );
+      return {
+        ok: false,
+        errors: fieldErrors,
+        message: compactZodErrors(fieldErrors),
+      };
+    }
     const dto = toUpdateDtoFromForm(formData);
     await EventService.eventControllerUpdate(numericId, dto);
 
