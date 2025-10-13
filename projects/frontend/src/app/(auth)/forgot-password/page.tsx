@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { FormInput } from "@/components/form/input/FormInput";
@@ -13,6 +13,7 @@ import Image from "next/image";
 export default function ForgotPasswordRequestPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // ✅ state สำหรับโหลด
 
   // validate email แบบเดียวกับหน้า register
   const isValidEmail = useMemo(() => {
@@ -21,15 +22,14 @@ export default function ForgotPasswordRequestPage() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   }, [email]);
 
-  const canSubmit = isValidEmail;
+  const canSubmit = isValidEmail && !isLoading; // ปิดปุ่มระหว่างโหลด
 
-  // เปลี่ยนเป็น async และเพิ่มการเรียก API
+  // ยิง API + redirect
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSubmit) {
-      toast.error("Please enter a valid email");
-      return;
-    }
+    if (!canSubmit) return;
+
+    setIsLoading(true); // ✅ เริ่มโหลด
 
     try {
       await apiCall("/auth/forgot-password", {
@@ -39,16 +39,20 @@ export default function ForgotPasswordRequestPage() {
 
       // เก็บ email ไว้ใน sessionStorage
       sessionStorage.setItem("reset_email", email.trim());
+
+      // แสดงสถานะโหลดประมาณ 1.5 วิ ก่อน redirect
+      setTimeout(() => {
+        router.push("/forgot-password/email-sent");
+      }, 1500);
     } catch {
-      // ปล่อยเงียบ
-    } finally {
-      router.push("/forgot-password/email-sent");
+      toast.error("Something went wrong. Please try again.");
+      setIsLoading(false);
     }
   };
 
   return (
     <main className="font-alt">
-      {/* แบรนด์ + ปุ่มย้อนกลับ */}
+      {/* ปุ่มย้อนกลับ */}
       <div className="px-5 pt-4">
         <Link
           href="/login"
@@ -75,7 +79,7 @@ export default function ForgotPasswordRequestPage() {
               alt="Forgot password icon"
               fill
               className="object-contain scale-[0.75]"
-              sizes="160px" // optional เพื่อบอก browser ขนาดจริง (h-40 = 10rem = 160px)
+              sizes="160px"
               priority
             />
           </div>
@@ -100,15 +104,13 @@ export default function ForgotPasswordRequestPage() {
           />
 
           <SubmitButton
-            text="Send reset link"
-            disabled={!canSubmit} // <-- ล็อกปุ่มแบบเดียวกับ register
+            text={isLoading ? "Sending..." : "Send reset link"} // ✅ เปลี่ยนข้อความตอนโหลด
+            disabled={!canSubmit}
             aria-disabled={!canSubmit}
-            className="
-              mt-2 w-full rounded-3xl border border-black px-4 py-2.5 text-base font-bold text-black
-              bg-[#FFDCD5] hover:bg-[#F2C6C6] active:scale-95 transition-all duration-200
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EB6223]
-              disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#FFDCD5] disabled:active:scale-100
-            "
+            className="mt-2 w-full rounded-3xl border border-black px-4 py-2.5 text-base font-bold text-black
+                       bg-[#FFDCD5] hover:bg-[#F2C6C6] active:scale-95 transition-all duration-200
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EB6223]
+                       disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#FFDCD5] disabled:active:scale-100"
           />
         </form>
       </div>
