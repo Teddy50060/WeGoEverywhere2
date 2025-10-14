@@ -116,7 +116,8 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
     successText: "Event updated successfully!",
     errorText: "Failed to update event.",
     onSuccess: () => {
-      router.refresh(); // รีเฟรช server components บนหน้านี้
+      // router.refresh(); // รีเฟรช server components บนหน้านี้
+      router.push("/event");
     },
   });
 
