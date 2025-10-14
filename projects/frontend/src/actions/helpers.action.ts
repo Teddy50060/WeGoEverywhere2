@@ -3,21 +3,6 @@ import "server-only";
 import { OpenAPI } from "@/lib/api/core/OpenAPI";
 import type { CreateEventDto, UpdateEventDto } from "@/lib/api";
 
-/* ---------- Auth Helper (แนบ DEV_BEARER ให้ทุกคำสั่ง) ---------- */
-export function ensureAuthHeader() {
-  const token = process.env.DEV_BEARER?.trim();
-  if (!token) {
-    throw new Error(
-      "DEV_BEARER is missing. โปรดตั้งค่า DEV_BEARER ในไฟล์ .env หรือ .env.local แล้ว RESTART dev server"
-    );
-  }
-  OpenAPI.HEADERS = {
-    ...(OpenAPI.HEADERS || {}),
-    Authorization: `Bearer ${token}`,
-  };
-  return `Bearer ${token}`;
-}
-
 /* ---------- Helpers: file / photo ---------- */
 export function extractPhoto(
   formData: FormData,
@@ -91,7 +76,7 @@ export function formToDbShape(fd: FormData) {
     cost: fd.get("cost"),
     rating: fd.get("rating"),
     status,
-    userId: 18, // ชั่วคราว ถ้าหลังบ้านยัง require
+    userId: 15, // ชั่วคราว ถ้าหลังบ้านยัง require
     photo: extractPhoto(fd, "photo"),
   };
 }

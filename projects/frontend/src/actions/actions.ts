@@ -3,7 +3,6 @@
 import { eventFormSchema } from "@/utils/schemas";
 import { EventService } from "@/lib/api";
 import {
-  ensureAuthHeader,
   formToDbShape,
   mapErrorsToFormKeys,
   compactZodErrors,
@@ -11,6 +10,7 @@ import {
   toUpdateDtoFromForm,
   buildEventUrl,
 } from "./helpers.action";
+import { setOpenApiCookieHeader } from "@/lib/auth/CookieHeader";
 
 /* ---------- Types ---------- */
 export type EventActionState = {
@@ -25,7 +25,7 @@ export const createEventWithZod = async (
   formData: FormData
 ): Promise<EventActionState> => {
   try {
-    ensureAuthHeader();
+    await setOpenApiCookieHeader();
 
     const candidate = formToDbShape(formData);
     const parsed = eventFormSchema.safeParse(candidate);
@@ -40,7 +40,7 @@ export const createEventWithZod = async (
       };
     }
 
-    const dataWithUser = { ...parsed.data, userId: 18 };
+    const dataWithUser = { ...parsed.data, userId: 15 }; // ชั่วคราว ถ้าหลังบ้านยัง require
     const dto = toCreateDto(dataWithUser);
     console.log("createEventWithZod dto:", dto);
 
@@ -52,9 +52,7 @@ export const createEventWithZod = async (
     return {
       ok: false,
       message:
-        status === 401
-          ? "Unauthorized: ตรวจสอบ DEV_BEARER ใน .env และว่าเป็น access token ที่ยังไม่หมดอายุ"
-          : error?.body?.message || error?.message || "Failed to create event.",
+        error?.body?.message || error?.message || "Failed to create event.",
     };
   }
 };
@@ -64,7 +62,7 @@ export const updateEventWithZod = async (
   formData: FormData
 ): Promise<EventActionState> => {
   try {
-    ensureAuthHeader();
+    await setOpenApiCookieHeader();
 
     const numericId = Number(id);
     if (Number.isNaN(numericId)) {
@@ -82,9 +80,7 @@ export const updateEventWithZod = async (
     return {
       ok: false,
       message:
-        status === 401
-          ? "Unauthorized: ตรวจสอบ DEV_BEARER ใน .env"
-          : error?.body?.message || error?.message || "Unknown error",
+        error?.body?.message || error?.message || "Failed to create event.",
     };
   }
 };
@@ -93,7 +89,7 @@ export const deleteEventById = async (
   id: string
 ): Promise<EventActionState> => {
   try {
-    ensureAuthHeader();
+    await setOpenApiCookieHeader();
 
     const numericId = Number(id);
     if (Number.isNaN(numericId))
@@ -105,16 +101,14 @@ export const deleteEventById = async (
     return {
       ok: false,
       message:
-        status === 401
-          ? "Unauthorized: ตรวจสอบ DEV_BEARER ใน .env"
-          : error?.body?.message || error?.message || "Unknown error",
+        error?.body?.message || error?.message || "Failed to create event.",
     };
   }
 };
 
 /** ---------- Data loader (SSR) ---------- */
 export async function getEventById(id: number) {
-  const auth = ensureAuthHeader();
+  const auth = await setOpenApiCookieHeader();
   const url = buildEventUrl(id);
 
   const res = await fetch(url, {
