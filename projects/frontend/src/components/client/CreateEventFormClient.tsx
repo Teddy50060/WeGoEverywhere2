@@ -173,9 +173,9 @@ export default function CreateEventFormClient() {
               { value: "publish", label: "Publish" },
               { value: "unpublish", label: "Unpublish" },
             ]}
-            defaultValue={(f.status as string) ?? "unpublish"}
+            defaultValue={(f.eventStatus as string) ?? "unpublish"}
           />
-          <FieldError errors={state?.errors?.status} />
+          <FieldError errors={state?.errors?.eventStatus} />
         </div>
       </div>
 

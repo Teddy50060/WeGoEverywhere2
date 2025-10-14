@@ -19,6 +19,7 @@ import { StatusSelect } from "../form/input/StatusSelect";
 import { TimePicker } from "../form/input/TimePicker";
 import { FieldError } from "../form/FieldError";
 import { toFields, type EventStateWithFields } from "@/lib/forms";
+import { uiFromApiStatus } from "@/utils/statusMapper";
 
 type EventView = {
   eventId: number;
@@ -225,7 +226,7 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
                   { value: "unpublish", label: "Unpublish" },
                 ]}
                 defaultValue={
-                  (f.eventStatus as string) ?? event.status ?? "publish"
+                  (f.eventStatus as string) ?? uiFromApiStatus(event.status)
                 }
                 formId="updateForm"
                 className="!bg-[var(--color-brand-background)] rounded-full border border-black/30 text-sm"

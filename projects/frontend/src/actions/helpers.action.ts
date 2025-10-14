@@ -2,6 +2,7 @@ import "server-only";
 
 import { OpenAPI } from "@/lib/api/core/OpenAPI";
 import type { CreateEventDto, UpdateEventDto } from "@/lib/api";
+import { apiFromUiStatus } from "@/utils/statusMapper";
 
 /* ---------- Helpers: file / photo ---------- */
 export function extractPhoto(
@@ -58,24 +59,21 @@ export function mapErrorsToFormKeys(
 
 /* ---------- Helpers: form mapping ---------- */
 export function formToDbShape(fd: FormData) {
-  const rawStatus = String(fd.get("eventStatus") ?? "");
-  const status =
-    rawStatus === "publish"
-      ? "active"
-      : rawStatus === "unpublish"
-      ? "inactive"
-      : rawStatus || "active"; // fallback
+  const s = (k: string) => {
+    const v = fd.get(k);
+    return typeof v === "string" ? v : "";
+  };
 
   return {
-    name: String(fd.get("eventName") ?? ""),
-    date: String(fd.get("eventDate") ?? ""),
-    time: String(fd.get("eventTime") ?? "") || "00:00",
-    place: String(fd.get("eventLocation") ?? ""),
+    name: s("eventName"),
+    date: s("eventDate"),
+    time: s("eventTime") || "00:00",
+    place: s("eventLocation"),
     capacity: fd.get("eventCapacity"),
-    detail: String(fd.get("eventDetails") ?? ""),
+    detail: s("eventDetails"),
     cost: fd.get("eventCost"),
     rating: fd.get("eventRating"),
-    status,
+    status: apiFromUiStatus(s("eventStatus")) ?? "active", // ✅ ใช้ helper
     photo: extractPhoto(fd, "photo"),
   };
 }
@@ -108,14 +106,6 @@ export function toUpdateDtoFromForm(fd: FormData): UpdateEventDto {
     return typeof v === "string" && v ? v : undefined;
   };
 
-  const rawStatus = String(fd.get("eventStatus") ?? "");
-  const status =
-    rawStatus === "publish"
-      ? "active"
-      : rawStatus === "unpublish"
-      ? "inactive"
-      : undefined;
-
   return {
     name: s("eventName"),
     date: s("eventDate"),
@@ -128,7 +118,7 @@ export function toUpdateDtoFromForm(fd: FormData): UpdateEventDto {
     capacity: num(fd.get("eventCapacity")),
     cost: num(fd.get("eventCost")),
     rating: num(fd.get("eventRating")),
-    status,
+    status: apiFromUiStatus(s("eventStatus")),
   };
 }
 
