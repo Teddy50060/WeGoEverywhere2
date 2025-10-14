@@ -8,7 +8,7 @@ export class UploadService {
     }
 
     // validate file type
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    const allowedMimeTypes = ['image/jpeg', 'image/png'];
     if (!allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException('invalid file type');
     }

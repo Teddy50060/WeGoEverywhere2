@@ -9,7 +9,7 @@ import { FileUploadResponseDto } from './dto/upload.dto';
 export class UploadController {
     constructor(private readonly uploadService: UploadService) {}
 
-    @Post('/upload')
+    @Post('/upload_single_file')
     @UseInterceptors(FileInterceptor('file'))
     @ApiOperation({ summary: 'Upload a single file' })
     @ApiConsumes('multipart/form-data')
