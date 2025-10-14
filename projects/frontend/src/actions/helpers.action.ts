@@ -3,21 +3,6 @@ import "server-only";
 import { OpenAPI } from "@/lib/api/core/OpenAPI";
 import type { CreateEventDto, UpdateEventDto } from "@/lib/api";
 
-/* ---------- Auth Helper (แนบ DEV_BEARER ให้ทุกคำสั่ง) ---------- */
-export function ensureAuthHeader() {
-  const token = process.env.DEV_BEARER?.trim();
-  if (!token) {
-    throw new Error(
-      "DEV_BEARER is missing. โปรดตั้งค่า DEV_BEARER ในไฟล์ .env หรือ .env.local แล้ว RESTART dev server"
-    );
-  }
-  OpenAPI.HEADERS = {
-    ...(OpenAPI.HEADERS || {}),
-    Authorization: `Bearer ${token}`,
-  };
-  return `Bearer ${token}`;
-}
-
 /* ---------- Helpers: file / photo ---------- */
 export function extractPhoto(
   formData: FormData,
@@ -59,79 +44,91 @@ export function mapErrorsToFormKeys(
 
   set("eventName", fieldErrors.name);
   set("eventDate", fieldErrors.date);
-  set("location", fieldErrors.place);
-  set("details", fieldErrors.detail);
-  set("capacity", fieldErrors.capacity);
-  set("status", fieldErrors.status);
+  set("eventLocation", fieldErrors.place);
+  set("eventDetails", fieldErrors.detail);
+  set("eventCapacity", fieldErrors.capacity);
+  set("eventStatus", fieldErrors.status);
   set("eventTime", fieldErrors.time);
-  set("cost", fieldErrors.cost);
-  set("rating", fieldErrors.rating);
-  set("photo", fieldErrors.photo);
+  set("eventCost", fieldErrors.cost);
+  set("eventRating", fieldErrors.rating);
+  set("eventPhoto", fieldErrors.photo);
   set("userId", fieldErrors.userId);
   return m;
 }
 
 /* ---------- Helpers: form mapping ---------- */
 export function formToDbShape(fd: FormData) {
-  const rawStatus = String(fd.get("status") ?? "");
+  const rawStatus = String(fd.get("eventStatus") ?? "");
   const status =
     rawStatus === "publish"
       ? "active"
       : rawStatus === "unpublish"
       ? "inactive"
-      : rawStatus || "active";
+      : rawStatus || "active"; // fallback
 
   return {
     name: String(fd.get("eventName") ?? ""),
     date: String(fd.get("eventDate") ?? ""),
     time: String(fd.get("eventTime") ?? "") || "00:00",
-    place: String(fd.get("location") ?? ""),
-    capacity: fd.get("capacity"),
-    detail: String(fd.get("details") ?? ""),
-    cost: fd.get("cost"),
-    rating: fd.get("rating"),
+    place: String(fd.get("eventLocation") ?? ""),
+    capacity: fd.get("eventCapacity"),
+    detail: String(fd.get("eventDetails") ?? ""),
+    cost: fd.get("eventCost"),
+    rating: fd.get("eventRating"),
     status,
-    userId: 18, // ชั่วคราว ถ้าหลังบ้านยัง require
     photo: extractPhoto(fd, "photo"),
   };
 }
 
 /* ---------- Helpers: DTO builders ---------- */
-export function toCreateDto(data: any): CreateEventDto {
-  const toNumberOrUndef = (v: any): number | undefined => {
-    if (v === undefined || v === null || v === "") return undefined;
-    const n = Number(v);
-    return isNaN(n) ? undefined : n;
-  };
+export function toCreateDto(parsed: any, userId: number): CreateEventDto {
+  const num = (v: any) => (v === "" || v == null ? undefined : Number(v));
+  const time = parsed.time?.match(/^\d{2}:\d{2}$/)
+    ? `${parsed.time}:00`
+    : parsed.time;
 
   return {
-    name: data.name,
-    date: data.date,
-    time: data.time, // ถ้าหลังบ้านต้อง HH:mm:ss ค่อยเติม :00 ที่ backend หรือปรับตรงนี้
-    place: data.place || "",
-    capacity: toNumberOrUndef(data.capacity),
-    detail: data.detail,
-    cost: toNumberOrUndef(data.cost),
-    rating: toNumberOrUndef(data.rating),
-    userId: data.userId ?? 18,
-    // photo: (data.photo as string | File | null) ?? null, // เปิดเมื่อ API รองรับไฟล์
+    name: parsed.name,
+    date: parsed.date,
+    time,
+    place: parsed.place || "",
+    capacity: num(parsed.capacity),
+    detail: parsed.detail,
+    cost: num(parsed.cost),
+    rating: num(parsed.rating),
+    userId,
+    status: parsed.status as string | any,
   };
 }
-
+/* ---------- Helpers: DTO Update ---------- */
 export function toUpdateDtoFromForm(fd: FormData): UpdateEventDto {
-  const toNumUndef = (v: any) =>
-    v === undefined || v === null || v === "" ? undefined : Number(v);
+  const num = (v: any) => (v === "" || v == null ? undefined : Number(v));
+  const s = (k: string) => {
+    const v = fd.get(k);
+    return typeof v === "string" && v ? v : undefined;
+  };
 
-  const eventDate = fd.get("eventDate");
-  const date =
-    typeof eventDate === "string" && eventDate ? eventDate : undefined;
+  const rawStatus = String(fd.get("eventStatus") ?? "");
+  const status =
+    rawStatus === "publish"
+      ? "active"
+      : rawStatus === "unpublish"
+      ? "inactive"
+      : undefined;
 
   return {
-    name: (fd.get("eventName") as string) || undefined,
-    date,
-    place: (fd.get("location") as string) || undefined,
-    detail: (fd.get("details") as string) || undefined,
-    capacity: toNumUndef(fd.get("capacity")),
+    name: s("eventName"),
+    date: s("eventDate"),
+    time: (() => {
+      const t = s("eventTime");
+      return t && /^\d{2}:\d{2}$/.test(t) ? `${t}:00` : t;
+    })(),
+    place: s("eventLocation"),
+    detail: s("eventDetails"),
+    capacity: num(fd.get("eventCapacity")),
+    cost: num(fd.get("eventCost")),
+    rating: num(fd.get("eventRating")),
+    status,
   };
 }
 

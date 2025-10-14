@@ -1,8 +1,14 @@
 // backend/src/events/dto/update-event.dto.ts
 
-
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, IsInt, Min, IsDateString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsInt,
+  Min,
+  IsDateString,
+} from 'class-validator';
 
 export class UpdateEventDto {
   @ApiPropertyOptional()
@@ -103,4 +109,9 @@ export class CreateEventDto {
   @ApiPropertyOptional()
   @IsInt()
   userId!: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  status?: string;
 }

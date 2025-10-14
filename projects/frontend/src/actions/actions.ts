@@ -1,9 +1,8 @@
 "use server";
 
 import { eventFormSchema } from "@/utils/schemas";
-import { EventService } from "@/lib/api";
+import { EventService, UserService } from "@/lib/api";
 import {
-  ensureAuthHeader,
   formToDbShape,
   mapErrorsToFormKeys,
   compactZodErrors,
@@ -11,9 +10,9 @@ import {
   toUpdateDtoFromForm,
   buildEventUrl,
 } from "./helpers.action";
-import { time } from "console";
+import { setOpenApiCookieHeader } from "@/lib/auth/CookieHeader";
+import { redirect } from "next/navigation";
 
-/* ---------- Types ---------- */
 export type EventActionState = {
   ok: boolean;
   errors?: Record<string, string[]>;
@@ -21,12 +20,22 @@ export type EventActionState = {
   next?: string;
 };
 
-/* ---------- Actions ---------- */
+export async function fetchMe() {
+  try {
+    await setOpenApiCookieHeader();
+    const me = await UserService.userControllerGetMe();
+    return { ok: true, data: me };
+  } catch (err: any) {
+    console.error("Error fetching user info:", err);
+    return { ok: false, message: err?.message || "Failed to fetch user info" };
+  }
+}
+
 export const createEventWithZod = async (
   formData: FormData
 ): Promise<EventActionState> => {
   try {
-    ensureAuthHeader();
+    await setOpenApiCookieHeader();
 
     const candidate = formToDbShape(formData);
     const parsed = eventFormSchema.safeParse(candidate);
@@ -41,8 +50,19 @@ export const createEventWithZod = async (
       };
     }
 
-    const dataWithUser = { ...parsed.data, userId: 18 };
-    const dto = toCreateDto(dataWithUser);
+    const meRes = await fetchMe();
+    if (!meRes.ok || !meRes.data) {
+      return { ok: false, message: "Not authenticated" };
+    }
+    const raw = meRes.data as any;
+    const userId: number | undefined = Number(
+      raw?.userId ?? raw?.id ?? raw?.user?.id
+    );
+    if (!userId || Number.isNaN(userId)) {
+      return { ok: false, message: "Cannot determine user id" };
+    }
+
+    const dto = toCreateDto(parsed.data, userId);
     console.log("createEventWithZod dto:", dto);
 
     await EventService.eventControllerCreate(dto);
@@ -53,9 +73,7 @@ export const createEventWithZod = async (
     return {
       ok: false,
       message:
-        status === 401
-          ? "Unauthorized: ตรวจสอบ DEV_BEARER ใน .env และว่าเป็น access token ที่ยังไม่หมดอายุ"
-          : error?.body?.message || error?.message || "Failed to create event.",
+        error?.body?.message || error?.message || "Failed to create event.",
     };
   }
 };
@@ -65,11 +83,7 @@ export const updateEventWithZod = async (
   formData: FormData
 ): Promise<EventActionState> => {
   try {
-    ensureAuthHeader();
-    console.log(
-      "updateEventWithZod formData:",
-      Object.fromEntries(formData.entries())
-    );
+    await setOpenApiCookieHeader();
 
     const numericId = Number(id);
     if (Number.isNaN(numericId)) {
@@ -98,9 +112,7 @@ export const updateEventWithZod = async (
     return {
       ok: false,
       message:
-        status === 401
-          ? "Unauthorized: ตรวจสอบ DEV_BEARER ใน .env"
-          : error?.body?.message || error?.message || "Unknown error",
+        error?.body?.message || error?.message || "Failed to create event.",
     };
   }
 };
@@ -109,8 +121,7 @@ export const deleteEventById = async (
   id: string
 ): Promise<EventActionState> => {
   try {
-    ensureAuthHeader();
-    console.log("deleteEventById id:", id);
+    await setOpenApiCookieHeader();
 
     const numericId = Number(id);
     if (Number.isNaN(numericId))
@@ -122,15 +133,13 @@ export const deleteEventById = async (
     return {
       ok: false,
       message:
-        status === 401
-          ? "Unauthorized: ตรวจสอบ DEV_BEARER ใน .env"
-          : error?.body?.message || error?.message || "Unknown error",
+        error?.body?.message || error?.message || "Failed to Delete event.",
     };
   }
 };
 
 export async function getAllEvents() {
-  ensureAuthHeader();
+  await setOpenApiCookieHeader();
   return EventService.eventControllerGetAll();
 }
 
@@ -146,7 +155,7 @@ export async function getEventById(id: number) {
     capacity: 150,
     status: "publish",
     time: "13:00",
-    userId: 18,
+    userId: 15,
   };
   return eventData;
 }
