@@ -5,6 +5,7 @@ import { getAllEvents } from "@/actions/actions";
 type EventApi = {
   eventId: number;
   name: string;
+  status: string;
 };
 
 export default async function EventPage() {
@@ -37,14 +38,17 @@ export default async function EventPage() {
               className="mb-2"
             >
               <div key={ev.eventId}>
-                {ev.name} ({ev.eventId})
+                {ev.name} ({ev.eventId}){" "}
+                <>
+                  <span className="text-gray-400">{ev.status}</span>
+                </>
               </div>
             </Link>
           ))
         )}
       </div>
 
-      <div className="flex justify-center mt-4 font-semibold text-2xl">
+      <div className="flex justify-center mt-4 font-semibold text-2xl pb-20">
         Link to EventPage
       </div>
 

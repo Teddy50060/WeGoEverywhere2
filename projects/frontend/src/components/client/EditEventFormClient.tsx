@@ -1,8 +1,8 @@
-// projects/frontend/src/components/client/EditEventFormClient.tsx
 "use client";
 
 import * as React from "react";
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import EventPhotoPicker from "@/components/form/EventPhotoPicker";
 import { FormInput } from "@/components/form/input/FormInput";
 import { TextAreaInput } from "@/components/form/input/TextAreaInout";
@@ -26,8 +26,8 @@ type EventView = {
   capacity: number;
   joined?: number;
   userId: number | string;
-  date: string | null;
-  time: string | null;
+  date: string | null; // 'YYYY-MM-DD'
+  time: string | null; // 'HH:mm'
   place: string;
   detail: string;
   imageUrl: string;
@@ -35,32 +35,53 @@ type EventView = {
 };
 
 export default function EditEventFormClient({ event }: { event: EventView }) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const didSubmitUpdateRef = useRef(false);
+  const lastUpdateToastSigRef = useRef<string | null>(null);
+  const didSubmitDeleteRef = useRef(false);
+  const lastDeleteToastSigRef = useRef<string | null>(null);
+
   const updateWrapper = async (
     _prev: EventStateWithFields<EventActionState>,
     formData: FormData
   ): Promise<EventStateWithFields<EventActionState>> => {
+    didSubmitUpdateRef.current = true;
+    lastUpdateToastSigRef.current = null;
+
     try {
       const res = await updateEventWithZod(String(event.eventId), formData);
       const nextState: EventStateWithFields<EventActionState> = {
         ...(res ?? { ok: false }),
         fields: toFields(formData),
+        message: undefined,
       };
-
-      if (nextState.ok) {
-        console.log("✅ Event updated successfully!");
-      }
       return nextState;
     } catch (err) {
       console.error(err);
-      return { ok: false, errors: {}, fields: toFields(formData) };
+      return {
+        ok: false,
+        errors: {},
+        fields: toFields(formData),
+        message: undefined,
+      };
     }
   };
 
   const deleteWrapper = async (
     _prev: EventActionState,
     _formData: FormData
-  ): Promise<EventActionState> => deleteEventById(String(event.eventId));
+  ): Promise<EventActionState> => {
+    didSubmitDeleteRef.current = true;
+    lastDeleteToastSigRef.current = null;
+    try {
+      const res = await deleteEventById(String(event.eventId));
+      return { ...(res ?? { ok: false }), message: undefined };
+    } catch (err) {
+      console.error(err);
+      return { ok: false, message: undefined };
+    }
+  };
 
   const [state, formAction] = useActionState<
     EventStateWithFields<EventActionState>,
@@ -73,19 +94,50 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
 
   const f = state.fields ?? {};
 
-  useActionToasts(state?.ok ? state : undefined, {
+  const updateToastState = useMemo(() => {
+    if (!didSubmitUpdateRef.current || !state) return undefined;
+    const effective = { ...state, message: undefined };
+    const sig = effective.ok ? "S" : "E";
+    if (lastUpdateToastSigRef.current === sig) return undefined;
+    lastUpdateToastSigRef.current = sig;
+    return effective;
+  }, [state]);
+
+  const deleteToastState = useMemo(() => {
+    if (!didSubmitDeleteRef.current || !deleteState) return undefined;
+    const effective = { ...deleteState, message: undefined };
+    const sig = effective.ok ? "S" : "E";
+    if (lastDeleteToastSigRef.current === sig) return undefined;
+    lastDeleteToastSigRef.current = sig;
+    return effective;
+  }, [deleteState]);
+
+  useActionToasts(updateToastState, {
     successText: "Event updated successfully!",
+    errorText: "Failed to update event.",
+    onSuccess: () => {
+      // router.refresh(); // รีเฟรช server components บนหน้านี้
+      router.push("/event");
+    },
   });
-  useActionToasts(deleteState);
+
+  useActionToasts(deleteToastState, {
+    successText: "Event deleted.",
+    errorText: "Failed to delete event.",
+    onSuccess: () => {
+      router.push("/event");
+    },
+  });
 
   return (
     <>
       <div className="font-alt relative rounded-3xl border border-black/10 bg-[var(--color-brand-secondary)] p-4 shadow text-sm">
         <form ref={formRef} id="updateForm" action={formAction} noValidate>
           <input type="hidden" name="id" value={event.eventId} />
+
           <div className="mb-4">
             <EventPhotoPicker
-              name="photo"
+              name="eventPhoto"
               value={event.imageUrl}
               linkText="Change your event photo"
               size={208}
@@ -95,6 +147,7 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
             />
             <FieldError errors={state?.errors?.photo} />
           </div>
+
           <FormInput
             name="eventName"
             type="text"
@@ -103,6 +156,7 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
             defaultValue={f.eventName ?? event.name}
           />
           <FieldError errors={state?.errors?.eventName} />
+
           <div className="mb-3 grid grid-cols-5 gap-3">
             <div className="col-span-5 sm:col-span-3">
               <Calendar28
@@ -114,6 +168,7 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
               />
               <FieldError errors={state?.errors?.eventDate} />
             </div>
+
             <div className="col-span-5 sm:col-span-2">
               <TimePicker
                 name="eventTime"
@@ -125,18 +180,23 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
               <FieldError errors={state?.errors?.eventTime} />
             </div>
           </div>
+
           <LocationInput
-            defaultValue={f.location ?? event.place}
+            name="eventLocation"
+            label="Location"
+            defaultValue={f.eventLocation ?? event.place ?? ""}
             className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
           />
-          <FieldError errors={state?.errors?.location} />
+          <FieldError errors={state?.errors?.eventLocation} />
+
           <TextAreaInput
-            name="details"
+            name="eventDetails"
             label="Details"
-            defaultValue={f.details ?? event.detail}
+            defaultValue={f.eventDetails ?? event.detail}
             className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
           />
-          <FieldError errors={state?.errors?.details} />
+          <FieldError errors={state?.errors?.eventDetails} />
+
           <div className="mt-4 flex items-center gap-2 pb-2">
             <span className="text-[13px] font-semibold text-black/80">
               Optional
@@ -147,31 +207,34 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <FormInput
-                name="capacity"
+                name="eventCapacity"
                 type="number"
                 label="Capacity"
                 className="!bg-[var(--color-brand-background)] rounded-full border-black/30"
-                defaultValue={f.capacity ?? event.capacity}
+                defaultValue={f.eventCapacity ?? event.capacity}
               />
-              <FieldError errors={state?.errors?.capacity} />
+              <FieldError errors={state?.errors?.eventCapacity} />
             </div>
 
             <div>
               <StatusSelect
-                name="status"
+                name="eventStatus"
                 label="Status"
                 options={[
                   { value: "publish", label: "Publish" },
                   { value: "unpublish", label: "Unpublish" },
                 ]}
-                defaultValue={(f.status as string) ?? event.status ?? "publish"}
+                defaultValue={
+                  (f.eventStatus as string) ?? event.status ?? "publish"
+                }
                 formId="updateForm"
                 className="!bg-[var(--color-brand-background)] rounded-full border border-black/30 text-sm"
               />
-              <FieldError errors={state?.errors?.status} />
+              <FieldError errors={state?.errors?.eventStatus} />
             </div>
           </div>
         </form>
+
         <div className="grid grid-cols-[1fr_auto] gap-3 mt-4 items-center">
           <button
             form="updateForm"

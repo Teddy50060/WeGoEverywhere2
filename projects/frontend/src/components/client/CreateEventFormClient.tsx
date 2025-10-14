@@ -1,7 +1,8 @@
 // /components/form/CreateEventFormClient.tsx
 "use client";
 import * as React from "react";
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { createEventWithZod, type EventActionState } from "@/actions/actions";
 import EventPhotoPicker from "@/components/form/EventPhotoPicker";
 import { Calendar28 } from "@/components/form/input/DatePicker";
@@ -16,27 +17,34 @@ import { useActionToasts } from "../form/useActionToasts";
 import { TimePicker } from "../form/input/TimePicker";
 
 export default function CreateEventFormClient() {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const didSubmitRef = useRef(false);
+  const lastToastSigRef = useRef<string | null>(null);
 
   const createWrapper = async (
     _prev: EventStateWithFields<EventActionState>,
     formData: FormData
   ): Promise<EventStateWithFields<EventActionState>> => {
+    didSubmitRef.current = true;
+    lastToastSigRef.current = null;
+
     try {
       const res = await createEventWithZod(formData);
-
       const nextState: EventStateWithFields<EventActionState> = {
         ...(res ?? { ok: false }),
+        message: undefined,
         fields: toFields(formData),
       };
-
-      if (nextState.ok) {
-        formRef.current?.reset();
-      }
       return nextState;
     } catch (err) {
       console.error(err);
-      return { ok: false, errors: {}, fields: toFields(formData) };
+      return {
+        ok: false,
+        errors: {},
+        fields: toFields(formData),
+        message: undefined,
+      };
     }
   };
 
@@ -46,10 +54,26 @@ export default function CreateEventFormClient() {
   >(createWrapper, { ok: false, fields: {} });
 
   const f = state.fields ?? {};
+  const toastState = useMemo(() => {
+    if (!didSubmitRef.current || !state) return undefined;
 
-  useActionToasts(state?.ok ? state : undefined, {
+    const effective = { ...state, message: undefined };
+
+    const sig = effective.ok ? "S" : "E";
+
+    if (lastToastSigRef.current === sig) return undefined;
+    lastToastSigRef.current = sig;
+
+    return effective;
+  }, [state]);
+
+  useActionToasts(toastState, {
     successText: "Event created successfully!",
-    onSuccess: () => formRef.current?.reset(),
+    errorText: "Failed to create event.",
+    onSuccess: () => {
+      formRef.current?.reset();
+      router.push("/event");
+    },
   });
 
   return (
@@ -69,6 +93,7 @@ export default function CreateEventFormClient() {
         />
         <FieldError errors={state?.errors?.photo} />
       </div>
+
       <FormInput
         name="eventName"
         type="text"
@@ -77,6 +102,7 @@ export default function CreateEventFormClient() {
         defaultValue={f.eventName}
       />
       <FieldError errors={state?.errors?.eventName} />
+
       {/* Event date + Time */}
       <div className="mb-3 grid grid-cols-5 gap-3">
         <div className="col-span-5 sm:col-span-3">
@@ -96,23 +122,27 @@ export default function CreateEventFormClient() {
           <TimePicker
             name="eventTime"
             label="Time"
-            defaultValue="00:00"
+            defaultValue="08:00"
             className="!bg-[var(--color-brand-background)] rounded-full border-black/30 h-10"
           />
-          <FieldError errors={state?.errors?.time} />
+          <FieldError errors={state?.errors?.eventTime} />
         </div>
       </div>
 
-      <LocationInput defaultValue={f.location} />
-      <FieldError errors={state?.errors?.location} />
+      <LocationInput
+        name="eventLocation"
+        label="Location"
+        defaultValue={f.eventLocation}
+      />
+      <FieldError errors={state?.errors?.eventLocation} />
 
       <TextAreaInput
-        name="details"
+        name="eventDetails"
         label="Details"
         className="block w-full h-22 overflow-y-auto rounded-[20px] border border-black/30 !bg-[var(--color-brand-background)] resize-none focus:border-black"
-        defaultValue={f.details}
+        defaultValue={f.eventDetails}
       />
-      <FieldError errors={state?.errors?.details} />
+      <FieldError errors={state?.errors?.eventDetails} />
 
       {/* Optional*/}
       <div className="mb-3 flex items-center gap-2">
@@ -126,24 +156,24 @@ export default function CreateEventFormClient() {
       <div className="mb-3 grid grid-cols-2 gap-3">
         <div>
           <FormInput
-            name="capacity"
+            name="eventCapacity"
             type="number"
             label="Capacity"
             className="!bg-[var(--color-brand-background)] rounded-full border-black/30"
-            defaultValue={f.capacity}
+            defaultValue={f.eventCapacity}
           />
-          <FieldError errors={state?.errors?.capacity} />
+          <FieldError errors={state?.errors?.eventCapacity} />
         </div>
 
         <div>
           <StatusSelect
-            name="status"
+            name="eventStatus"
             label="Status"
             options={[
               { value: "publish", label: "Publish" },
               { value: "unpublish", label: "Unpublish" },
             ]}
-            defaultValue={(f.status as string) ?? "publish"}
+            defaultValue={(f.status as string) ?? "unpublish"}
           />
           <FieldError errors={state?.errors?.status} />
         </div>
