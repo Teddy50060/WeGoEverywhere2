@@ -70,7 +70,7 @@ export class EmailService {
     }
 
     // ประกอบ options แบบยืดหยุ่น
-    const opts: nodemailer.TransportOptions = {
+    const opts: any = {
       host: emailConfig.smtp.host,
       port: emailConfig.smtp.port,
       secure: emailConfig.smtp.secure,
@@ -86,7 +86,7 @@ export class EmailService {
 
     // สำหรับ MailHog/Dev: ปิด TLS และไม่ verify CA (ค่าพวกนี้จะถูก set มาจาก email.config.ts)
     if (emailConfig.smtp.hasOwnProperty('ignoreTLS')) {
-      (opts as any).ignoreTLS = (emailConfig.smtp as any).ignoreTLS;
+      opts.ignoreTLS = (emailConfig.smtp as any).ignoreTLS;
     }
     if (emailConfig.smtp.tls) {
       opts.tls = emailConfig.smtp.tls;
@@ -95,7 +95,7 @@ export class EmailService {
     this.transporter = nodemailer.createTransport(opts);
 
     this.logger.log(
-      `Email transporter ready host=${opts.host} port=${opts.port} secure=${opts.secure} auth=${!!opts.auth} ignoreTLS=${(opts as any).ignoreTLS === true}`,
+      `Email transporter ready host=${opts.host} port=${opts.port} secure=${opts.secure} auth=${!!opts.auth} ignoreTLS=${opts.ignoreTLS === true}`,
     );
   }
 
