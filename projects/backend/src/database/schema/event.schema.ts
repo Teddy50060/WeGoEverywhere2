@@ -14,7 +14,7 @@ export const event = pgTable("event", {
     detail: text("detail").notNull(),
     rating: doublePrecision("rating").default(0),
     status: varchar("status").notNull().default('active'),
-    userId: integer("user_id").notNull(),
+    userId: integer("user_id").references(() => users.userId, { onDelete: "set null" }),
 }, (table) => [
     index("idx_events_start_time").using("btree", table.date.asc().nullsLast().op("date_ops")),
     foreignKey({
