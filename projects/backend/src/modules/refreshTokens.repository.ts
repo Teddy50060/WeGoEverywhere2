@@ -1,19 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DrizzleService } from '@backend/src/database/drizzle.service';
 import { refreshTokens } from '@backend/src/database/schema/refreshTokens.schema';
 import { hash as argon2Hash, verify as argon2Verify } from '@node-rs/argon2'; // or argon2
+import type { DbType } from '../database/connection';
 
 @Injectable()
 export class RefreshTokensRepository {
-  constructor(private readonly db: DrizzleService) {}
+  constructor
+  (
+    @Inject('DatabaseConnection') private readonly db: DbType,
+  ) 
+  {
+
+  }
+
+  async isRevoked(userId: number) {
+    const revoked = await this.db
+      .select({ revoked: refreshTokens.revoked })
+      .from(refreshTokens)
+      .where(eq(refreshTokens.userId, userId))
+      .then(rows => rows[0]);
+
+    return revoked;
+  }
 
   async create(userId: number, rawToken: string, expiresAt: Date, ip?: string, ua?: string) {
     const tokenHash = await argon2Hash(rawToken);
     // Generate a random id (for demo, use timestamp + random)
-    const id = Date.now() + Math.floor(Math.random() * 10000);
-    await this.db.db.insert(refreshTokens).values({
-      id,
+    await this.db.insert(refreshTokens).values({
       userId,
       tokenHash,
       revoked: false,
@@ -24,16 +38,41 @@ export class RefreshTokensRepository {
     });
   }
 
+  async createOrUpdateRefreshToken(userId: number, rawToken: string, expiresAt: Date, ip?: string, ua?: string) {
+    const tokenHash = await argon2Hash(rawToken);
+    await this.db.insert(refreshTokens)
+    .values({
+      userId,
+      tokenHash: tokenHash,
+      revoked: false,
+      expiresAt,
+      createdAt: new Date(),
+      createdByIp: ip,
+      userAgent: ua,
+    })
+    .onConflictDoUpdate({
+      target: refreshTokens.userId,
+      set: {
+        tokenHash: tokenHash,
+        revoked: false,
+        expiresAt,
+        createdAt: new Date(),
+        createdByIp: ip,
+        userAgent: ua,
+      },
+    });
+  }
+
   async revokeById(id: number) {
-    await this.db.db.update(refreshTokens).set({ revoked: true }).where(eq(refreshTokens.id, id));
+    await this.db.update(refreshTokens).set({ revoked: true }).where(eq(refreshTokens.id, id));
   }
 
   async revokeAllByUser(userId: number) {
-    await this.db.db.update(refreshTokens).set({ revoked: true }).where(eq(refreshTokens.userId, userId));
+    await this.db.update(refreshTokens).set({ revoked: true }).where(eq(refreshTokens.userId, userId));
   }
 
   async findValidByUser(userId: number) {
-    return this.db.db.select().from(refreshTokens).where(eq(refreshTokens.userId, userId));
+    return this.db.select().from(refreshTokens).where(eq(refreshTokens.userId, userId));
   }
 
   // NEW: do the hash comparison here so controller doesn’t import argon2

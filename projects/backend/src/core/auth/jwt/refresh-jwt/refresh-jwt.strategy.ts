@@ -15,6 +15,9 @@ export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt'
   ) {
     super({
         jwtFromRequest: ExtractJwt.fromExtractors([
+            // Users can send us the JWT token either by a bearer token in an authorization header...
+            ExtractJwt.fromAuthHeaderAsBearerToken(),
+            // ... or in a cookie named "jwt"
             (request: Request) => request?.cookies?.refresh_jwt,
         ]),
         ignoreExpiration: false,

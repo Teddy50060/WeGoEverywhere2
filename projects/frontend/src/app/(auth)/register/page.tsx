@@ -3,7 +3,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { FaArrowLeft, FaEye, FaEyeSlash, FaCheck, FaTimes } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaEye,
+  FaEyeSlash,
+  FaCheck,
+  FaTimes,
+} from "react-icons/fa";
 import PasswordInput from "@/components/form/input/PasswordInput";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -72,7 +78,10 @@ export default function RegisterPage() {
     {
       id: "noLetterSequence",
       label: "No letter sequence (abc, xyz)",
-      test: (pwd) => !/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(pwd),
+      test: (pwd) =>
+        !/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(
+          pwd
+        ),
       met: false,
     },
     {
@@ -86,10 +95,12 @@ export default function RegisterPage() {
   useEffect(() => {
     const fetchPolicy = async () => {
       try {
-        const response = await apiCall('/api/consent/current-policy');
-        setPolicyContent(response.content || response.text || "Policy content not available");
+        const response = await apiCall("/api/consent/current-policy");
+        setPolicyContent(
+          response.content || response.text || "Policy content not available"
+        );
       } catch (error) {
-        console.error('Failed to load policy:', error);
+        console.error("Failed to load policy:", error);
         setPolicyContent("Failed to load policy. Please try again later.");
       }
     };
@@ -97,12 +108,12 @@ export default function RegisterPage() {
   }, []);
 
   const validatePassword = (pwd: string) => {
-    const updatedRequirements = requirements.map(req => ({
+    const updatedRequirements = requirements.map((req) => ({
       ...req,
-      met: req.test(pwd)
+      met: req.test(pwd),
     }));
     setRequirements(updatedRequirements);
-    return updatedRequirements.every(req => req.met);
+    return updatedRequirements.every((req) => req.met);
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +122,7 @@ export default function RegisterPage() {
     validatePassword(newPassword);
   };
 
-  const allRequirementsMet = requirements.every(req => req.met);
+  const allRequirementsMet = requirements.every((req) => req.met);
 
   return (
     <main className="font-alt">
@@ -133,74 +144,90 @@ export default function RegisterPage() {
       </section>
 
       {/* การ์ดฟอร์มครีม */}
-      <div className="relative -mt-10 w-full max-w-sm mx-auto flex-1 rounded-t-[50px] bg-[var(--color-brand-secondary)] p-5 shadow-lg border border-black/5
-        overflow-hidden pb-24 sm:pb-28 ">
-        <form className="mt-2 space-y-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const form = e.currentTarget as HTMLFormElement & {
-            email: HTMLInputElement;
-            accept: HTMLInputElement;
-          };
-          
-          const email = form.email.value;
-          const accepted = form.accept.checked;
+      <div
+        className="relative -mt-10 w-full max-w-sm mx-auto flex-1 rounded-t-[50px] bg-[var(--color-brand-secondary)] p-5 shadow-lg border border-black/5
+        overflow-hidden pb-24 sm:pb-28 "
+      >
+        <form
+          className="mt-2 space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const form = e.currentTarget as HTMLFormElement & {
+              email: HTMLInputElement;
+              accept: HTMLInputElement;
+            };
 
-          // Enhanced validation
-          if (!email) {
-            toast.error("Email is required");
-            return;
-          }
-          
-          // Email format validation
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(email)) {
-            toast.error("Please enter a valid email address");
-            return;
-          }
+            const email = form.email.value;
+            const accepted = form.accept.checked;
 
-          if (!password) {
-            toast.error("Password is required");
-            return;
-          }
-          
-          // Check all password requirements
-          if (!allRequirementsMet) {
-            toast.error("Password must meet all security requirements");
-            return;
-          }
+            // Enhanced validation
+            if (!email) {
+              toast.error("Email is required");
+              return;
+            }
 
-          if (password !== confirmPassword) {
-            toast.error("Passwords do not match");
-            return;
-          }
-          
-          if (!accepted) {
-            toast.error("Please accept the policy");
-            return;
-          }
+            // Email format validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+              toast.error("Please enter a valid email address");
+              return;
+            }
 
-          // Store registration data for next step
-          const registrationData = { email, password };
-          sessionStorage.setItem('registrationData', JSON.stringify(registrationData));
-          
-          toast.success("Email and password saved. Complete your profile!");
-          router.push("/profile-setup");
-        }}
+            if (!password) {
+              toast.error("Password is required");
+              return;
+            }
+
+            // Check all password requirements
+            if (!allRequirementsMet) {
+              toast.error("Password must meet all security requirements");
+              return;
+            }
+
+            if (password !== confirmPassword) {
+              toast.error("Passwords do not match");
+              return;
+            }
+
+            if (!accepted) {
+              toast.error("Please accept the policy");
+              return;
+            }
+
+            // Store registration data for next step
+            const registrationData = { email, password };
+            sessionStorage.setItem(
+              "registrationData",
+              JSON.stringify(registrationData)
+            );
+
+            toast.success("Email and password saved. Complete your profile!");
+            router.push("/profile-setup");
+          }}
         >
           {/* E-mail */}
-          <FormInput name="email" label="Email" type="email" placeholder="you@example.com" />
+          <FormInput
+            name="email"
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            className="bg-white border border-black text-sm placeholder:text-gray-400 placeholder:opacity-100 "
+            required
+          />
 
           {/* Password */}
           <div>
-            <label className="text-sm font-semibold text-gray-900">Password</label>
+            <label className="text-sm font-semibold text-gray-900">
+              Password
+            </label>
             <input
               type="password"
               name="password"
               value={password}
               onChange={handlePasswordChange}
               autoComplete="new-password"
-              className="mt-1 w-full rounded-2xl border border-gray-300 px-4 py-2.5 text-sm focus:border-[#EB6223] focus:outline-none focus:ring-2 focus:ring-[#EB6223]/20"
+              className="mt-1 w-full rounded-2xl bg-white border border-black 
+              px-4 py-2.5 text-sm focus:border-[#EB6223] focus:outline-none focus:ring-2 focus:ring-[#EB6223]/20"
               placeholder="Enter your password"
             />
           </div>
@@ -209,33 +236,43 @@ export default function RegisterPage() {
           {password && (
             <div className="rounded-2xl bg-white/50 p-4 border border-gray-200">
               <div className="flex items-center gap-2 mb-3">
-                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                  allRequirementsMet ? 'bg-green-500' : 'bg-gray-300'
-                }`}>
-                  {allRequirementsMet && <FaCheck className="text-white text-xs" />}
+                <div
+                  className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                    allRequirementsMet ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                >
+                  {allRequirementsMet && (
+                    <FaCheck className="text-white text-xs" />
+                  )}
                 </div>
-                <span className={`text-sm font-semibold ${
-                  allRequirementsMet ? 'text-green-600' : 'text-gray-600'
-                }`}>
-                  Password Requirements {allRequirementsMet ? '✓' : ''}
+                <span
+                  className={`text-sm font-semibold ${
+                    allRequirementsMet ? "text-green-600" : "text-gray-600"
+                  }`}
+                >
+                  Password Requirements {allRequirementsMet ? "✓" : ""}
                 </span>
               </div>
-              
+
               <div className="grid grid-cols-1 gap-1.5">
                 {requirements.map((req) => (
                   <div key={req.id} className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                      req.met ? 'bg-green-500' : 'bg-red-400'
-                    }`}>
+                    <div
+                      className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                        req.met ? "bg-green-500" : "bg-red-400"
+                      }`}
+                    >
                       {req.met ? (
                         <FaCheck className="text-white text-xs" />
                       ) : (
                         <FaTimes className="text-white text-xs" />
                       )}
                     </div>
-                    <span className={`text-xs ${
-                      req.met ? 'text-green-600' : 'text-red-500'
-                    }`}>
+                    <span
+                      className={`text-xs ${
+                        req.met ? "text-green-600" : "text-red-500"
+                      }`}
+                    >
                       {req.label}
                     </span>
                   </div>
@@ -246,31 +283,41 @@ export default function RegisterPage() {
 
           {/* Confirm Password */}
           <div>
-            <label className="text-sm font-semibold text-gray-900">Confirm Password</label>
+            <label className="text-sm font-semibold text-gray-900">
+              Confirm Password
+            </label>
             <input
               type="password"
               name="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
-              className="mt-1 w-full rounded-2xl border border-gray-300 px-4 py-2.5 text-sm focus:border-[#EB6223] focus:outline-none focus:ring-2 focus:ring-[#EB6223]/20"
+              className="mt-1 w-full rounded-2xl bg-white border border-black px-4 py-2.5 text-sm focus:border-[#EB6223] focus:outline-none focus:ring-2 focus:ring-[#EB6223]/20"
               placeholder="Confirm your password"
             />
             {confirmPassword && (
               <div className="flex items-center gap-2 mt-2">
-                <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                  password === confirmPassword ? 'bg-green-500' : 'bg-red-400'
-                }`}>
+                <div
+                  className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                    password === confirmPassword ? "bg-green-500" : "bg-red-400"
+                  }`}
+                >
                   {password === confirmPassword ? (
                     <FaCheck className="text-white text-xs" />
                   ) : (
                     <FaTimes className="text-white text-xs" />
                   )}
                 </div>
-                <span className={`text-xs ${
-                  password === confirmPassword ? 'text-green-600' : 'text-red-500'
-                }`}>
-                  {password === confirmPassword ? 'Passwords match' : 'Passwords do not match'}
+                <span
+                  className={`text-xs ${
+                    password === confirmPassword
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                >
+                  {password === confirmPassword
+                    ? "Passwords match"
+                    : "Passwords do not match"}
                 </span>
               </div>
             )}
@@ -299,9 +346,10 @@ export default function RegisterPage() {
             className={`
               mt-4 w-full rounded-3xl border border-black px-4 py-2.5 text-base font-bold text-black
               transition-all duration-200
-              ${allRequirementsMet && password === confirmPassword
-                ? 'bg-[#FFDCD5] hover:bg-[#F2C6C6] active:scale-95'
-                : 'bg-gray-300 cursor-not-allowed opacity-60'
+              ${
+                allRequirementsMet && password === confirmPassword
+                  ? "bg-[#FFDCD5] hover:bg-[#F2C6C6] active:scale-95"
+                  : "bg-gray-300 cursor-not-allowed opacity-60"
               }
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EB6223]
             `}

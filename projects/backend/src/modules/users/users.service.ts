@@ -4,19 +4,16 @@ import { eq } from 'drizzle-orm';
 import { Pool } from 'pg';     
 import { schema } from '@backend/src/database/schema';
 import { UpdateUserDto } from './users.dto'; // <-- Import the DTO
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UserService{
     private readonly db: NodePgDatabase<typeof schema>;
 
-  constructor(
-    private readonly pool: Pool,
-  ) {
-    this.db = drizzle(this.pool, { schema });
-  }
+  constructor(private readonly usersRepo: UsersRepository) {}
 
-  async findAll(){
-    return this.db.query.users.findMany();
+  async getAllUsers() {
+    return this.usersRepo.findAll();
   }
 
   async update(id : number , updateuserdto : UpdateUserDto){

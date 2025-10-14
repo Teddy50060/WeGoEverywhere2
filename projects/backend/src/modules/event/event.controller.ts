@@ -6,10 +6,10 @@ import { UpdateEventDto , CreateEventDto } from './event.dto'; // <-- Import the
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
-
+  
   @Get()
   GetAll() {
-    return this.eventService.findAll();
+    return this.eventService.getAllEvents();
   }
 
   // --- ADD THIS ENDPOINT ---
@@ -18,19 +18,20 @@ export class EventController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEventDto: UpdateEventDto,
   ) {
-    return this.eventService.update(id, updateEventDto);
+    return this.eventService.updateEvent(id, updateEventDto);
   }
+
 
   @Post()
   create(
     @Body() CreateEventDto: CreateEventDto,
   ){
-    return this.eventService.create(CreateEventDto);
+    return this.eventService.createEvent(CreateEventDto);
   }
 
   @Delete(':id')
   softDelete(@Param('id', ParseIntPipe) id: number) {
     const updateEventDto = { status: 'deleted' };
-    return this.eventService.update(id, updateEventDto);
+    return this.eventService.updateEvent(id, updateEventDto);
   }
 }

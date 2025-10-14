@@ -9,6 +9,7 @@ import {
   Res,
   UseGuards, UnauthorizedException, BadRequestException,
   ValidationPipe,
+  HttpException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -34,6 +35,9 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ConfigService } from '@nestjs/config';
 import { AuthUsersRepository } from '@backend/src/modules/auth-users.repository';
+import { ONE_MINUTE, ONE_WEEK } from '@backend/src/consts/jwt-age';
+import LoginDto from './dto/login.dto';
+import { compareSync } from 'bcrypt';
 
 @Controller('auth')
 export class AuthController {
@@ -48,6 +52,7 @@ export class AuthController {
   // this Route sus
   @Public()
   @Post('bearer')
+  @ApiOperation({ summary: 'For developing only!' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -61,42 +66,52 @@ export class AuthController {
     return { accessToken: accessToken };
   }
 
-  // ----------------------------------------------------------------
-  // GitHub OAuth callback
-  // Fix: set refresh cookie to the REFRESH token (not access).
-  // Also store refresh token row in DB.
-  // ----------------------------------------------------------------
+  @Public()
+  @UseGuards(GitHubAuthGuard)
+  @Get('github')
+  @ApiOperation({ summary: 'Redirect to Github OAuth' })
+  async githubAuth() {
+    // Redirect to Github
+  }
+  
   @Public()
   @UseGuards(GitHubAuthGuard)
   @Get('callback')
-  async githubCallback(@Req() req: any, @Res({ passthrough: true }) res: Response) {
-    const accessToken = this.authService.signJwt(req.user.id, req.user.email);
-    const { refreshToken } = this.authService.signRefreshJwt(req.user.id);
-
-    // store hashed refresh token in DB
-    await this.refreshTokensRepo.create(
-      Number(req.user.id),
-      refreshToken,
-      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      req.ip,
-      (req.headers['user-agent'] as string) ?? undefined,
-    );
-
-    res.cookie('jwt', accessToken, {
+  @ApiOperation({ summary: 'Github OAuth callback' })
+  githubCallback(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const accessToken = this.authService.signJwt(req.user.id);
+    const refreshToken = this.authService.signRefreshJwt(req.user.id);
+    res.cookie('jwt', accessToken, { 
       httpOnly: true,
       secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
       sameSite: 'strict',
-      maxAge: 1000 * 60 * 15,
+      maxAge: 15 * ONE_MINUTE,
     });
-
-    res.cookie('refresh_jwt', refreshToken, {
+    res.cookie('refresh_jwt', refreshToken, { 
       httpOnly: true,
       secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
       sameSite: 'strict',
-      maxAge: 1000 * 60 * 60 * 24 * 7,
+      maxAge: ONE_WEEK,
     });
+    // need fix hard code localhost:3000
+    return res.redirect('http://localhost:3000/profile-setup');
+  }
 
-    return 'Github Callback Successful';
+  @Public()
+  @UseGuards(RefreshJwtGuard)
+  @Post('refresh-jwt-token')
+  @ApiOperation({ summary: 'Use refresh token to refresh access token' })
+  async refreshJwtToken(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const userId = req.user.sub;
+    const userEmail = req.user.email;
+    const accessToken = await this.authService.refreshAccessToken(userId, userEmail);
+    res.cookie('jwt', accessToken, { 
+      httpOnly: true,
+      secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+      sameSite: 'strict',
+      maxAge: 15 * ONE_MINUTE,
+    });
+    return { accessToken };
   }
 
   // ----------------------------------------------------------------
@@ -105,6 +120,7 @@ export class AuthController {
   // ----------------------------------------------------------------
   @Public()
   @UseGuards(RefreshJwtGuard)
+  @ApiOperation({ summary: '[OBSULETE] soon' })
   @Post('refresh-token')
   async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const rawRefresh =
@@ -194,6 +210,10 @@ export class AuthController {
 
       // 5) Generate JWT token
       const accessToken = this.authService.signJwt(user.userId.toString(), body.email);
+      const { refreshToken, tokenId } = this.authService.signRefreshJwt(
+        user.userId,
+        body.email,
+      );
 
       // 6) Set cookie
       res.cookie('jwt', accessToken, {
@@ -202,6 +222,18 @@ export class AuthController {
         sameSite: 'strict',
         maxAge: 1000 * 60 * 15,
       });
+      res.cookie('refresh_jwt', refreshToken, {
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'strict',
+        maxAge: ONE_WEEK,
+      });
+
+      await this.refreshTokensRepo.createOrUpdateRefreshToken(
+        user.userId,
+        refreshToken,
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      );
 
       // 7) Return success response
       return { 
@@ -221,6 +253,81 @@ export class AuthController {
         error: 'Registration failed',
         details: error.message
       };
+    }
+  }
+
+  
+  @Public()
+  @Post('login')
+  @ApiOperation({ summary: 'User log in by password' })
+  async login(
+    @Body() body: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    try {
+      // 1) หา user จาก email
+      const authUser = await this.authUsersRepository.findByEmail(body.email);
+      if (!authUser) {
+        throw new HttpException('Invalid email or password', HttpStatus.UNAUTHORIZED);
+      }
+
+      // 2) ตรวจสอบ password
+
+      const isValid = await this.authService.comparePassword(
+        body.password,
+        authUser.passwordHash,
+      );
+      if (!isValid) {
+        throw new HttpException('Invalid email or password', HttpStatus.UNAUTHORIZED);
+      }
+      // 3) ดึงข้อมูล user หลัก
+      const user = await this.usersRepository.findById(authUser.userId);
+      // 4) สร้าง JWT token
+      const accessToken = this.authService.signJwt(
+        user.userId,
+        authUser.email,
+      );
+      const { refreshToken, tokenId } = this.authService.signRefreshJwt(
+        user.userId,
+        authUser.email,
+      );
+
+      // 5) set cookie
+      res.cookie('jwt', accessToken, {
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'strict',
+        maxAge: 15 * ONE_MINUTE, // 15 นาที
+      });
+      res.cookie('refresh_jwt', refreshToken, {
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'strict',
+        maxAge: ONE_WEEK,
+      });
+
+      await this.refreshTokensRepo.createOrUpdateRefreshToken(
+        user.userId,
+        refreshToken,
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      );
+
+      // 6) ส่ง response
+      return {
+        success: true,
+        user: {
+          userId: user.userId,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: authUser.email,
+        },
+        accessToken,
+      };
+    } catch (err) {
+      // จะตกมาที่นี่ถ้า throw HttpException หรือ error อื่น
+      throw err instanceof HttpException
+        ? err
+        : new HttpException('Login failed', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

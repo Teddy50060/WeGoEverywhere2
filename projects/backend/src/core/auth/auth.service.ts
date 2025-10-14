@@ -1,5 +1,5 @@
 // src/core/auth/auth.service.ts
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import refreshJwtConfig from '@backend/src/configurations/configs/refresh-jwt.config';
 import { ConfigService } from '@nestjs/config';
@@ -13,20 +13,16 @@ import { EmailService } from '@backend/src/shared/services/email.service';
 import * as argon2 from 'argon2';
 import { authUsers } from '@backend/src/database/schema/authUsers.schema';
 import { db } from '@backend/src/database/connection';
-import * as bcrypt from 'bcrypt';
+import { RefreshTokensRepository } from '@backend/src/modules/refreshTokens.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
-    @Inject(refreshJwtConfig.KEY)
-    private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
+    private readonly refreshTokenRepo: RefreshTokensRepository,
+    @Inject(refreshJwtConfig.KEY) private refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
-    
-    // private readonly sessionService: SessionService,
-    // @Inject(DATABASE_CONNECTION)
-    // private readonly db: DrizzleDb,
   ) {
   }
 
@@ -37,16 +33,27 @@ export class AuthService {
   }
 
   // Refresh token — return token string + tokenId for DB
-  signRefreshJwt(userId: number | string) {
+  signRefreshJwt(userId: number | string, email?: string) {
     const tokenId = crypto.randomUUID();
-    const payload = { sub: userId, tokenId };
+    const payload = { sub: userId, email, tokenId };
     const refreshToken = this.jwtService.sign(payload, this.refreshJwtConfiguration);
     return { refreshToken, tokenId };
   }
 
+  // ตรวจสอบ refresh token และออก access token ใหม่
+  async refreshAccessToken(userId: number, email?: string) {
+    const isRevoked = await this.refreshTokenRepo.isRevoked(userId);
+    if (isRevoked.revoked) {
+      throw new UnauthorizedException('Refresh token expired or invalid');
+    }
+    // sign new access token
+    const accessToken = this.signJwt(userId, email);
+    return accessToken;
+  }
+
   // (optional helpers you can call from the controller)
   verifyRefresh(refreshToken: string) {
-    return this.jwtService.verify(refreshToken, this.refreshJwtConfiguration) as { sub: any; tokenId: string; iat: number; exp: number };
+    return this.jwtService.verify(refreshToken) as { sub: any; tokenId: string; iat: number; exp: number };
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
@@ -137,6 +144,6 @@ export class AuthService {
   }
 
   async comparePassword(password: string, hashedPassword: string): Promise<boolean> {
-    return await argon2.verify(hashedPassword, password);
+    return await argon2.verify(hashedPassword, password.trim());
   }
 }

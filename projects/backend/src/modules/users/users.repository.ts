@@ -1,17 +1,47 @@
 // users.repository.ts
-import { Injectable } from '@nestjs/common';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { Inject, Injectable } from '@nestjs/common';
 import { users } from '@backend/src/database/schema/users.schema';
 import { RegisterDto } from '@backend/src/modules/dto/register.dto';
+import { eq } from 'drizzle-orm';
+import type { DbType } from '@backend/src/database/connection';
 
 @Injectable()
 export class UsersRepository {
-  private db;
+  constructor
+  (
+    @Inject('DatabaseConnection') private readonly db: DbType,
+  ) 
+  {
 
-  constructor(private readonly pool: Pool) {
-    this.db = drizzle(this.pool);
   }
+  async findAll(){
+    return this.db.query.users.findMany();
+  }
+
+  async findById(userId: number) {
+    // เลือกเฉพาะคอลัมน์ที่ต้องการ หรือ * ก็ได้
+    const [row] = await this.db
+      .select({
+        userId: users.userId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        telephoneNumber: users.telephoneNumber,
+        bio: users.bio,
+        birthdate: users.birthdate,
+        sex: users.sex,
+        signupTime: users.signupTime,
+        signupDate: users.signupDate,
+        cookiePolicyVersionAccepted: users.cookiePolicyVersionAccepted,
+        cookiePolicyAcceptedAt: users.cookiePolicyAcceptedAt,
+      })
+      .from(users)
+      .where(eq(users.userId, userId));
+
+    // ถ้าไม่พบจะ return undefined
+    return row ?? null;
+  }
+
+  
 
   async createUser(input: RegisterDto) {
     const [row] = await this.db

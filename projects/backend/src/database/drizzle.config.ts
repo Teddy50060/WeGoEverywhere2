@@ -1,12 +1,12 @@
 import { defineConfig } from 'drizzle-kit';
-import { ENV_PATHS } from "@consts/env_paths";
+import { ENV_PATHS } from '@consts/env_paths';
 import { config } from 'dotenv';
 
 config({ path: ENV_PATHS.ROOT });
 
 export default defineConfig({
-  schema: './schema/*',
-  out: './migrations',
+  schema: './src/database/schema/**/*.ts',
+  out: './src/database/migrations',
   dialect: 'postgresql',
   dbCredentials: {
     host: process.env.POSTGRES_HOST || 'localhost',
@@ -14,7 +14,7 @@ export default defineConfig({
     user: process.env.POSTGRES_USER || 'admin',
     password: process.env.POSTGRES_PASSWORD || 'root',
     database: process.env.POSTGRES_DB || 'WEGO_EVERYWHERE_DB',
-    ssl: false
+    ssl: false,
   },
   verbose: true,
   strict: true,

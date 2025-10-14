@@ -36,6 +36,13 @@
       "when": 1757880782540,
       "tag": "0005_fixed_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759054001185,
+      "tag": "0006_puzzling_the_leader",
+      "breakpoints": true
     }
   ]
 }
