@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   // ยกเว้นไฟล์ระบบและ public assets
-  const isPublicAsset = pathname.startsWith("/_next") || pathname.startsWith("/favicon.ico");
+  const isPublicAsset = pathname.startsWith("/_next") || pathname.startsWith("/favicon.ico") || pathname.startsWith("/icons") || pathname.startsWith("/images");
   // ยกเว้น public pages
   const isPublicPath = ["/login", "/register", "/profile-setup"].includes(pathname);
   // ตรวจว่าเป็น refresh API
