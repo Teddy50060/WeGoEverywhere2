@@ -7,6 +7,11 @@ import { UpdateEventDto , CreateEventDto } from './event.dto'; // <-- Import the
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
+  @Get(':id')
+  getById(@Param('id', ParseIntPipe) id: number) {
+    return this.eventService.getEventById(id);
+  }
+
   @Get()
   GetAll() {
     return this.eventService.getAllEvents();

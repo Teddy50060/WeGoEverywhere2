@@ -7,12 +7,20 @@ import { schema } from '@backend/src/database/schema';
 
 @Injectable()
 export class EventRepository {
-  constructor
-  (
-    @Inject('DatabaseConnection') private readonly db: DbType,
-  ) 
-  {
+  constructor(@Inject('DatabaseConnection') private readonly db: DbType) {}
 
+  async findById(id: number) {
+    const rows = await this.db
+      .select()
+      .from(schema.event)
+      .where(eq(schema.event.eventId, id))
+      .limit(1);
+
+    const found = rows[0];
+    if (!found) {
+      throw new NotFoundException(`Event ${id} not found`);
+    }
+    return found;
   }
 
   async findAll() {

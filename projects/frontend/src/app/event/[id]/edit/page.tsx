@@ -25,7 +25,7 @@ export default async function EditEventPage({
     throw e;
   }
   const event = {
-    eventId: ev?.id ?? -1,
+    eventId: ev?.eventId ?? -1,
     name: ev?.name ?? "Untitled Event",
     capacity: ev?.capacity ?? 0,
     userId: ev?.userId ?? "-",

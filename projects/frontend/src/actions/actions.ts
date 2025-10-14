@@ -134,21 +134,9 @@ export async function getAllEvents() {
   return EventService.eventControllerGetAll();
 }
 
-/*ใช้ชั่วคราวรอ BE เขียน service*/
 export async function getEventById(id: number) {
-  const eventData = {
-    id: id,
-    name: "YoGa's Garden",
-    date: "2025-11-12T00:00:00.000Z",
-    place: "Lumpini Park",
-    detail:
-      "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Recusandae at tenetur sed odio eaque culpa rerum laboriosam beatae voluptate sint doloribus nisi tempore nihil ipsa mollitia pariatur expedita, quisquam consequuntur debitis hic optio voluptates? Facere, commodi porro ad consequatur eum tenetur nostrum voluptas doloribus omnis rem tempora assumenda itaque, aliquid quas!",
-    capacity: 150,
-    status: "publish",
-    time: "13:00",
-    userId: 18,
-  };
-  return eventData;
+  ensureAuthHeader();
+  return EventService.eventControllerGetById(id);
 }
 
 export async function logUserRegisteredEvent(
