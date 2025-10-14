@@ -44,39 +44,38 @@ export function mapErrorsToFormKeys(
 
   set("eventName", fieldErrors.name);
   set("eventDate", fieldErrors.date);
-  set("location", fieldErrors.place);
-  set("details", fieldErrors.detail);
-  set("capacity", fieldErrors.capacity);
-  set("status", fieldErrors.status);
+  set("eventLocation", fieldErrors.place);
+  set("eventDetails", fieldErrors.detail);
+  set("eventCapacity", fieldErrors.capacity);
+  set("eventStatus", fieldErrors.status);
   set("eventTime", fieldErrors.time);
-  set("cost", fieldErrors.cost);
-  set("rating", fieldErrors.rating);
-  set("photo", fieldErrors.photo);
+  set("eventCost", fieldErrors.cost);
+  set("eventRating", fieldErrors.rating);
+  set("eventPhoto", fieldErrors.photo);
   set("userId", fieldErrors.userId);
   return m;
 }
 
 /* ---------- Helpers: form mapping ---------- */
 export function formToDbShape(fd: FormData) {
-  const rawStatus = String(fd.get("status") ?? "");
+  const rawStatus = String(fd.get("eventStatus") ?? "");
   const status =
     rawStatus === "publish"
       ? "active"
       : rawStatus === "unpublish"
       ? "inactive"
-      : rawStatus || "active";
+      : rawStatus || "active"; // fallback
 
   return {
     name: String(fd.get("eventName") ?? ""),
     date: String(fd.get("eventDate") ?? ""),
     time: String(fd.get("eventTime") ?? "") || "00:00",
-    place: String(fd.get("location") ?? ""),
-    capacity: fd.get("capacity"),
-    detail: String(fd.get("details") ?? ""),
-    cost: fd.get("cost"),
-    rating: fd.get("rating"),
+    place: String(fd.get("eventLocation") ?? ""),
+    capacity: fd.get("eventCapacity"),
+    detail: String(fd.get("eventDetails") ?? ""),
+    cost: fd.get("eventCost"),
+    rating: fd.get("eventRating"),
     status,
-    userId: 15, // ชั่วคราว ถ้าหลังบ้านยัง require
     photo: extractPhoto(fd, "photo"),
   };
 }
@@ -98,6 +97,7 @@ export function toCreateDto(parsed: any, userId: number): CreateEventDto {
     cost: num(parsed.cost),
     rating: num(parsed.rating),
     userId,
+    status: parsed.status as string | any,
   };
 }
 /* ---------- Helpers: DTO Update ---------- */
@@ -108,12 +108,27 @@ export function toUpdateDtoFromForm(fd: FormData): UpdateEventDto {
     return typeof v === "string" && v ? v : undefined;
   };
 
+  const rawStatus = String(fd.get("eventStatus") ?? "");
+  const status =
+    rawStatus === "publish"
+      ? "active"
+      : rawStatus === "unpublish"
+      ? "inactive"
+      : undefined;
+
   return {
     name: s("eventName"),
     date: s("eventDate"),
-    place: s("location"),
-    detail: s("details"),
-    capacity: num(fd.get("capacity")),
+    time: (() => {
+      const t = s("eventTime");
+      return t && /^\d{2}:\d{2}$/.test(t) ? `${t}:00` : t;
+    })(),
+    place: s("eventLocation"),
+    detail: s("eventDetails"),
+    capacity: num(fd.get("eventCapacity")),
+    cost: num(fd.get("eventCost")),
+    rating: num(fd.get("eventRating")),
+    status,
   };
 }
 

@@ -11,6 +11,7 @@ import {
   buildEventUrl,
 } from "./helpers.action";
 import { setOpenApiCookieHeader } from "@/lib/auth/CookieHeader";
+import { redirect } from "next/navigation";
 
 export type EventActionState = {
   ok: boolean;
