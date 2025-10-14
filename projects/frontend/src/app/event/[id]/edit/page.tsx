@@ -3,6 +3,13 @@ import EditEventFormClient from "@/components/client/EditEventFormClient";
 import { getEventById } from "@/actions/actions";
 import { notFound } from "next/navigation";
 
+function toHHmm(raw?: string | null): string | null {
+  if (!raw) return null;
+  // รองรับรูปแบบ "HH:mm:ss" หรือ "HH:mm:ss.SSSSSS" → ตัดให้เหลือ "HH:mm"
+  const m = raw.match(/^(\d{2}):(\d{2})/);
+  return m ? `${m[1]}:${m[2]}` : null;
+}
+
 export default async function EditEventPage({
   params,
 }: {
@@ -16,21 +23,21 @@ export default async function EditEventPage({
   try {
     ev = await getEventById(numericId);
   } catch (e: any) {
-    if (
-      typeof (e as any)?.message === "string" &&
-      /404/.test((e as any).message)
-    ) {
+    if (typeof e?.message === "string" && /404/.test(e.message)) {
       notFound();
     }
     throw e;
   }
+
+  if (!ev) notFound();
+
   const event = {
-    eventId: ev?.id ?? -1,
+    eventId: ev?.eventId ?? -1,
     name: ev?.name ?? "Untitled Event",
     capacity: ev?.capacity ?? 0,
     userId: ev?.userId ?? "-",
-    date: ev?.date ?? null, // 'YYYY-MM-DD' หรือ ISO string
-    time: ev?.time ?? null, // 'HH:mm:ss'
+    date: ev?.date ?? null, // 'YYYY-MM-DD'
+    time: toHHmm(ev?.time) ?? "00:00", // ตัดให้เหลือ 'HH:mm'
     place: ev?.place ?? "-",
     detail: ev?.detail ?? "-",
     status: ev?.status ?? "publish",

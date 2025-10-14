@@ -146,15 +146,17 @@ export async function getAllEvents() {
 /*ใช้ชั่วคราวรอ BE เขียน service*/
 export async function getEventById(id: number) {
   const eventData = {
-    id: id,
+    eventId: id,
+    cost: "0.00",
     name: "YoGa's Garden",
-    date: "2025-11-12T00:00:00.000Z",
+    date: "2025-04-17",
+    time: "14:58:36.520109",
     place: "Lumpini Park",
     detail:
       "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Recusandae at tenetur sed odio eaque culpa rerum laboriosam beatae voluptate sint doloribus nisi tempore nihil ipsa mollitia pariatur expedita, quisquam consequuntur debitis hic optio voluptates? Facere, commodi porro ad consequatur eum tenetur nostrum voluptas doloribus omnis rem tempora assumenda itaque, aliquid quas!",
+    rating: 5,
     capacity: 150,
     status: "publish",
-    time: "13:00",
     userId: 15,
   };
   return eventData;
