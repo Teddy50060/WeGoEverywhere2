@@ -69,4 +69,12 @@ export class UsersRepository {
       });
     return row;
   }
+
+    async deleteById(userId: number) {
+    const [deletedUser] = await this.db
+      .delete(users)
+      .where(eq(users.userId, userId))
+      .returning();
+    return deletedUser ?? null;
+  }
 }

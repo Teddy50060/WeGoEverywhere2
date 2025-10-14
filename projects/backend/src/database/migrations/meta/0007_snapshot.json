@@ -1,5 +1,5 @@
 {
-  "id": "0db053f8-0b51-4016-8ead-c131dbd94b0b",
+  "id": "25856628-b95c-418b-bd53-7d68b180684a",
   "prevId": "2477bf17-3b71-4900-818c-ceb0fb46d7e7",
   "version": "7",
   "dialect": "postgresql",
@@ -383,7 +383,7 @@
           "name": "user_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {
@@ -405,6 +405,19 @@
         }
       },
       "foreignKeys": {
+        "event_user_id_users_user_id_fk": {
+          "name": "event_user_id_users_user_id_fk",
+          "tableFrom": "event",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
         "event_userId_fkey": {
           "name": "event_userId_fkey",
           "tableFrom": "event",
