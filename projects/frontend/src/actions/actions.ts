@@ -1,7 +1,7 @@
 "use server";
 
 import { eventFormSchema } from "@/utils/schemas";
-import { EventService } from "@/lib/api";
+import { EventService, UserService } from "@/lib/api";
 import {
   formToDbShape,
   mapErrorsToFormKeys,
@@ -12,7 +12,6 @@ import {
 } from "./helpers.action";
 import { setOpenApiCookieHeader } from "@/lib/auth/CookieHeader";
 
-/* ---------- Types ---------- */
 export type EventActionState = {
   ok: boolean;
   errors?: Record<string, string[]>;
@@ -20,7 +19,17 @@ export type EventActionState = {
   next?: string;
 };
 
-/* ---------- Actions ---------- */
+export async function fetchMe() {
+  try {
+    await setOpenApiCookieHeader();
+    const me = await UserService.userControllerGetMe();
+    return { ok: true, data: me };
+  } catch (err: any) {
+    console.error("Error fetching user info:", err);
+    return { ok: false, message: err?.message || "Failed to fetch user info" };
+  }
+}
+
 export const createEventWithZod = async (
   formData: FormData
 ): Promise<EventActionState> => {
@@ -40,8 +49,19 @@ export const createEventWithZod = async (
       };
     }
 
-    const dataWithUser = { ...parsed.data, userId: 15 }; // ชั่วคราว ถ้าหลังบ้านยัง require
-    const dto = toCreateDto(dataWithUser);
+    const meRes = await fetchMe();
+    if (!meRes.ok || !meRes.data) {
+      return { ok: false, message: "Not authenticated" };
+    }
+    const raw = meRes.data as any;
+    const userId: number | undefined = Number(
+      raw?.userId ?? raw?.id ?? raw?.user?.id
+    );
+    if (!userId || Number.isNaN(userId)) {
+      return { ok: false, message: "Cannot determine user id" };
+    }
+
+    const dto = toCreateDto(parsed.data, userId);
     console.log("createEventWithZod dto:", dto);
 
     await EventService.eventControllerCreate(dto);
@@ -101,12 +121,11 @@ export const deleteEventById = async (
     return {
       ok: false,
       message:
-        error?.body?.message || error?.message || "Failed to create event.",
+        error?.body?.message || error?.message || "Failed to Delete event.",
     };
   }
 };
 
-/** ---------- Data loader (SSR) ---------- */
 export async function getEventById(id: number) {
   const auth = await setOpenApiCookieHeader();
   const url = buildEventUrl(id);

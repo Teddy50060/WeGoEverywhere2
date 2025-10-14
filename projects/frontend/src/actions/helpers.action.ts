@@ -82,41 +82,38 @@ export function formToDbShape(fd: FormData) {
 }
 
 /* ---------- Helpers: DTO builders ---------- */
-export function toCreateDto(data: any): CreateEventDto {
-  const toNumberOrUndef = (v: any): number | undefined => {
-    if (v === undefined || v === null || v === "") return undefined;
-    const n = Number(v);
-    return isNaN(n) ? undefined : n;
-  };
+export function toCreateDto(parsed: any, userId: number): CreateEventDto {
+  const num = (v: any) => (v === "" || v == null ? undefined : Number(v));
+  const time = parsed.time?.match(/^\d{2}:\d{2}$/)
+    ? `${parsed.time}:00`
+    : parsed.time;
 
   return {
-    name: data.name,
-    date: data.date,
-    time: data.time, // ถ้าหลังบ้านต้อง HH:mm:ss ค่อยเติม :00 ที่ backend หรือปรับตรงนี้
-    place: data.place || "",
-    capacity: toNumberOrUndef(data.capacity),
-    detail: data.detail,
-    cost: toNumberOrUndef(data.cost),
-    rating: toNumberOrUndef(data.rating),
-    userId: data.userId ?? 18,
-    // photo: (data.photo as string | File | null) ?? null, // เปิดเมื่อ API รองรับไฟล์
+    name: parsed.name,
+    date: parsed.date,
+    time,
+    place: parsed.place || "",
+    capacity: num(parsed.capacity),
+    detail: parsed.detail,
+    cost: num(parsed.cost),
+    rating: num(parsed.rating),
+    userId,
   };
 }
-
+/* ---------- Helpers: DTO Update ---------- */
 export function toUpdateDtoFromForm(fd: FormData): UpdateEventDto {
-  const toNumUndef = (v: any) =>
-    v === undefined || v === null || v === "" ? undefined : Number(v);
-
-  const eventDate = fd.get("eventDate");
-  const date =
-    typeof eventDate === "string" && eventDate ? eventDate : undefined;
+  const num = (v: any) => (v === "" || v == null ? undefined : Number(v));
+  const s = (k: string) => {
+    const v = fd.get(k);
+    return typeof v === "string" && v ? v : undefined;
+  };
 
   return {
-    name: (fd.get("eventName") as string) || undefined,
-    date,
-    place: (fd.get("location") as string) || undefined,
-    detail: (fd.get("details") as string) || undefined,
-    capacity: toNumUndef(fd.get("capacity")),
+    name: s("eventName"),
+    date: s("eventDate"),
+    place: s("location"),
+    detail: s("details"),
+    capacity: num(fd.get("capacity")),
   };
 }
 
