@@ -7,13 +7,15 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './core/auth/jwt/access-jwt/jwt.guard';
 import { EventsModule } from './modules/event/event.module'; // <-- 1. Import EventsModule
 import { ConsentModule } from './modules/consent/consent.module';
+import { UploadModule } from './modules/upload/upload.module'
 
 @Module({
   imports: [
     AppConfigModule,
     AuthModule,
     EventsModule,
-    ConsentModule
+    ConsentModule,
+    UploadModule
   ],
   controllers: [AppController],
   providers: [
