@@ -39,7 +39,7 @@ export class EventRepository {
   }
 
   async findAll() {
-    // Get events with participant counts
+    // Get events with participant counts, sorted by date (upcoming first)
     const eventsWithCounts = await this.db
       .select({
         eventId: schema.event.eventId,
@@ -57,7 +57,8 @@ export class EventRepository {
       })
       .from(schema.event)
       .leftJoin(schema.joined, eq(schema.event.eventId, schema.joined.eventId))
-      .groupBy(schema.event.eventId);
+      .groupBy(schema.event.eventId)
+      .orderBy(schema.event.date, schema.event.time);
 
     return eventsWithCounts;
   }
@@ -100,7 +101,7 @@ export class EventRepository {
 
     const eventIds = userJoinedEventIds.map(j => j.eventId);
 
-    // Then get full event details with participant counts for those events
+    // Then get full event details with participant counts for those events, sorted by date
     const joinedEvents = await this.db
       .select({
         eventId: schema.event.eventId,
@@ -119,7 +120,8 @@ export class EventRepository {
       .from(schema.event)
       .leftJoin(schema.joined, eq(schema.event.eventId, schema.joined.eventId))
       .where(inArray(schema.event.eventId, eventIds))
-      .groupBy(schema.event.eventId);
+      .groupBy(schema.event.eventId)
+      .orderBy(schema.event.date, schema.event.time);
 
     return joinedEvents;
   }

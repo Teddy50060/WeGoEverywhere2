@@ -42,7 +42,24 @@ export default function Home() {
   const fetchUserJoinedEvents = async () => {
     try {
       const joinedEventsData = await eventApi.getUserJoinedEvents();
-      const uiFormattedJoinedEvents = joinedEventsData.map(convertEventToUIFormat);
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); // Set to start of current day
+      
+      const uiFormattedJoinedEvents = joinedEventsData
+        .map(convertEventToUIFormat)
+        .filter(event => {
+          // Only show future events (upcoming)
+          const eventDate = new Date(event.date);
+          return eventDate >= currentDate;
+        })
+        .sort((a, b) => {
+          // Sort by date first, then by time (upcoming first)
+          const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          if (dateComparison !== 0) return dateComparison;
+          
+          // If dates are the same, sort by time
+          return a.time.localeCompare(b.time);
+        });
       setUpcomingEvents(uiFormattedJoinedEvents);
     } catch (error) {
       console.error('Failed to fetch user joined events:', error);
@@ -54,13 +71,22 @@ export default function Home() {
     // Filter tags include all available categories
   const filterTags: string[] = ['Entertainment', 'Education', 'Health', 'Lifestyle', 'Technology', 'Environment'];
 
-  // Filter events based on search and selected category
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = !selectedFilter || event.category === selectedFilter;
-    return matchesSearch && matchesFilter;
-  });
+  // Filter events based on search and selected category, then sort by date
+  const filteredEvents = events
+    .filter(event => {
+      const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFilter = !selectedFilter || event.category === selectedFilter;
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      // Sort by date first, then by time
+      const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (dateComparison !== 0) return dateComparison;
+      
+      // If dates are the same, sort by time
+      return a.time.localeCompare(b.time);
+    });
 
   // Format date for display
   const formatDate = (dateString: string) => {
