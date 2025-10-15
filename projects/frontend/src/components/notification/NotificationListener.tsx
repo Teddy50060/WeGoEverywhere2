@@ -38,12 +38,12 @@ export default function NotificationListener({ userId }: { userId: number }) {
     });
 
     // 2️⃣ รับ initial notifications (unread)
-    socket.on('initial_notifications', (data: NotificationUser[]) => {
+    socket.on('initial_notifications', (data: NotificationUserWithTemplate[]) => {
       setNotifications(data);
     });
 
     // 3️⃣ รับ notification ใหม่แบบ push
-    socket.on('new_notification', (notif: NotificationUser) => {
+    socket.on('new_notification', (notif: NotificationUserWithTemplate) => {
       setNotifications((prev) => [notif, ...prev]);
     });
 

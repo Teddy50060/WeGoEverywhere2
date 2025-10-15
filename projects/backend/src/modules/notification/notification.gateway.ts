@@ -3,6 +3,8 @@ import { Server, Socket } from 'socket.io';
 import { NotificationService } from './notification.service';
 import { NotificationUser } from '@backend/src/database/schema/notification_users.schema';
 import { NotificationUserWithTemplate } from './notification.repository';
+import { NotificationUserWithTemplateDto } from './dto/notification-users-templates.dto';
+import { plainToInstance } from 'class-transformer';
 
 @WebSocketGateway({
   cors: {
@@ -18,7 +20,7 @@ export class NotificationGateway {
   constructor(private notificationService: NotificationService) {}
 
   // Client connect → ดึง notification ที่ยัง unread
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
       // 1️⃣ ดูค่าที่ client ส่งมา
     console.log('Client connected:', client.id);
     // console.log('Handshake query:', client.handshake.query);
@@ -38,7 +40,8 @@ export class NotificationGateway {
     // 3️⃣ เรียก service
     this.notificationService.getUnread(userId)
       .then((notifs) => {
-        client.emit('initial_notifications', notifs as NotificationUserWithTemplate[]);
+        const result = plainToInstance(NotificationUserWithTemplateDto, notifs);
+        client.emit('initial_notifications', result);
       })
       .catch((err) => {
         console.error('Failed to fetch unread notifications:', err);
