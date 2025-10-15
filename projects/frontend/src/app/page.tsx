@@ -60,20 +60,31 @@ export default function Home() {
   const fetchEvents = async () => {
     try {
       console.log('Fetching events from backend database...');
+      console.log('Calling getAllEvents() server action...');
+      
       const backendEvents = await getAllEvents();
-      console.log('Backend events received:', backendEvents);
+      console.log('getAllEvents() response:', backendEvents);
+      console.log('Response type:', typeof backendEvents);
+      console.log('Is array:', Array.isArray(backendEvents));
       
       if (backendEvents && Array.isArray(backendEvents)) {
+        console.log(`Successfully loaded ${backendEvents.length} events from backend`);
         setEvents(backendEvents);
-        // For upcoming events, show first 2 events as an example
         setUpcomingEvents(backendEvents.slice(0, 2));
       } else {
-        console.log('No events received from backend');
+        console.log('No valid events array received from backend');
         setEvents([]);
         setUpcomingEvents([]);
       }
     } catch (error) {
-      console.error('Failed to fetch events from backend:', error);
+      console.error('Error in fetchEvents:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        status: error?.status,
+        statusCode: error?.statusCode,
+        body: error?.body
+      });
+      
       // Fallback to sample events when backend is not accessible
       const fallbackEvents = [
         {
@@ -88,6 +99,7 @@ export default function Home() {
           status: 'active'
         }
       ];
+      console.log('Using fallback events due to error');
       setEvents(fallbackEvents);
       setUpcomingEvents(fallbackEvents);
     }

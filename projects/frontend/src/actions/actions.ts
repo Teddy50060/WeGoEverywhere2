@@ -150,8 +150,27 @@ export const deleteEventById = async (
 };
 
 export async function getAllEvents() {
-  await setOpenApiCookieHeader();
-  return EventService.eventControllerGetAll();
+  try {
+    console.log('getAllEvents: Setting up authentication...');
+    const cookieHeader = await setOpenApiCookieHeader();
+    console.log('getAllEvents: Cookie header set:', cookieHeader ? 'Present' : 'Missing');
+    
+    console.log('getAllEvents: Calling EventService.eventControllerGetAll()...');
+    const events = await EventService.eventControllerGetAll();
+    console.log('getAllEvents: Backend response received:', events);
+    console.log('getAllEvents: Event count:', events?.length || 0);
+    
+    return events;
+  } catch (error) {
+    console.error('getAllEvents: Error occurred:', error);
+    console.error('getAllEvents: Error details:', {
+      message: (error as any)?.message,
+      status: (error as any)?.status,
+      statusCode: (error as any)?.statusCode,
+      body: (error as any)?.body
+    });
+    throw error;
+  }
 }
 
 export async function getEventById(id: number) {
