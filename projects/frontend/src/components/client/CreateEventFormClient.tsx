@@ -144,14 +144,6 @@ export default function CreateEventFormClient() {
       />
       <FieldError errors={state?.errors?.eventDetails} />
 
-      {/* Optional*/}
-      <div className="mb-3 flex items-center gap-2">
-        <span className="text-[13px] font-semibold text-neutral-700">
-          Optional
-        </span>
-        <div className="h-[1px] flex-1 bg-black/20" />
-      </div>
-
       {/* Capacity / Status */}
       <div className="mb-3 grid grid-cols-2 gap-3">
         <div>
