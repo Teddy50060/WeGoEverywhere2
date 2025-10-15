@@ -50,6 +50,13 @@
       "when": 1759386360989,
       "tag": "0007_AddNotificationTable",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1760528797184,
+      "tag": "0008_ChangeNotificationSchema",
+      "breakpoints": true
     }
   ]
 }

@@ -1,61 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { NotificationRepository } from './notification.repository';
+import { Notifications } from '@backend/src/database/schema/notifications.schema';
 
 @Injectable()
 export class NotificationService {
   constructor(private readonly notificationRepo: NotificationRepository) {}
 
-  // ---------------- USER NOTIFICATIONS ----------------
-
-  async getUnread(userId: number) {
-    return await this.notificationRepo.getUnread(userId);
+  async getNotifs(userId: number, limit: number = 10) {
+    return await this.notificationRepo.getNotifs(userId, limit);
   }
 
-  async markAsRead(notificationUserId: number) {
-    return await this.notificationRepo.markAsRead(notificationUserId);
+  async markAsRead(notificationId: number) {
+    return await this.notificationRepo.markAsRead(notificationId);
   }
-
-  async assignNotificationToUser(userId: number, templateId: number) {
-    return await this.notificationRepo.createUserNotification({
-      userId,
-      notificationId: templateId,
-    });
-  }
-
-  // ---------------- TEMPLATES ----------------
-
-  async createTemplate(title: string, fromService: string, message: string) {
-    return await this.notificationRepo.createTemplate({
-      title,
-      fromService,
-      message,
-    });
-  }
-
-  async updateTemplate(templateId: number, data: Partial<{ title: string; fromService: string; message: string }>) {
-    return await this.notificationRepo.updateTemplate(templateId, data);
-  }
-
-  async getTemplate(templateId: number) {
-    return await this.notificationRepo.getTemplate(templateId);
-  }
-
-  // ---------------- BROADCAST ----------------
-
-  async broadcastNotification(templateData: { title: string; fromService: string; message: string }, userIds: number[]) {
-    // 1. สร้าง template
-    const template = await this.notificationRepo.createTemplate(templateData);
-
-    // 2. สร้าง notification_user สำหรับ user ทุกคน
-    const userNotifications = await Promise.all(
+  
+  async broadcastNotification(
+    userIds: number[],
+    templateData: { title: string; fromService?: string; message: string },
+  ): Promise<Notifications[]> {
+    // ใช้ Promise.all เพื่อ insert notification ให้ทุก user พร้อมกัน
+    const userNotifications: Notifications[] = await Promise.all(
       userIds.map((userId) =>
-        this.notificationRepo.createUserNotification({
+        this.notificationRepo.createNotification(
           userId,
-          notificationId: template.id,
-        }),
-      ),
+          templateData,
+        )
+      )
     );
 
-    return { template, userNotifications };
+    return userNotifications;
   }
 }
