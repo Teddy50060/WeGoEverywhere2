@@ -13,14 +13,20 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [authStatus, setAuthStatus] = useState<any>(null);
 
   // Use WE-241 backend API approach
   const fetchUser = async () => {
     try {
       setLoading(true);
+      console.log('Attempting to fetch user...');
       const res = await fetchMe();
+      console.log('fetchMe response:', res);
       if (res.ok && res.data) {
+        console.log('User data received:', res.data);
         setUser(res.data);
+      } else {
+        console.log('fetchMe failed:', res.message);
       }
     } catch (error) {
       console.error('Failed to fetch user:', error);
@@ -139,7 +145,21 @@ export default function Home() {
     return colors[category] || 'from-gray-300 to-gray-500';
   };
 
+  // Check authentication status
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/verify');
+      const result = await response.json();
+      setAuthStatus(result);
+      console.log('Auth status:', result);
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setAuthStatus({ valid: false, payload: null });
+    }
+  };
+
   useEffect(() => {
+    checkAuth();
     fetchUser();
     fetchEvents();
     
@@ -193,9 +213,15 @@ export default function Home() {
           {/* Good Morning below, centered */}
           <div className="flex justify-center mt-3">
             <div className="font-inter font-bold text-[15px] leading-[20px] text-black">
-              Good Morning, "{loading ? 'Loading...' : user?.firstName || 'Guest'}"
+              Good Morning, "{loading ? 'Loading...' : user?.firstName || (authStatus?.valid ? 'Authenticated User' : 'Guest')}"
             </div>
           </div>
+          {/* Debug info */}
+          {authStatus && (
+            <div className="text-center mt-2 text-xs text-gray-600">
+              Auth: {authStatus.valid ? '✅ Valid' : '❌ Invalid'} | User: {user ? '✅ Loaded' : '❌ None'}
+            </div>
+          )}
         </header>
       </div>
 
