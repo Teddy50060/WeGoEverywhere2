@@ -15,63 +15,90 @@ export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [authStatus, setAuthStatus] = useState<any>(null);
 
-  // Use WE-241 backend API approach
+  // Use frontend authentication data instead of backend API
   const fetchUser = async () => {
     try {
       setLoading(true);
-      console.log('Attempting to fetch user...');
-      const res = await fetchMe();
-      console.log('fetchMe response:', res);
-      if (res.ok && res.data) {
-        console.log('User data received:', res.data);
-        setUser(res.data);
+      console.log('Checking authentication status...');
+      
+      // Get user info from JWT token payload instead of backend API
+      const authResponse = await fetch('/api/auth/verify');
+      const authResult = await authResponse.json();
+      console.log('Auth verification result:', authResult);
+      
+      if (authResult.valid && authResult.payload) {
+        // Extract user info from JWT payload
+        const userInfo = {
+          firstName: authResult.payload.firstName || authResult.payload.name || 'User',
+          lastName: authResult.payload.lastName || '',
+          email: authResult.payload.email || '',
+          userId: authResult.payload.userId || authResult.payload.sub || authResult.payload.id,
+          profilePicture: authResult.payload.profilePicture || '/images/profile_image.png'
+        };
+        console.log('User info from JWT:', userInfo);
+        setUser(userInfo);
       } else {
-        console.log('fetchMe failed:', res.message);
+        console.log('Not authenticated or no payload');
       }
     } catch (error) {
-      console.error('Failed to fetch user:', error);
+      console.error('Failed to get user from auth token:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch events from WE-241 backend
+  // Use sample events instead of backend API
   const fetchEvents = async () => {
-    try {
-      const backendEvents = await getAllEvents();
-      setEvents(backendEvents || []);
-      // For now, mock upcoming events since we don't have user registration data
-      setUpcomingEvents(backendEvents?.slice(0, 3) || []);
-    } catch (error) {
-      console.error('Failed to fetch events:', error);
-      // Fallback to sample events when backend is not accessible
-      const sampleEvents = [
-        {
-          eventId: 1,
-          name: 'Sample Tech Meetup',
-          detail: 'A sample event for demonstration',
-          date: '2025-10-20',
-          time: '18:00',
-          place: 'Bangkok',
-          capacity: 50,
-          cost: 0,
-          status: 'active'
-        },
-        {
-          eventId: 2,
-          name: 'Weekend Workshop',
-          detail: 'Learning new skills together',
-          date: '2025-10-22',
-          time: '10:00',
-          place: 'Chiang Mai',
-          capacity: 30,
-          cost: 500,
-          status: 'active'
-        }
-      ];
-      setEvents(sampleEvents);
-      setUpcomingEvents(sampleEvents.slice(0, 1));
-    }
+    console.log('Loading sample events...');
+    // Use sample events since backend API requires complex authentication
+    const sampleEvents = [
+      {
+        eventId: 1,
+        name: 'Tech Meetup Bangkok',
+        detail: 'Join us for an exciting tech meetup with industry professionals',
+        date: '2025-10-20',
+        time: '18:00',
+        place: 'Bangkok Tech Hub',
+        capacity: 50,
+        cost: 0,
+        status: 'active'
+      },
+      {
+        eventId: 2,
+        name: 'Weekend Workshop',
+        detail: 'Learn new skills in a hands-on workshop environment',
+        date: '2025-10-22',
+        time: '10:00',
+        place: 'Chiang Mai Innovation Center',
+        capacity: 30,
+        cost: 500,
+        status: 'active'
+      },
+      {
+        eventId: 3,
+        name: 'Startup Networking',
+        detail: 'Connect with entrepreneurs and startup founders',
+        date: '2025-10-25',
+        time: '19:00',
+        place: 'Co-working Space',
+        capacity: 40,
+        cost: 200,
+        status: 'active'
+      },
+      {
+        eventId: 4,
+        name: 'Design Workshop',
+        detail: 'Creative design session for UI/UX enthusiasts',
+        date: '2025-10-28',
+        time: '14:00',
+        place: 'Design Studio',
+        capacity: 25,
+        cost: 800,
+        status: 'active'
+      }
+    ];
+    setEvents(sampleEvents);
+    setUpcomingEvents(sampleEvents.slice(0, 2)); // Show first 2 as upcoming
   };
 
   // Filter tags include all available categories
