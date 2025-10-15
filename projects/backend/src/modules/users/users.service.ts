@@ -5,10 +5,11 @@ import { Pool } from 'pg';
 import { schema } from '@backend/src/database/schema';
 import { UpdateUserDto } from './users.dto'; // <-- Import the DTO
 import { UsersRepository } from './users.repository';
+import { db } from '@backend/src/database/connection';
 
 @Injectable()
 export class UserService{
-    private readonly db: NodePgDatabase<typeof schema>;
+    private readonly db = db;
 
   constructor(private readonly usersRepo: UsersRepository) {}
 
@@ -26,5 +27,11 @@ export class UserService{
     throw new NotFoundException(`User with ID ${id} not found.`);
   }
   return updateuser;
+  }
+
+  async findbyId(id : number){
+    return this.db.query.users.findFirst({
+      where: eq(schema.users.userId, id),
+    });
   }
 }
