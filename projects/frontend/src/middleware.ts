@@ -6,7 +6,7 @@ export async function middleware(req: NextRequest) {
   // ยกเว้นไฟล์ระบบและ public assets
   const isPublicAsset = pathname.startsWith("/_next") || pathname.startsWith("/favicon.ico");
   // ยกเว้น public pages
-  const isPublicPath = ["/login", "/register", "/profile-setup"].includes(pathname);
+  const isPublicPath = ["/login", "/register", "/profile-setup","/reset-password","/forgot-password"].includes(pathname);
   // ตรวจว่าเป็น refresh API
   const isRefreshApi = pathname === "/api/auth/refresh";
 
