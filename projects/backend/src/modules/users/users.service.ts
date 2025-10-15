@@ -17,6 +17,13 @@ export class UserService{
     return this.usersRepo.findAll();
   }
 
+  async getUser(
+    id : number ,
+  ) {
+    return await this.usersRepo.findById(id);
+  }
+
+
   async update(id : number , updateuserdto : UpdateUserDto){
     const [updateuser] = await this.db
     .update(schema.users)
