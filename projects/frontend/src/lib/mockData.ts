@@ -1,345 +1,356 @@
-// Mock data for WeGoEveryWhere application
+// Mock data for WeGoEveryWhere application - Backend Schema Aligned
 
-export type EventStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
-export type EventCategory = 'sports' | 'cultural' | 'educational' | 'social' | 'outdoor' | 'food' | 'arts' | 'technology';
-export type ParticipationStatus = 'registered' | 'completed' | 'cancelled' | 'no-show';
-
-export interface Participant {
-  id: string;
-  name: string;
-  avatar?: string;
-  status: ParticipationStatus;
-  joinedAt: string;
-  completedAt?: string;
-  rating?: number;
-  feedback?: string;
-}
-
-export interface Organizer {
-  id: string;
-  name: string;
-  avatar?: string;
-  bio?: string;
-  eventsOrganized: number;
-  rating: number;
-}
+export const EVENT_CATEGORIES = [
+  "Entertainment",
+  "Education",
+  "Health",
+  "Lifestyle",
+  "Technology",
+  "Environment",
+] as const;
 
 export interface MockEvent {
-  id: string;
-  title: string;
-  description: string;
-  category: EventCategory;
-  status: EventStatus;
-  coverUrl: string;
-  organizer: Organizer;
+  eventId: number;
+  cost: number;
+  name: string;
   date: string;
   time: string;
-  location: string;
-  address: string;
+  place?: string;
   capacity: number;
-  currentParticipants: number;
-  participants: Participant[];
-  price: number;
-  currency: string;
-  requirements?: string[];
-  whatToBring?: string[];
-  tags: string[];
-  createdAt: string;
-  updatedAt: string;
+  detail: string;
+  rating: number;
+  status: string;
+  userId: number;
 }
 
-export interface UserActivity {
-  eventId: string;
-  status: ParticipationStatus;
-  rating?: number;
-  feedback?: string;
-  completedAt?: string;
-  photos?: string[];
+export interface MockUser {
+  userId: number;
+  firstName: string;
+  lastName: string;
+  telephoneNumber?: string;
+  bio?: string;
+  birthdate: string;
+  sex?: string;
+  signupTime?: string;
+  signupDate?: string;
 }
 
-// Mock organizers
-export const mockOrganizers: Organizer[] = [
+export const mockUsers: MockUser[] = [
   {
-    id: 'org-1',
-    name: "Yoga's Garden",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop",
-    bio: "Certified yoga instructor with 10+ years of experience",
-    eventsOrganized: 45,
-    rating: 4.8
+    userId: 1,
+    firstName: "Sarah",
+    lastName: "Johnson",
+    telephoneNumber: "+66-123-456-789",
+    bio: "Passionate yoga instructor and wellness advocate",
+    birthdate: "1990-05-15",
+    sex: "female",
+    signupDate: "2024-01-15",
   },
   {
-    id: 'org-2',
-    name: "Bangkok Photo Club",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
-    bio: "Community of photography enthusiasts",
-    eventsOrganized: 32,
-    rating: 4.6
+    userId: 2,
+    firstName: "Alex",
+    lastName: "Chen",
+    telephoneNumber: "+66-987-654-321",
+    bio: "Professional photographer capturing life's moments",
+    birthdate: "1988-03-22",
+    sex: "male",
+    signupDate: "2024-02-10",
   },
-  {
-    id: 'org-3',
-    name: "Foodie Adventures",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop",
-    bio: "Exploring Bangkok's culinary scene together",
-    eventsOrganized: 28,
-    rating: 4.9
-  },
-  {
-    id: 'org-4',
-    name: "Bangkok Tech Community",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop",
-    bio: "Connecting tech professionals in Bangkok",
-    eventsOrganized: 67,
-    rating: 4.7
-  },
-  {
-    id: 'org-5',
-    name: "Bangkok Runners",
-    avatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671d66?q=80&w=200&auto=format&fit=crop",
-    bio: "Running community for all fitness levels",
-    eventsOrganized: 89,
-    rating: 4.8
-  },
-  {
-    id: 'org-6',
-    name: "Creative Workshop BKK",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop",
-    bio: "Arts and crafts workshops for everyone",
-    eventsOrganized: 34,
-    rating: 4.9
-  }
 ];
 
-// Mock events
 export const mockEvents: MockEvent[] = [
   {
-    id: "1",
-    title: "Morning Yoga in Lumpini Park",
-    description: "Join us for a refreshing morning yoga session in the heart of Bangkok. Perfect for all skill levels, this outdoor yoga class will help you start your day with mindfulness and energy. Our certified instructor will guide you through gentle flows and breathing exercises while surrounded by nature.",
-    category: "sports",
-    status: "upcoming",
-    coverUrl: "/images/logo.png",
-    organizer: mockOrganizers[0],
-    date: "2025-10-15",
-    time: "07:00",
-    location: "Lumpini Park",
-    address: "Pathum Wan, Bangkok 10330",
-    capacity: 20,
-    currentParticipants: 15,
-    participants: [
-      {
-        id: "p-1",
-        name: "Sarah Johnson",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=200&auto=format&fit=crop",
-        status: "registered",
-        joinedAt: "2025-10-10T14:30:00Z"
-      },
-      {
-        id: "p-2",
-        name: "Mike Chen",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
-        status: "registered",
-        joinedAt: "2025-10-11T09:15:00Z"
-      }
-    ],
-    price: 300,
-    currency: "THB",
-    requirements: ["Yoga mat", "Comfortable clothing"],
-    whatToBring: ["Water bottle", "Towel"],
-    tags: ["yoga", "morning", "outdoor", "beginner-friendly"],
-    createdAt: "2025-10-08T10:00:00Z",
-    updatedAt: "2025-10-11T16:45:00Z"
-  },
-  {
-    id: "2",
-    title: "Street Photography Workshop",
-    description: "Discover the art of street photography in Bangkok's vibrant neighborhoods. Learn composition techniques, lighting tips, and how to capture authentic moments. We'll explore Chinatown and practice different photography styles while building your portfolio.",
-    category: "arts",
-    status: "upcoming",
-    coverUrl: "/images/circlelogo.png",
-    organizer: mockOrganizers[1],
+    eventId: 1,
+    cost: 500.00,
+    name: "Morning Yoga in Lumpini Park",
     date: "2025-10-16",
-    time: "14:00",
-    location: "Chinatown",
-    address: "Yaowarat Road, Samphanthawong, Bangkok",
-    capacity: 12,
-    currentParticipants: 8,
-    participants: [
-      {
-        id: "p-3",
-        name: "Alex Rivera",
-        status: "registered",
-        joinedAt: "2025-10-09T11:20:00Z"
-      }
-    ],
-    price: 800,
-    currency: "THB",
-    requirements: ["DSLR or mirrorless camera", "Basic photography knowledge"],
-    whatToBring: ["Camera", "Extra batteries", "Comfortable walking shoes"],
-    tags: ["photography", "workshop", "chinatown", "intermediate"],
-    createdAt: "2025-10-05T13:30:00Z",
-    updatedAt: "2025-10-11T18:20:00Z"
+    time: "07:00",
+    place: "Lumpini Park, Bangkok",
+    capacity: 20,
+    detail: "Start your day with energizing yoga practice in Bangkok's green heart. All levels welcome.",
+    rating: 4.8,
+    status: "active",
+    userId: 1,
   },
   {
-    id: "3",
-    title: "Thai Cooking Class & Market Tour",
-    description: "Experience authentic Thai cuisine by joining our cooking class that starts with a guided market tour. Learn to prepare traditional dishes like Pad Thai, Tom Yum, and Mango Sticky Rice from experienced local chefs. All ingredients and recipes included!",
-    category: "food",
-    status: "upcoming",
-    coverUrl: "/images/profile_image.png",
-    organizer: mockOrganizers[2],
+    eventId: 2,
+    cost: 800.00,
+    name: "Photography Walk: Old Bangkok",
     date: "2025-10-17",
-    time: "10:00",
-    location: "Cooking Studio & Local Market",
-    address: "Sukhumvit Soi 39, Bangkok",
-    capacity: 16,
-    currentParticipants: 14,
-    participants: [
-      {
-        id: "p-4",
-        name: "Emma Thompson",
-        status: "registered",
-        joinedAt: "2025-10-05T16:45:00Z"
-      }
-    ],
-    price: 1200,
-    currency: "THB",
-    requirements: ["None - all levels welcome"],
-    whatToBring: ["Apron provided", "Notebook for recipes"],
-    tags: ["cooking", "thai-food", "market-tour", "cultural"],
-    createdAt: "2025-09-30T09:15:00Z",
-    updatedAt: "2025-10-08T16:00:00Z"
-  },
-  {
-    id: "4",
-    title: "Tech Networking Night",
-    description: "Connect with fellow tech professionals, entrepreneurs, and innovators in Bangkok's thriving tech scene. Featuring guest speakers from leading startups and established companies, plus structured networking activities and refreshments.",
-    category: "technology",
-    status: "upcoming",
-    coverUrl: "/images/circlelogoinvert.png",
-    organizer: mockOrganizers[3],
-    date: "2025-10-18",
-    time: "18:30",
-    location: "WeWork Ploenchit",
-    address: "Ploenchit Rd, Pathum Wan, Bangkok 10330",
-    capacity: 50,
-    currentParticipants: 32,
-    participants: [],
-    price: 0,
-    currency: "THB",
-    requirements: ["None"],
-    whatToBring: ["Business cards", "Laptop (optional)"],
-    tags: ["networking", "technology", "startup", "professional"],
-    createdAt: "2025-10-01T10:00:00Z",
-    updatedAt: "2025-10-12T14:30:00Z"
-  },
-  {
-    id: "5",
-    title: "Weekend Coffee Tasting",
-    description: "Explore the world of specialty coffee with our expert barista. Learn about coffee origins, brewing methods, and taste profiles. Sample 6 different single-origin coffees and discover your perfect cup!",
-    category: "food",
-    status: "upcoming",
-    coverUrl: "/images/next.svg",
-    organizer: {
-      id: 'org-coffee',
-      name: "Bean There Coffee",
-      avatar: "https://images.unsplash.com/photo-1511485977113-f34c92461ad9?q=80&w=200&auto=format&fit=crop",
-      bio: "Specialty coffee roasters and educators",
-      eventsOrganized: 23,
-      rating: 4.8
-    },
-    date: "2025-10-19",
-    time: "15:00",
-    location: "Bean There Coffee Shop",
-    address: "Thonglor Soi 10, Bangkok",
+    time: "09:30",
+    place: "Rattanakosin Island, Bangkok",
     capacity: 15,
-    currentParticipants: 11,
-    participants: [],
-    price: 650,
-    currency: "THB",
-    requirements: ["None"],
-    whatToBring: ["Appetite for coffee!"],
-    tags: ["coffee", "tasting", "weekend", "specialty"],
-    createdAt: "2025-10-02T11:00:00Z",
-    updatedAt: "2025-10-13T09:30:00Z"
+    detail: "Capture the essence of old Bangkok through your lens.",
+    rating: 4.9,
+    status: "active",
+    userId: 2,
   },
   {
-    id: "6",
-    title: "Sunset Party at Rooftop Bar",
-    description: "Join us for an unforgettable sunset party with panoramic views of Bangkok skyline. Live DJ, signature cocktails, and great vibes. Perfect for meeting new people and celebrating the weekend!",
-    category: "social",
-    status: "upcoming",
-    coverUrl: "/images/logo.png",
-    organizer: {
-      id: 'org-party',
-      name: "Bangkok Social Club",
-      avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=200&auto=format&fit=crop",
-      bio: "Creating memorable social experiences",
-      eventsOrganized: 156,
-      rating: 4.7
-    },
+    eventId: 3,
+    cost: 1200.00,
+    name: "Thai Cooking Masterclass",
+    date: "2025-10-18",
+    time: "10:00",
+    place: "Culinary Studio, Sukhumvit",
+    capacity: 20,
+    detail: "Learn authentic Thai cooking techniques from professional chefs. Includes market tour and full meal preparation.",
+    rating: 4.8,
+    status: "active",
+    userId: 1,
+  },
+  {
+    eventId: 4,
+    cost: 0.00,
+    name: "Tech Startup Networking",
+    date: "2025-10-19",
+    time: "18:30",
+    place: "WeWork Ploenchit",
+    capacity: 50,
+    detail: "Connect with Bangkok's tech community. Guest speakers from leading startups and investment firms.",
+    rating: 4.6,
+    status: "active",
+    userId: 2,
+  },
+  {
+    eventId: 5,
+    cost: 900.00,
+    name: "Live Jazz Concert",
     date: "2025-10-20",
-    time: "17:00",
-    location: "Sky Bar Bangkok",
-    address: "Silom Rd, Bang Rak, Bangkok",
-    capacity: 100,
-    currentParticipants: 67,
-    participants: [],
-    price: 500,
-    currency: "THB",
-    requirements: ["Age 21+", "Smart casual dress code"],
-    whatToBring: ["ID", "Good vibes"],
-    tags: ["party", "sunset", "rooftop", "cocktails", "social"],
-    createdAt: "2025-09-28T16:00:00Z",
-    updatedAt: "2025-10-14T11:15:00Z"
-  }
-];
-
-// Mock user activities for tracking participation
-export const mockUserActivities: UserActivity[] = [
-  {
-    eventId: "1",
-    status: "registered"
+    time: "20:00",
+    place: "Saxophone Pub, Victory Monument",
+    capacity: 80,
+    detail: "Experience Bangkok's premier jazz venue with local and international artists in an intimate setting.",
+    rating: 4.9,
+    status: "active",
+    userId: 1,
   },
   {
-    eventId: "3",
-    status: "completed",
-    rating: 5,
-    feedback: "Amazing cooking class! Learned so much about Thai cuisine.",
-    completedAt: "2025-10-08T15:30:00Z",
-    photos: ["photo1.jpg", "photo2.jpg"]
-  }
+    eventId: 6,
+    cost: 2500.00,
+    name: "Python Programming Bootcamp",
+    date: "2025-10-21",
+    time: "09:00",
+    place: "Digital Innovation Hub",
+    capacity: 25,
+    detail: "Intensive weekend bootcamp covering Python fundamentals, web development, and data analysis for beginners.",
+    rating: 4.8,
+    status: "active",
+    userId: 2,
+  },
+  {
+    eventId: 7,
+    cost: 1200.00,
+    name: "Mindfulness Meditation Retreat",
+    date: "2025-10-22",
+    time: "08:00",
+    place: "Serenity Garden, Chatuchak",
+    capacity: 30,
+    detail: "Full-day meditation retreat focusing on mindfulness, stress reduction, and mental well-being with healthy meals.",
+    rating: 4.9,
+    status: "active",
+    userId: 1,
+  },
+  {
+    eventId: 8,
+    cost: 500.00,
+    name: "Sustainable Living Workshop",
+    date: "2025-10-23",
+    time: "13:00",
+    place: "Eco Living Center",
+    capacity: 40,
+    detail: "Learn practical ways to reduce your environmental footprint through zero-waste lifestyle and urban gardening.",
+    rating: 4.7,
+    status: "active",
+    userId: 2,
+  },
+  {
+    eventId: 9,
+    cost: 1500.00,
+    name: "Wine & Cheese Tasting Evening",
+    date: "2025-10-24",
+    time: "19:00",
+    place: "The Wine Loft, Silom",
+    capacity: 25,
+    detail: "Sophisticated evening of wine and cheese pairing with selections from France, Italy, and local artisanal cheeses.",
+    rating: 4.8,
+    status: "active",
+    userId: 1,
+  },
+  {
+    eventId: 10,
+    cost: 1800.00,
+    name: "AI & Machine Learning Seminar",
+    date: "2025-10-25",
+    time: "14:00",
+    place: "Bangkok University Tech Campus",
+    capacity: 60,
+    detail: "Comprehensive seminar on AI and ML applications in business with hands-on workshops and industry experts.",
+    rating: 4.9,
+    status: "active",
+    userId: 2,
+  },
+  {
+    eventId: 11,
+    cost: 650.00,
+    name: "Comedy Night Stand-up Show",
+    date: "2025-10-26",
+    time: "21:00",
+    place: "Comedy Club Bangkok",
+    capacity: 100,
+    detail: "Hilarious night of stand-up comedy featuring local and international comedians with drinks and snacks.",
+    rating: 4.7,
+    status: "active",
+    userId: 1,
+  },
+  {
+    eventId: 12,
+    cost: 3200.00,
+    name: "Digital Marketing Masterclass",
+    date: "2025-10-27",
+    time: "09:00",
+    place: "Marketing Institute Bangkok",
+    capacity: 35,
+    detail: "Advanced digital marketing strategies covering SEO, social media, content marketing, and analytics.",
+    rating: 4.8,
+    status: "active",
+    userId: 2,
+  },
 ];
 
-// Utility functions
-export const getEventById = (id: string): MockEvent | undefined => {
-  return mockEvents.find(event => event.id === id);
+const getCategoryForEvent = (eventId: number): string => {
+  const categoryMap: Record<number, string> = {
+    1: "Health",        // Morning Yoga
+    2: "Lifestyle",     // Photography Walk
+    3: "Lifestyle",     // Thai Cooking
+    4: "Technology",    // Tech Startup Networking
+    5: "Entertainment", // Live Jazz Concert
+    6: "Education",     // Python Programming Bootcamp
+    7: "Health",        // Mindfulness Meditation
+    8: "Environment",   // Sustainable Living Workshop
+    9: "Lifestyle",     // Wine & Cheese Tasting
+    10: "Technology",   // AI & Machine Learning Seminar
+    11: "Entertainment", // Comedy Night Stand-up Show
+    12: "Education",    // Digital Marketing Masterclass
+  };
+  return categoryMap[eventId] || "General";
 };
 
-export const getEventsByCategory = (category: EventCategory): MockEvent[] => {
-  return mockEvents.filter(event => event.category === category);
+const getEventImageUrl = (eventId: number): string => {
+  // Use related, high-quality images for each event type
+  const imageMap: Record<number, string> = {
+    1: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=300&fit=crop&crop=center", // Morning Yoga - peaceful yoga pose
+    2: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=500&h=300&fit=crop&crop=center", // Photography Walk - old architecture
+    3: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&h=300&fit=crop&crop=center", // Thai Cooking - cooking ingredients
+    4: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=500&h=300&fit=crop&crop=center", // Tech Networking - conference room
+    5: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=300&fit=crop&crop=center", // Jazz Concert - live music
+    6: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=500&h=300&fit=crop&crop=center", // Programming Bootcamp - coding screen
+    7: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=500&h=300&fit=crop&crop=center", // Meditation Retreat - meditation stones
+    8: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=500&h=300&fit=crop&crop=center", // Sustainable Living - plants/eco
+    9: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&h=300&fit=crop&crop=center", // Wine & Cheese - wine glasses
+    10: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=500&h=300&fit=crop&crop=center", // AI & ML Seminar - technology/AI
+    11: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&h=300&fit=crop&crop=center", // Comedy Night - microphone/stage
+    12: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop&crop=center", // Digital Marketing - laptop/analytics
+  };
+  return imageMap[eventId] || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=500&h=300&fit=crop&crop=center";
 };
 
-export const getEventsByStatus = (status: EventStatus): MockEvent[] => {
-  return mockEvents.filter(event => event.status === status);
-};
+// Mock user registrations - events that the current user has registered for
+const mockUserRegistrations = [1, 3, 7, 9, 11]; // User is registered for these event IDs
 
-export const getUserActivityForEvent = (eventId: string): UserActivity | undefined => {
-  return mockUserActivities.find(activity => activity.eventId === eventId);
-};
-
-export const isUserRegisteredForEvent = (eventId: string): boolean => {
-  const activity = getUserActivityForEvent(eventId);
-  return activity?.status === 'registered' || activity?.status === 'completed';
-};
-
-export const getUpcomingEvents = (): MockEvent[] => {
-  return mockEvents.filter(event => event.status === 'upcoming');
-};
-
-export const getRecommendedEvents = (): MockEvent[] => {
-  // Simple recommendation based on high ratings and availability
+export const getUserRegisteredEvents = (): any[] => {
   return mockEvents
-    .filter(event => event.status === 'upcoming')
-    .filter(event => event.organizer.rating >= 4.7)
-    .slice(0, 3);
+    .filter(event => mockUserRegistrations.includes(event.eventId))
+    .map(event => ({
+      id: event.eventId.toString(),
+      title: event.name,
+      description: event.detail,
+      category: getCategoryForEvent(event.eventId),
+      status: "upcoming",
+      coverUrl: getEventImageUrl(event.eventId),
+      organizer: {
+        id: event.userId.toString(),
+        name: "Event Organizer",
+        rating: event.rating,
+      },
+      date: event.date,
+      time: event.time,
+      location: event.place || "TBD",
+      address: event.place || "TBD",
+      capacity: event.capacity,
+      currentParticipants: Math.floor(Math.random() * (event.capacity * 0.8)), // Random participants
+      participants: [],
+      price: event.cost,
+      currency: "THB",
+      requirements: [],
+      whatToBring: [],
+      tags: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isRegistered: true, // Mark as registered
+    }));
+};
+
+export const getUIEvents = (): any[] => {
+  return mockEvents.map(event => ({
+    id: event.eventId.toString(),
+    title: event.name,
+    description: event.detail,
+    category: getCategoryForEvent(event.eventId),
+    status: "upcoming",
+    coverUrl: getEventImageUrl(event.eventId),
+    organizer: {
+      id: event.userId.toString(),
+      name: "Event Organizer",
+      rating: event.rating,
+    },
+    date: event.date,
+    time: event.time,
+    location: event.place || "TBD",
+    address: event.place || "TBD",
+    capacity: event.capacity,
+    currentParticipants: Math.floor(Math.random() * (event.capacity * 0.8)),
+    participants: [],
+    price: event.cost,
+    currency: "THB",
+    requirements: [],
+    whatToBring: [],
+    tags: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    isRegistered: mockUserRegistrations.includes(event.eventId),
+  }));
+};
+
+export const getEventById = (eventId: number) => {
+  return mockEvents.find(event => event.eventId === eventId);
+};
+
+export const convertToUIEvent = (event: MockEvent) => {
+  return {
+    id: event.eventId.toString(),
+    title: event.name,
+    description: event.detail,
+    category: getCategoryForEvent(event.eventId),
+    status: "upcoming",
+    coverUrl: getEventImageUrl(event.eventId),
+    organizer: {
+      id: event.userId.toString(),
+      name: "Event Organizer",
+      rating: event.rating,
+    },
+    date: event.date,
+    time: event.time,
+    location: event.place || "TBD",
+    address: event.place || "TBD",
+    capacity: event.capacity,
+    currentParticipants: 0,
+    participants: [],
+    price: event.cost,
+    currency: "THB",
+    requirements: [],
+    whatToBring: [],
+    tags: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 };

@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { Navbar } from "@/components/navbar/Navbar";
-import { mockEvents, getUpcomingEvents, getEventsByCategory, type MockEvent, type EventCategory } from "@/lib/mockData";
+import { getUIEvents, getEventById, convertToUIEvent, getUserRegisteredEvents } from '@/lib/mockData';
 import { Search, Mic, MapPin, Users, Calendar } from "lucide-react";
 import Image from "next/image";
 import { userApi, type User } from "@/lib/api/userApi";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<EventCategory | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [events, setEvents] = useState<MockEvent[]>([]);
-  const [upcomingEvents, setUpcomingEvents] = useState<MockEvent[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
 
   const fetchUser = async () => {
     try {
@@ -27,7 +27,8 @@ export default function Home() {
     }
   };
 
-  const filterTags: EventCategory[] = ['technology', 'food', 'social'];
+    // Filter tags include all available categories
+  const filterTags: string[] = ['Entertainment', 'Education', 'Health', 'Lifestyle', 'Technology', 'Environment'];
 
   // Filter events based on search and selected category
   const filteredEvents = events.filter(event => {
@@ -56,16 +57,15 @@ export default function Home() {
   };
 
   // Get background color based on event category
-  const getCategoryColor = (category: EventCategory) => {
-    const colors = {
-      sports: 'from-blue-300 to-blue-500',
-      cultural: 'from-purple-300 to-purple-500',
-      educational: 'from-green-300 to-green-500',
-      social: 'from-pink-300 to-pink-500',
-      outdoor: 'from-emerald-300 to-emerald-500',
-      food: 'from-orange-300 to-orange-500',
-      arts: 'from-indigo-300 to-indigo-500',
-      technology: 'from-cyan-300 to-cyan-500'
+    const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      'Entertainment': 'from-pink-300 to-pink-500',
+      'Education': 'from-blue-300 to-blue-500',
+      'Health': 'from-green-300 to-green-500',
+      'Lifestyle': 'from-orange-300 to-orange-500',
+      'Technology': 'from-cyan-300 to-cyan-500',
+      'Environment': 'from-emerald-300 to-emerald-500',
+      'General': 'from-gray-300 to-gray-500',
     };
     return colors[category] || 'from-gray-300 to-gray-500';
   };
@@ -74,8 +74,10 @@ export default function Home() {
     fetchUser();
     
     // Load mock events
-    setEvents(mockEvents);
-    setUpcomingEvents(getUpcomingEvents()); // Get all upcoming events for scrolling
+    const uiEvents = getUIEvents();
+    const userRegisteredEvents = getUserRegisteredEvents();
+    setEvents(uiEvents);
+    setUpcomingEvents(userRegisteredEvents); // Get only user's registered events
     
     // Hide the default header from layout.tsx when on home page
     const defaultHeader = document.getElementById('default-header');
@@ -144,42 +146,36 @@ export default function Home() {
           {/* Horizontal Scrollable Events */}
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
-              {getUpcomingEvents().map((event) => (
-                <div key={event.id} className="flex-shrink-0 w-[90px]">
-                                    <div className={`relative w-full h-[70px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoryColor(event.category)}`}>
-                    <Image
+              {upcomingEvents.map((event: any) => (
+                <div key={event.id} className="flex-shrink-0 w-[110px]">
+                                    <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoryColor(event.category)}`}>
+                    <div className="absolute inset-0 bg-black bg-opacity-5"></div>
+                    <img
                       src={event.coverUrl}
                       alt={event.title}
-                      fill
-                      sizes="90px"
-                      className="object-cover"
-                      priority={false}
+                      className="absolute inset-0 w-full h-full object-cover z-10"
                       onError={(e) => {
+                        console.log('Image failed to load:', event.coverUrl);
                         // Hide image on error and show gradient background
                         e.currentTarget.style.display = 'none';
                       }}
+                      onLoad={() => {
+                        console.log('Image loaded successfully:', event.coverUrl);
+                      }}
                     />
-                    <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                    
-                    {/* Category badge */}
-                    <div className="absolute top-1 left-1 bg-white bg-opacity-80 rounded-full px-1">
-                      <span className="text-[6px] font-medium text-black capitalize">
-                        {event.category}
-                      </span>
-                    </div>
                   </div>
                   
                   <div className="w-full bg-white rounded-[18px] p-2">
                     <div className="space-y-1">
-                      <div className="font-inter font-medium text-[8px] leading-[10px] text-black">
+                      <div className="font-inter font-medium text-[10px] leading-[12px] text-black">
                         {formatDate(event.date)}
                       </div>
-                      <div className="font-inter font-normal text-[7px] leading-[9px] text-black line-clamp-2">
+                      <div className="font-inter font-normal text-[9px] leading-[11px] text-black line-clamp-2">
                         {event.title}
                       </div>
                       <div className="flex items-center gap-1">
-                        <Users className="w-2 h-2 text-gray-600" />
-                        <span className="font-inter font-normal text-[6px] text-gray-700">
+                        <Users className="w-2.5 h-2.5 text-gray-600" />
+                        <span className="font-inter font-normal text-[8px] text-gray-700">
                           {event.currentParticipants}/{event.capacity}
                         </span>
                       </div>
@@ -207,43 +203,49 @@ export default function Home() {
         </div>
 
         {/* Filter Tags */}
-        <div className="flex justify-center space-x-2 mb-6">
-          {filterTags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setSelectedFilter(selectedFilter === tag ? null : tag)}
-              className={`px-4 py-2 rounded-[30px] transition-colors ${
-                selectedFilter === tag 
-                  ? 'bg-[#EB6223] text-white' 
-                  : 'bg-[#D4CDCD] text-black'
-              }`}
-            >
-              <span className="font-inter font-normal text-[12px] leading-[22px] capitalize">
-                {tag}
-              </span>
-            </button>
-          ))}
+        <div className="w-full max-w-[350px] mb-6">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex space-x-2 pb-2" style={{ width: 'max-content' }}>
+              {filterTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedFilter(selectedFilter === tag ? null : tag)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-[30px] transition-colors ${
+                    selectedFilter === tag 
+                      ? 'bg-[#EB6223] text-white' 
+                      : 'bg-[#D4CDCD] text-black'
+                  }`}
+                >
+                  <span className="font-inter font-normal text-[12px] leading-[22px] capitalize whitespace-nowrap">
+                    {tag}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Event Grid */}
         <div className="w-full max-w-[350px] grid grid-cols-2 gap-4">
-          {filteredEvents.slice(0, 4).map((event) => (
+          {filteredEvents.map((event) => (
             <div key={event.id} className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
               <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoryColor(event.category)}`}>
-                <Image
+                <div className="absolute inset-0 bg-black bg-opacity-5"></div>
+                <img
                   src={event.coverUrl}
                   alt={event.title}
-                  fill
-                  className="object-cover"
+                  className="absolute inset-0 w-full h-full object-cover z-10"
                   onError={(e) => {
                     console.log('Main grid image failed to load:', event.coverUrl);
                     e.currentTarget.style.display = 'none';
                   }}
+                  onLoad={() => {
+                    console.log('Main grid image loaded successfully:', event.coverUrl);
+                  }}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-10"></div>
                 
                 {/* Price tag */}
-                <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1">
+                <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center justify-center z-20">
                   <span className="text-[8px] font-medium text-black">
                     {event.price === 0 ? 'Free' : `฿${event.price}`}
                   </span>
@@ -259,7 +261,7 @@ export default function Home() {
                     </span>
                   </div>
                   
-                  <h3 className="font-inter font-medium text-[10px] leading-[12px] text-black line-clamp-2">
+                  <h3 className="font-inter font-medium text-[10px] leading-[12px] text-black line-clamp-2 min-h-[24px] max-h-[24px] overflow-hidden flex items-start">
                     {event.title}
                   </h3>
                   
@@ -280,25 +282,13 @@ export default function Home() {
               </div>
             </div>
           ))}
-          
-          {/* Fill empty slots if less than 4 events */}
-          {Array.from({ length: Math.max(0, 4 - filteredEvents.length) }).map((_, index) => (
-            <div key={`empty-main-${index}`} className="bg-[#FFF3D2] rounded-[18px] overflow-hidden opacity-50">
-              <div className="h-[80px] w-full bg-gray-200"></div>
-              <div className="bg-[#D4DDFF] rounded-t-[18px] p-3">
-                <div className="font-inter font-normal text-[10px] leading-[14px] text-gray-400">
-                  No events<br />available
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* Fixed Navbar always at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 max-w-[393px] mx-auto">
+      {/* Navbar at bottom with same positioning as other pages */}
+      <footer className="sticky bottom-[-6px] px-1 pb-[env(safe-area-inset-bottom)] z-50">
         <Navbar />
-      </div>
+      </footer>
     </div>
   );
 }

@@ -14,6 +14,7 @@ loadEnv({ path: path.resolve(__dirname, '../../.env') });
 const nextConfig = {
   // ไม่ต้องใส่ env:{} เพราะ process.env.* ใช้ได้แล้ว
   images: {
+    unoptimized: true, // Disable image optimization for local images
     remotePatterns: [
       {
         protocol: 'https',
