@@ -1,40 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchMe } from "@/actions/actions";
+import { fetchMe, getAllEvents } from "@/actions/actions";
 import { Navbar } from "@/components/navbar/Navbar";
-import { getUIEvents, getUserRegisteredEvents } from '@/lib/mockData';
 import { Search, Mic, MapPin, Users, Calendar } from "lucide-react";
 import Image from "next/image";
-import { userApi, type User } from "@/lib/api/userApi";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
 
-  // Try both API approaches for fetching user
+  // Use WE-241 backend API approach
   const fetchUser = async () => {
     try {
       setLoading(true);
-      
-      // Try WE-241 approach first (server action)
       const res = await fetchMe();
       if (res.ok && res.data) {
         setUser(res.data);
-        return;
-      }
-      
-      // Fallback to WE-237 approach (client-side API)
-      try {
-        const userData = await userApi.getCurrentUser();
-        setUser(userData);
-      } catch (apiError) {
-        console.log('Both API methods failed - user not authenticated');
-        // This is fine, we'll show guest experience
       }
     } catch (error) {
       console.error('Failed to fetch user:', error);
@@ -43,16 +29,59 @@ export default function Home() {
     }
   };
 
+  // Fetch events from WE-241 backend
+  const fetchEvents = async () => {
+    try {
+      const backendEvents = await getAllEvents();
+      setEvents(backendEvents || []);
+      // For now, mock upcoming events since we don't have user registration data
+      setUpcomingEvents(backendEvents?.slice(0, 3) || []);
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+      // Fallback to empty arrays
+      setEvents([]);
+      setUpcomingEvents([]);
+    }
+  };
+
   // Filter tags include all available categories
   const filterTags: string[] = ['Entertainment', 'Education', 'Health', 'Lifestyle', 'Technology', 'Environment'];
 
+  // Transform backend events to frontend format
+  const transformedEvents = events.map(event => ({
+    id: event.eventId,
+    title: event.name,
+    description: event.detail,
+    date: event.date,
+    time: event.time,
+    location: event.place || 'TBA',
+    capacity: event.capacity,
+    currentParticipants: Math.floor(Math.random() * event.capacity), // Mock for now
+    price: event.cost || 0,
+    category: 'General', // Default category since backend doesn't have this yet
+    coverUrl: `https://picsum.photos/400/300?random=${event.eventId}`, // Placeholder image
+    status: event.status
+  }));
+
   // Filter events based on search and selected category
-  const filteredEvents = events.filter(event => {
+  const filteredEvents = transformedEvents.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          event.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = !selectedFilter || event.category === selectedFilter;
     return matchesSearch && matchesFilter;
   });
+
+  // Transform upcoming events
+  const transformedUpcomingEvents = upcomingEvents.map(event => ({
+    id: event.eventId,
+    title: event.name,
+    date: event.date,
+    time: event.time,
+    capacity: event.capacity,
+    currentParticipants: Math.floor(Math.random() * event.capacity),
+    category: 'General',
+    coverUrl: `https://picsum.photos/400/300?random=${event.eventId}`
+  }));
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -88,12 +117,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchUser();
-    
-    // Load mock events
-    const uiEvents = getUIEvents();
-    const userRegisteredEvents = getUserRegisteredEvents();
-    setEvents(uiEvents);
-    setUpcomingEvents(userRegisteredEvents);
+    fetchEvents();
     
     // Hide the default header from layout.tsx when on home page
     const defaultHeader = document.getElementById('default-header');
@@ -162,7 +186,7 @@ export default function Home() {
           {/* Horizontal Scrollable Events */}
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
-              {upcomingEvents.length > 0 ? upcomingEvents.map((event: any) => (
+              {transformedUpcomingEvents.length > 0 ? transformedUpcomingEvents.map((event: any) => (
                 <div key={event.id} className="flex-shrink-0 w-[110px]">
                   <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoryColor(event.category)}`}>
                     <div className="absolute inset-0 bg-black bg-opacity-5"></div>
