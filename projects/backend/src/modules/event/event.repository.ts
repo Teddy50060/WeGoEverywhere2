@@ -1,10 +1,10 @@
 // src/core/event/event.repository.ts
 import type { DbType } from '@backend/src/database/connection';
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, and , gt, or } from 'drizzle-orm';
 import { CreateEventDto, UpdateEventDto } from './event.dto';
 import { schema } from '@backend/src/database/schema';
-import { and, gt, or } from 'drizzle-orm';
+
 
 @Injectable()
 export class EventRepository {
