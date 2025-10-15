@@ -26,6 +26,16 @@ export class UserService {
      * @returns any
      * @throws ApiError
      */
+    public static userControllerGetUser(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/users/user',
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
     public static userControllerGetall(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
