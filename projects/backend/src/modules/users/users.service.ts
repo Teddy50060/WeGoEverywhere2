@@ -5,26 +5,27 @@ import { Pool } from 'pg';
 import { schema } from '@backend/src/database/schema';
 import { UpdateUserDto } from './users.dto'; // <-- Import the DTO
 import { UsersRepository } from './users.repository';
+import type { DbType } from '@backend/src/database/connection';
 
 @Injectable()
 export class UserService{
-    private readonly db: NodePgDatabase<typeof schema>;
-
-  constructor(private readonly usersRepo: UsersRepository) {}
+  constructor(
+    @Inject('DatabaseConnection') private readonly db: DbType,
+    private readonly usersRepo: UsersRepository) {}
 
   async getAllUsers() {
     return this.usersRepo.findAll();
   }
 
   async update(id : number , updateuserdto : UpdateUserDto){
-    const[updateuser] = await this.db
+    const [updateuser] = await this.db
     .update(schema.users)
     .set(updateuserdto)
     .where(eq(schema.users.userId, id))
     .returning();
-  if(!updateuser){
-    throw new NotFoundException(`User with ID ${id} not found.`);
-  }
-  return updateuser;
+    if(!updateuser){
+      throw new NotFoundException(`User with ID ${id} not found.`);
+    }
+    return updateuser;
   }
 }
