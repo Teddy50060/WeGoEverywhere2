@@ -252,12 +252,6 @@ export default function Home() {
               Good Morning, "{loading ? 'Loading...' : user?.firstName || (authStatus?.valid ? 'Authenticated User' : 'Guest')}"
             </div>
           </div>
-          {/* Debug info */}
-          {authStatus && (
-            <div className="text-center mt-2 text-xs text-gray-600">
-              Auth: {authStatus.valid ? '✅ Valid' : '❌ Invalid'} | User: {user ? '✅ Loaded' : '❌ None'}
-            </div>
-          )}
         </header>
       </div>
 
