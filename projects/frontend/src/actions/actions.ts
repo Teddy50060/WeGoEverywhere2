@@ -22,11 +22,22 @@ export type EventActionState = {
 
 export async function fetchMe() {
   try {
-    await setOpenApiCookieHeader();
+    console.log("fetchMe: Setting up OpenAPI headers...");
+    const cookieHeader = await setOpenApiCookieHeader();
+    console.log("fetchMe: Cookie header set:", cookieHeader);
+    
+    console.log("fetchMe: Calling UserService.userControllerGetMe()...");
     const me = await UserService.userControllerGetMe();
+    console.log("fetchMe: Success, user data:", me);
     return { ok: true, data: me };
   } catch (err: any) {
-    console.error("Error fetching user info:", err);
+    console.error("fetchMe: Error details:", {
+      message: err?.message,
+      status: err?.status,
+      statusCode: err?.statusCode,
+      body: err?.body,
+      stack: err?.stack
+    });
     return { ok: false, message: err?.message || "Failed to fetch user info" };
   }
 }
