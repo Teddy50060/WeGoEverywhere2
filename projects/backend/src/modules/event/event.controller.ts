@@ -2,16 +2,19 @@
 import { Controller, Get, Patch, Param, Body, ParseIntPipe , Post, Delete } from '@nestjs/common'; // <-- Add Patch, Param, Body, ParseIntPipe
 import { EventService } from './event.service';
 import { UpdateEventDto , CreateEventDto } from './event.dto'; // <-- Import the DTO
+import { Public } from '@backend/src/shared/decorators/public.decorator';
 
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
+  @Public()
   @Get(':id')
   getById(@Param('id', ParseIntPipe) id: number) {
     return this.eventService.getEventById(id);
   }
 
+  @Public()
   @Get()
   GetAll() {
     return this.eventService.getAllEvents();
