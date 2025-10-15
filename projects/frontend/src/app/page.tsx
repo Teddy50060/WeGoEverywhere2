@@ -27,15 +27,24 @@ export default function Home() {
       console.log('Auth verification result:', authResult);
       
       if (authResult.valid && authResult.payload) {
-        // Extract user info from JWT payload
+        // Log the raw JWT payload to see what fields are available
+        console.log('Raw JWT payload:', JSON.stringify(authResult.payload, null, 2));
+        
+        // Extract user info from JWT payload - try different field names
+        const firstName = authResult.payload.firstName || 
+                         authResult.payload.given_name || 
+                         authResult.payload.name || 
+                         (authResult.payload.email ? authResult.payload.email.split('@')[0] : null) ||
+                         'Authenticated User';
+                         
         const userInfo = {
-          firstName: authResult.payload.firstName || authResult.payload.name || 'User',
-          lastName: authResult.payload.lastName || '',
+          firstName: firstName,
+          lastName: authResult.payload.lastName || authResult.payload.family_name || '',
           email: authResult.payload.email || '',
           userId: authResult.payload.userId || authResult.payload.sub || authResult.payload.id,
           profilePicture: authResult.payload.profilePicture || '/images/profile_image.png'
         };
-        console.log('User info from JWT:', userInfo);
+        console.log('Extracted user info:', userInfo);
         setUser(userInfo);
       } else {
         console.log('Not authenticated or no payload');
