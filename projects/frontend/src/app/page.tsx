@@ -38,9 +38,33 @@ export default function Home() {
       setUpcomingEvents(backendEvents?.slice(0, 3) || []);
     } catch (error) {
       console.error('Failed to fetch events:', error);
-      // Fallback to empty arrays
-      setEvents([]);
-      setUpcomingEvents([]);
+      // Fallback to sample events when backend is not accessible
+      const sampleEvents = [
+        {
+          eventId: 1,
+          name: 'Sample Tech Meetup',
+          detail: 'A sample event for demonstration',
+          date: '2025-10-20',
+          time: '18:00',
+          place: 'Bangkok',
+          capacity: 50,
+          cost: 0,
+          status: 'active'
+        },
+        {
+          eventId: 2,
+          name: 'Weekend Workshop',
+          detail: 'Learning new skills together',
+          date: '2025-10-22',
+          time: '10:00',
+          place: 'Chiang Mai',
+          capacity: 30,
+          cost: 500,
+          status: 'active'
+        }
+      ];
+      setEvents(sampleEvents);
+      setUpcomingEvents(sampleEvents.slice(0, 1));
     }
   };
 
