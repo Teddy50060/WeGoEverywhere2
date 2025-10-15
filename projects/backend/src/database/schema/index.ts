@@ -4,6 +4,7 @@ import { beFriend } from './beFriend.schema';
 import { chat } from './chat.schema';
 import { chatDoc } from './chatDoc.schema';
 import { event } from './event.schema';
+import { eventImages, images } from './images.schema';
 import { joined } from './joined.schema';
 import { oauthIdentities } from './oauthIdentities.schema';
 import { participant } from './participant.schema';
@@ -26,4 +27,6 @@ export const schema = {
   refreshTokens,
   report,
   users,
+  images,
+  eventImages,
 };
