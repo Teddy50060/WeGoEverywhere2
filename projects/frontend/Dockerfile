@@ -11,4 +11,4 @@ COPY . .
 RUN npm install
 
 # 6. สั่งรัน dev server
-CMD ["npm", "run", "dev"]
+CMD ["next", "run", "dev"]
