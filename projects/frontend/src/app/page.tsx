@@ -56,58 +56,41 @@ export default function Home() {
     }
   };
 
-  // Use sample events instead of backend API
+  // Fetch events from backend database
   const fetchEvents = async () => {
-    console.log('Loading sample events...');
-    // Use sample events since backend API requires complex authentication
-    const sampleEvents = [
-      {
-        eventId: 1,
-        name: 'Tech Meetup Bangkok',
-        detail: 'Join us for an exciting tech meetup with industry professionals',
-        date: '2025-10-20',
-        time: '18:00',
-        place: 'Bangkok Tech Hub',
-        capacity: 50,
-        cost: 0,
-        status: 'active'
-      },
-      {
-        eventId: 2,
-        name: 'Weekend Workshop',
-        detail: 'Learn new skills in a hands-on workshop environment',
-        date: '2025-10-22',
-        time: '10:00',
-        place: 'Chiang Mai Innovation Center',
-        capacity: 30,
-        cost: 500,
-        status: 'active'
-      },
-      {
-        eventId: 3,
-        name: 'Startup Networking',
-        detail: 'Connect with entrepreneurs and startup founders',
-        date: '2025-10-25',
-        time: '19:00',
-        place: 'Co-working Space',
-        capacity: 40,
-        cost: 200,
-        status: 'active'
-      },
-      {
-        eventId: 4,
-        name: 'Design Workshop',
-        detail: 'Creative design session for UI/UX enthusiasts',
-        date: '2025-10-28',
-        time: '14:00',
-        place: 'Design Studio',
-        capacity: 25,
-        cost: 800,
-        status: 'active'
+    try {
+      console.log('Fetching events from backend database...');
+      const backendEvents = await getAllEvents();
+      console.log('Backend events received:', backendEvents);
+      
+      if (backendEvents && Array.isArray(backendEvents)) {
+        setEvents(backendEvents);
+        // For upcoming events, show first 2 events as an example
+        setUpcomingEvents(backendEvents.slice(0, 2));
+      } else {
+        console.log('No events received from backend');
+        setEvents([]);
+        setUpcomingEvents([]);
       }
-    ];
-    setEvents(sampleEvents);
-    setUpcomingEvents(sampleEvents.slice(0, 2)); // Show first 2 as upcoming
+    } catch (error) {
+      console.error('Failed to fetch events from backend:', error);
+      // Fallback to sample events when backend is not accessible
+      const fallbackEvents = [
+        {
+          eventId: 1,
+          name: 'Sample Event (Backend Unavailable)',
+          detail: 'This is a fallback event shown when backend is not accessible',
+          date: '2025-10-20',
+          time: '18:00',
+          place: 'Sample Location',
+          capacity: 50,
+          cost: 0,
+          status: 'active'
+        }
+      ];
+      setEvents(fallbackEvents);
+      setUpcomingEvents(fallbackEvents);
+    }
   };
 
   // Filter tags include all available categories
