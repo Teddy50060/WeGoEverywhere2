@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { Navbar } from "@/components/navbar/Navbar";
-import { getUIEvents, getEventById, convertToUIEvent, getUserRegisteredEvents } from '@/lib/mockData';
 import { Search, Mic, MapPin, Users, Calendar } from "lucide-react";
 import Image from "next/image";
 import { userApi, type User } from "@/lib/api/userApi";
+import { eventApi, convertEventToUIFormat, type Event } from "@/lib/api/eventApi";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [events, setEvents] = useState<any[]>([]);
-  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
 
   const fetchUser = async () => {
     try {
@@ -27,13 +27,37 @@ export default function Home() {
     }
   };
 
+  const fetchEvents = async () => {
+    try {
+      const eventsData = await eventApi.getAllEvents();
+      const uiFormattedEvents = eventsData.map(convertEventToUIFormat);
+      setEvents(uiFormattedEvents);
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+      // Fallback to empty array
+      setEvents([]);
+    }
+  };
+
+  const fetchUserJoinedEvents = async () => {
+    try {
+      const joinedEventsData = await eventApi.getUserJoinedEvents();
+      const uiFormattedJoinedEvents = joinedEventsData.map(convertEventToUIFormat);
+      setUpcomingEvents(uiFormattedJoinedEvents);
+    } catch (error) {
+      console.error('Failed to fetch user joined events:', error);
+      // Fallback to empty array - user might not be authenticated or have no joined events
+      setUpcomingEvents([]);
+    }
+  };
+
     // Filter tags include all available categories
   const filterTags: string[] = ['Entertainment', 'Education', 'Health', 'Lifestyle', 'Technology', 'Environment'];
 
   // Filter events based on search and selected category
   const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = !selectedFilter || event.category === selectedFilter;
     return matchesSearch && matchesFilter;
   });
@@ -72,12 +96,8 @@ export default function Home() {
 
   useEffect(() => {
     fetchUser();
-    
-    // Load mock events
-    const uiEvents = getUIEvents();
-    const userRegisteredEvents = getUserRegisteredEvents();
-    setEvents(uiEvents);
-    setUpcomingEvents(userRegisteredEvents); // Get only user's registered events
+    fetchEvents();
+    fetchUserJoinedEvents();
     
     // Hide the default header from layout.tsx when on home page
     const defaultHeader = document.getElementById('default-header');
@@ -146,13 +166,13 @@ export default function Home() {
           {/* Horizontal Scrollable Events */}
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
-              {upcomingEvents.map((event: any) => (
-                <div key={event.id} className="flex-shrink-0 w-[110px]">
-                                    <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoryColor(event.category)}`}>
+              {upcomingEvents.map((event) => (
+                <div key={event.eventId} className="flex-shrink-0 w-[110px]">
+                                    <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoryColor(event.category || 'General')}`}>
                     <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                     <img
                       src={event.coverUrl}
-                      alt={event.title}
+                      alt={event.title || event.name}
                       className="absolute inset-0 w-full h-full object-cover z-10"
                       onError={(e) => {
                         console.log('Image failed to load:', event.coverUrl);
@@ -171,12 +191,12 @@ export default function Home() {
                         {formatDate(event.date)}
                       </div>
                       <div className="font-inter font-normal text-[9px] leading-[11px] text-black line-clamp-2">
-                        {event.title}
+                        {event.title || event.name}
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-2.5 h-2.5 text-gray-600" />
                         <span className="font-inter font-normal text-[8px] text-gray-700">
-                          {event.currentParticipants}/{event.capacity}
+                          {event.currentParticipants || 0}/{event.capacity}
                         </span>
                       </div>
                     </div>
@@ -228,12 +248,12 @@ export default function Home() {
         {/* Event Grid */}
         <div className="w-full max-w-[350px] grid grid-cols-2 gap-4">
           {filteredEvents.map((event) => (
-            <div key={event.id} className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
-              <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoryColor(event.category)}`}>
+            <div key={event.eventId} className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
+              <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoryColor(event.category || 'General')}`}>
                 <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                 <img
                   src={event.coverUrl}
-                  alt={event.title}
+                  alt={event.title || event.name}
                   className="absolute inset-0 w-full h-full object-cover z-10"
                   onError={(e) => {
                     console.log('Main grid image failed to load:', event.coverUrl);
@@ -247,7 +267,7 @@ export default function Home() {
                 {/* Price tag */}
                 <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center justify-center z-20">
                   <span className="text-[8px] font-medium text-black">
-                    {event.price === 0 ? 'Free' : `฿${event.price}`}
+                    {(event.price || event.cost || 0) === 0 ? 'Free' : `฿${event.price || event.cost}`}
                   </span>
                 </div>
               </div>
@@ -262,13 +282,13 @@ export default function Home() {
                   </div>
                   
                   <h3 className="font-inter font-medium text-[10px] leading-[12px] text-black line-clamp-2 min-h-[24px] max-h-[24px] overflow-hidden flex items-start">
-                    {event.title}
+                    {event.title || event.name}
                   </h3>
                   
                   <div className="flex items-center gap-1">
                     <MapPin className="w-3 h-3 text-gray-600" />
                     <span className="font-inter font-normal text-[8px] text-gray-700 truncate">
-                      {event.location}
+                      {event.location || event.place || 'TBD'}
                     </span>
                   </div>
                   

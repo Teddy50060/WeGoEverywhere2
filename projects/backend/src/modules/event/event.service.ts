@@ -27,4 +27,8 @@ export class EventService {
   async updateEvent(id: number, updateEventDto: UpdateEventDto) {
     return this.eventRepo.update(id, updateEventDto);
   }
+
+  async getUserJoinedEvents(userId: number) {
+    return this.eventRepo.findUserJoinedEvents(userId);
+  }
 }
