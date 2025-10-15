@@ -1,7 +1,7 @@
 // src/core/event/event.repository.ts
 import type { DbType } from '@backend/src/database/connection';
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, count } from 'drizzle-orm';
 import { CreateEventDto, UpdateEventDto } from './event.dto';
 import { schema } from '@backend/src/database/schema';
 
@@ -24,7 +24,27 @@ export class EventRepository {
   }
 
   async findAll() {
-    return this.db.query.event.findMany();
+    // Get all events with participant count
+    const events = await this.db.query.event.findMany();
+    
+    // Get participant counts for all events
+    const eventsWithParticipants = await Promise.all(
+      events.map(async (event) => {
+        const participantCountResult = await this.db
+          .select({ count: count() })
+          .from(schema.joined)
+          .where(eq(schema.joined.eventId, event.eventId));
+          
+        const participantCount = participantCountResult[0]?.count || 0;
+        
+        return {
+          ...event,
+          currentParticipants: participantCount
+        };
+      })
+    );
+    
+    return eventsWithParticipants;
   }
 
   async create(createEventDto: CreateEventDto) {

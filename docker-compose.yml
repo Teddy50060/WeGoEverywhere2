@@ -32,7 +32,7 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: development
-      API_URL: http://backend:3001   # frontend เรียก backend ผ่าน service name
+      NEXT_PUBLIC_API_URL: http://backend:3001   # frontend เรียก backend ผ่าน service name
     depends_on:
       - backend
     volumes:

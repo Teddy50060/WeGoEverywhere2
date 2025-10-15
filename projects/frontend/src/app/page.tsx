@@ -108,6 +108,24 @@ export default function Home() {
   // Filter tags include all available categories
   const filterTags: string[] = ['Entertainment', 'Education', 'Health', 'Lifestyle', 'Technology', 'Environment'];
 
+  // Mock category assignment based on event name (temporary until backend implements categories)
+  const getMockCategory = (eventName: string) => {
+    const name = eventName.toLowerCase();
+    if (name.includes('tech') || name.includes('coding') || name.includes('ai') || name.includes('blockchain') || name.includes('mobile') || name.includes('cloud')) {
+      return 'Technology';
+    } else if (name.includes('workshop') || name.includes('seminar') || name.includes('bootcamp')) {
+      return 'Education';
+    } else if (name.includes('networking') || name.includes('meetup') || name.includes('panel')) {
+      return 'Entertainment';
+    } else if (name.includes('freelancer') || name.includes('career')) {
+      return 'Lifestyle';
+    } else if (name.includes('design') || name.includes('thinking')) {
+      return 'Health';
+    } else {
+      return 'Environment';
+    }
+  };
+
   // Transform backend events to frontend format
   const transformedEvents = events.map(event => ({
     id: event.eventId,
@@ -117,9 +135,9 @@ export default function Home() {
     time: event.time,
     location: event.place || 'TBA',
     capacity: event.capacity,
-    currentParticipants: Math.floor(Math.random() * event.capacity), // Mock for now
+    currentParticipants: event.currentParticipants || 0, // Use real participant count from backend
     price: event.cost || 0,
-    category: 'General', // Default category since backend doesn't have this yet
+    category: getMockCategory(event.name), // Mock category based on event name
     coverUrl: `https://picsum.photos/400/300?random=${event.eventId}`, // Placeholder image
     status: event.status
   }));
@@ -139,8 +157,8 @@ export default function Home() {
     date: event.date,
     time: event.time,
     capacity: event.capacity,
-    currentParticipants: Math.floor(Math.random() * event.capacity),
-    category: 'General',
+    currentParticipants: event.currentParticipants || 0, // Use real participant count from backend
+    category: getMockCategory(event.name), // Mock category based on event name
     coverUrl: `https://picsum.photos/400/300?random=${event.eventId}`
   }));
 
