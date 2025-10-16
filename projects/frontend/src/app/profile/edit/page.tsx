@@ -209,6 +209,7 @@ export default function EditProfilePage() {
               label="Telephone"
               defaultValue={user?.telephoneNumber || ""}
               placeholder="Phone Number (Optional)"
+              pattern="[0-9]*"
            
             />
 
