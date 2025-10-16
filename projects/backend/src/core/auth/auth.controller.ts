@@ -101,7 +101,7 @@ export class AuthController {
         sameSite: 'lax',
         maxAge: ONE_WEEK,
       });
-      return res.redirect('http://localhost:3000/profile-setup');
+      return res.redirect('http://localhost:3000/consent');
     }else{
       const accessToken = this.authService.signJwt(existingUser.userId);
       const refreshToken = this.authService.signRefreshJwt(existingUser.userId);
