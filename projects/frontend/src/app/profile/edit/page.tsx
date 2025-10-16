@@ -144,6 +144,7 @@ export default function EditProfilePage() {
               type="text"
               label="First name"
               defaultValue={user?.firstName || ""}
+              pattern="[ก-ฮะ-๛A-Za-z\s]+"
               required
             />
 
@@ -152,6 +153,7 @@ export default function EditProfilePage() {
               type="text"
               label="Last name"
               defaultValue={user?.lastName || ""}
+              pattern="[ก-ฮะ-๛A-Za-z\s]+"
               required
             />
 
@@ -190,9 +192,10 @@ export default function EditProfilePage() {
               name="sex"
               label="Sex"
               required
-              defaultValue={user?.sex || ""}
+              value={user?.sex || ""}
               className = "bg-gray-200"
               containerClassName="mb-2.5" 
+              onChange={(e) => setUser({ ...user, sex: e.target.value })}
               options={[
                 { label: "Select…", value: "", disabled: true },
                 { label: "Female", value: "female" },
@@ -210,6 +213,7 @@ export default function EditProfilePage() {
               defaultValue={user?.telephoneNumber || ""}
               placeholder="Phone Number (Optional)"
               pattern="[0-9]*"
+              maxLength={20}  
            
             />
 

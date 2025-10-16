@@ -16,6 +16,7 @@ export type FormInputProps = {
   className?: string;
   readOnly?: boolean;
   required? : boolean;
+  pattern?: string;
 };
 
 export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(

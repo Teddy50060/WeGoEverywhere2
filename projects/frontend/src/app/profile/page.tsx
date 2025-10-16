@@ -135,9 +135,8 @@ export default function ProfilePage() {
       </div>
       
     </main>
-    <footer className="sticky bottom-[-6px] px-1 pb-[env(safe-area-inset-bottom)]">
-            <Navbar />
-      </footer> 
+          <Navbar />
+     
     </div>
     
   );
