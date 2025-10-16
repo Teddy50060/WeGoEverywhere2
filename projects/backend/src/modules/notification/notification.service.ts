@@ -6,12 +6,17 @@ import { Notifications } from '@backend/src/database/schema/notifications.schema
 export class NotificationService {
   constructor(private readonly notificationRepo: NotificationRepository) {}
 
-  async getNotifs(userId: number, limit: number = 10) {
-    return await this.notificationRepo.getNotifs(userId, limit);
+  async getNotifs(userId: number, limit: number = 10, offset: number = 0) {
+    return await this.notificationRepo.getNotifs(userId, limit, offset);
   }
 
   async markAsRead(notificationId: number) {
     return await this.notificationRepo.markAsRead(notificationId);
+  }
+
+  async getNotifCount(userId: number, unreadOnly = true): Promise<number> {
+    const unread = await this.notificationRepo.getNotifCount(userId, unreadOnly);
+    return unread;
   }
   
   async broadcastNotification(

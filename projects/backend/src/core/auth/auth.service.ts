@@ -52,8 +52,13 @@ export class AuthService {
   }
 
   // (optional helpers you can call from the controller)
+  // need fix
   verifyRefresh(refreshToken: string) {
     return this.jwtService.verify(refreshToken) as { sub: any; tokenId: string; iat: number; exp: number };
+  }
+
+  verifyJwtToken(jwtToken: string) {
+    return this.jwtService.verify(jwtToken) as { sub: any; tokenId: string; iat: number; exp: number };
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {

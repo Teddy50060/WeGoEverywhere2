@@ -10,7 +10,7 @@ export class NotificationRepository {
     @Inject('DatabaseConnection') private readonly db: DbType,
   ) {}
 
-  async getNotifs(userId: number, limit: number): Promise<(Notifications)[]>  {
+  async getNotifs(userId: number, limit: number, offset: number = 0): Promise<(Notifications)[]>  {
     const results = await this.db
       .select()
       .from(notifications)
@@ -18,7 +18,8 @@ export class NotificationRepository {
         eq(notifications.userId, userId),
       )
       .orderBy(sql`read ASC, created_at DESC`)
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
 
     // map ให้ null → empty string
     return results.map(r => ({
@@ -28,6 +29,18 @@ export class NotificationRepository {
       fromService: r.fromService ?? '',
     }));
   }
+
+  async getNotifCount(userId: number, unreadOnly = true): Promise<number> {
+    const condition = unreadOnly
+      ? and(eq(notifications.userId, userId), eq(notifications.read, false))
+      : eq(notifications.userId, userId);
+    const result = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(notifications)
+      .where(condition);
+    return result[0]?.count ?? 0;
+  }
+
 
   async markAsRead(notificationId: number) {
     return await this.db
