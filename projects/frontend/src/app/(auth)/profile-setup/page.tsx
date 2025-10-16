@@ -299,7 +299,7 @@ export default function ProfileSetupPage() {
               ]}
           />
 
-          <FormInput name="telephoneNumber" type="tel" label="Phone Number (Optional)" placeholder="Enter your phone number" className="bg-white border border-black" />
+          <FormInput name="telephoneNumber" type="tel" label="Phone Number (Optional)" placeholder="Enter your phone number" pattern="[0-9]*" className="bg-white border border-black" />
           <FormInput name="bio"  type="text" label="Bio (Optional)" placeholder="Tell us about yourself" className="bg-white border border-black" />
 
           <button
