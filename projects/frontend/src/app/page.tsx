@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navbar } from "@/components/navbar/Navbar";
 import { Search, Mic, MapPin, Users, Calendar } from "lucide-react";
 import Image from "next/image";
@@ -14,6 +15,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const router = useRouter();
+
+  // Navigate to event detail page
+  const handleEventClick = (eventId: number | string) => {
+    router.push(`/event/${eventId}`);
+  };
 
   const fetchUser = async () => {
     try {
@@ -193,8 +200,12 @@ export default function Home() {
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
               {upcomingEvents.map((event) => (
-                <div key={event.eventId} className="flex-shrink-0 w-[110px]">
-                                    <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoryColor(event.category || 'General')}`}>
+                <div 
+                  key={event.eventId} 
+                  className="flex-shrink-0 w-[110px] cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => handleEventClick(event.eventId)}
+                >
+                  <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoryColor(event.category || 'General')}`}>
                     <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                     <img
                       src={event.coverUrl}
@@ -274,7 +285,11 @@ export default function Home() {
         {/* Event Grid */}
         <div className="w-full max-w-[350px] grid grid-cols-2 gap-4">
           {filteredEvents.map((event) => (
-            <div key={event.eventId} className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
+            <div 
+              key={event.eventId} 
+              className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleEventClick(event.eventId)}
+            >
               <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoryColor(event.category || 'General')}`}>
                 <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                 <img
