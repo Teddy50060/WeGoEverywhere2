@@ -7,9 +7,27 @@ import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { FiBell } from "react-icons/fi";
-import { AuthService } from "@/lib/api";
+import { AuthService, UserService } from "@/lib/api";
+import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
+    const [user, setUser] = useState<any>({});
+
+    // ✅ ดึงข้อมูล user ทันทีเมื่อเข้าเพจ
+    useEffect(() => {
+      UserService.userControllerGetUser()
+        .then((res) => {
+          setUser(res);
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.error("Cannot load user info");
+        });
+    }, []);
+
+
+
+
     const confirm = useConfirm();
     const onSignOut = async () => {
         const ok = await confirm({
@@ -84,7 +102,7 @@ export default function ProfilePage() {
 
         {/* pill */}
         <div className="-ml-6 flex-1 rounded-[28px] bg-white px-6 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-            <p className="text-[20px] font-bold text-[#2E2E2E]">Gabriel Smith</p>
+            <p className="text-[20px] font-bold text-[#2E2E2E]">{user ? `${user.firstName} ${user.lastName}` : ""} </p>
             <Link
             href="/profile/edit"
             className="text-sm underline decoration-[#BFBFBF] underline-offset-2 text-[#7A7A7A] hover:text-[#2E2E2E]"

@@ -1,7 +1,7 @@
 // src/app/(whatever)/edit-profile/page.tsx
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { FiArrowLeft, FiCalendar, FiChevronDown } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -17,6 +17,19 @@ type HtmlDateInput = HTMLInputElement & { showPicker?: () => void };
 export default function EditProfilePage() {
   // const birthRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [user, setUser] = useState<any>({});
+
+  // ✅ ดึงข้อมูล user ทันทีเมื่อเข้าเพจ
+  useEffect(() => {
+    UserService.userControllerGetUser()
+      .then((res) => {
+        setUser(res);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Cannot load user info");
+      });
+  }, []);
 
 
   const dateRef = useRef<HtmlDateInput | null>(null);
@@ -48,6 +61,21 @@ export default function EditProfilePage() {
   telephoneNumber: fd.get("telephone") as string || undefined, // ชื่อตรง
   bio: fd.get("bio") as string || undefined,
 };
+
+   if (body.birthdate) {
+    const birthDate = new Date(body.birthdate);
+    const today = new Date();
+    const age =
+      today.getFullYear() -
+      birthDate.getFullYear() -
+      (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0);
+
+    if (age < 20) {
+      toast.error("You must be at least 20 years old.");
+      setSubmitting(false);
+      return; 
+    }
+  }
 
 
     // เรียก API จริง
@@ -115,7 +143,7 @@ export default function EditProfilePage() {
               name="firstName"
               type="text"
               label="First name"
-              defaultValue="Gabriel"
+              defaultValue={user?.firstName || ""}
               required
             />
 
@@ -123,7 +151,7 @@ export default function EditProfilePage() {
               name="lastName"
               type="text"
               label="Last name"
-              defaultValue="Smith"
+              defaultValue={user?.lastName || ""}
               required
             />
 
@@ -138,6 +166,7 @@ export default function EditProfilePage() {
                 type="date"
                 max={today}
                 containerClassName="mb-0" 
+                defaultValue={user?.birthdate || ""}
 
                 required
                 className="pr-11 appearance-none
@@ -161,7 +190,7 @@ export default function EditProfilePage() {
               name="sex"
               label="Sex"
               required
-              defaultValue=""  // ให้ placeholder ถูกเลือกเริ่มต้น
+              defaultValue={user?.sex || ""}
               className = "bg-gray-200"
               containerClassName="mb-2.5" 
               options={[
@@ -178,18 +207,18 @@ export default function EditProfilePage() {
               type="tel"
               inputMode="tel"
               label="Telephone"
-              defaultValue="081-999-1234"
-              placeholder="081-999-1234"
-              required
+              defaultValue={user?.telephoneNumber || ""}
+              placeholder="Phone Number (Optional)"
+           
             />
 
             <EditInput
               name="bio"
               type="bio"
               label="Bio"
-              defaultValue="we love cat"
-              placeholder="we love cat"
-              required
+              defaultValue={user?.bio || ""}
+              placeholder="Bio (Optional)"
+        
             />
 
             {/* Save */}
