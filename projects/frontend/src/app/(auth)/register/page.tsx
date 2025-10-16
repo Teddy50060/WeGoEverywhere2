@@ -185,7 +185,7 @@ export default function RegisterPage() {
           sessionStorage.setItem('registrationData', JSON.stringify(registrationData));
           
           toast.success("Email and password saved. Complete your profile!");
-          router.push("/profile-setup");
+          router.push("/profile-setup?from=register"); 
         }}
         >
           {/* E-mail */}

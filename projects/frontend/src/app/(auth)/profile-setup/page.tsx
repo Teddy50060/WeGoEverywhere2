@@ -3,7 +3,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { FormInput } from "@/components/form/input/FormInput";
 import PhotoPicker from "@/components/form/PhotoPicker";
@@ -80,10 +80,15 @@ export default function ProfileSetupPage() {
     }
   };
 
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+
+  const backHref = from === "oauth" ? "/consent" : "/register";
+
   return (
     <main className="font-alt">
       <Link
-        href="/register"
+        href={backHref}
         aria-label="Back to register"
         className="mt-3 inline-flex h-8 w-8 items-center justify-center rounded-full 
                    bg-[#EB6223] text-black active:scale-95 transition"

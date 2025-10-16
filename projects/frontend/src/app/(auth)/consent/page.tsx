@@ -33,7 +33,7 @@ export default function ConsentPage() {
     }
 
     // ดำเนินการต่อ เช่น redirect ไปหน้า setup
-    router.push("/profile-setup");
+    router.push("/profile-setup?from=oauth");
   };
 
   return (
