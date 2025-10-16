@@ -1,0 +1,1 @@
+ALTER TABLE "oauth_identities" ALTER COLUMN "created_at" SET DEFAULT now();

@@ -19,10 +19,10 @@ export class EventRepository {
     return this.db.query.event.findMany();
   }
 
-  async create(createEventDto: CreateEventDto) {
+  async create(createEventDto: CreateEventDto, user_id: number) {
     const [newEvent] = await this.db
       .insert(schema.event)
-      .values(createEventDto)
+      .values({ ...createEventDto, userId: user_id })
       .returning();
 
     if (!newEvent) {

@@ -14,6 +14,8 @@ import { RefreshTokensRepository } from '@backend/src/modules/refreshTokens.repo
 import { EmailService } from '@backend/src/shared/services/email.service';
 import { AuthUsersRepository } from '@backend/src/modules/auth-users.repository';
 import { GitHubAuthStrategy } from './github/github-auth.strategy';
+import { OAuthUsersRepository } from '@backend/src/modules/oauthUsersRepository';
+import { UsersRepository } from '@backend/src/modules/users/users.repository';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { GitHubAuthStrategy } from './github/github-auth.strategy';
     RefreshTokensRepository,
     EmailService,
     AuthUsersRepository,
+    OAuthUsersRepository,
+    UsersRepository
   ],
   exports: [AuthService , RefreshTokensRepository],
 })
