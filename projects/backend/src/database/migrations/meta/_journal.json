@@ -57,6 +57,13 @@
       "when": 1760528797184,
       "tag": "0008_ChangeNotificationSchema",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1760592393595,
+      "tag": "0009_AddUserIdForeignKeyContraint",
+      "breakpoints": true
     }
   ]
 }
