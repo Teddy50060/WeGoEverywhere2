@@ -34,93 +34,94 @@ export default function LoginPage() {
 
         {/* ฟอร์ม: ดันลงเล็กน้อย + ช่องไฟภายในกว้างขึ้น */}
         <form
-          className="mt-4 sm:mt-6 space-y-4 sm:space-y-5"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (loading) return;
-            setLoading(true);
+        className="mt-4 sm:mt-6 space-y-4 sm:space-y-5"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (loading) return;
+          setLoading(true);
 
-            const fd = new FormData(e.currentTarget);
-            const loginDto: LoginDto = {
-              email: fd.get("email")?.toString() ?? "",
-              password: fd.get("password")?.toString() ?? "",
-            };
+          const fd = new FormData(e.currentTarget);
+          const loginDto: LoginDto = {
+            email: fd.get("email")?.toString() ?? "",
+            password: fd.get("password")?.toString() ?? "",
+          };
 
-            let tId: string | undefined;
+          let tId: string | undefined;
 
-            function normalizeMessage(err: any): string {
-              const raw =
-                err?.body?.message ??
-                err?.data?.message ?? // กันบาง lib
-                err?.message ??
-                err?.statusText ??
-                null;
+          function normalizeMessage(err: any): string {
+            const raw =
+              err?.body?.message ??
+              err?.data?.message ??      // กันบาง lib
+              err?.message ??
+              err?.statusText ??
+              null;
 
-              if (Array.isArray(raw)) return raw.join(", ");
-              if (typeof raw === "string") return raw;
+            if (Array.isArray(raw)) return raw.join(", ");
+            if (typeof raw === "string") return raw;
 
-              // บาง API ส่ง { message: "..." } ซ้อนอีกที
-              if (raw && typeof raw === "object") {
-                if (typeof raw.message === "string") return raw.message;
-                try {
-                  return JSON.stringify(raw);
-                } catch {
-                  /* ignore */
-                }
+            // บาง API ส่ง { message: "..." } ซ้อนอีกที
+            if (raw && typeof raw === "object") {
+              if (typeof raw.message === "string") return raw.message;
+              try {
+                return JSON.stringify(raw);
+              } catch {
+                /* ignore */
               }
-              return "Unable to login";
             }
+            return "Unable to login";
+          }
 
-            try {
-              // Optional: show a loading toast while calling API
-              tId = toast.loading("Signing in...");
+          try {
+            // Optional: show a loading toast while calling API
+            tId = toast.loading("Signing in...");
 
-              await AuthService.authControllerLogin(loginDto);
+            await AuthService.authControllerLogin(loginDto);
 
-              toast.dismiss(tId);
-              toast.success("Login successful", { duration: 2500 });
-              window.location.href = "http://localhost:3000/";
-            } catch (err: any) {
-              // Try to read status/message from various shapes
-              if (tId) toast.dismiss(tId);
-              const status =
-                err?.status ||
-                (err?.name === "ApiError" && err?.statusCode) ||
-                err?.cause?.status ||
-                err?.body?.statusCode;
+            toast.dismiss(tId);
+            toast.success("Login successful", { duration: 2500 });
+            window.location.href = "http://localhost:3000/";
+          } catch (err: any) {
+            // Try to read status/message from various shapes
+            if (tId) toast.dismiss(tId); 
+            const status =
+              err?.status ||
+              (err?.name === "ApiError" && err?.statusCode) ||
+              err?.cause?.status ||
+              err?.body?.statusCode;
 
-              const serverMsg =
-                err?.body?.message || err?.message || "Unable to login";
+            const serverMsg =
+              err?.body?.message || err?.message || "Unable to login";
 
-              if (status === 401 || status === 403) {
-                toast.error("Invalid email or password", {
-                  id: "login-error", // prevents duplicate stacking
-                  duration: 3500,
-                });
-              } else if (
-                status === 0 ||
-                serverMsg.toLowerCase().includes("network")
-              ) {
-                toast.error("Network issue. Please try again.", {
-                  id: "login-error",
-                });
-              } else {
-                toast.error(serverMsg, { id: "login-error" });
-              }
-              console.error("Login failed", err);
-            } finally {
-              setLoading(false);
+            if (status === 401 || status === 403) {
+              toast.error("Invalid email or password", {
+                id: "login-error", // prevents duplicate stacking
+                duration: 3500,
+              });
+            } else if (
+              status === 0 ||
+              serverMsg.toLowerCase().includes("network")
+            ) {
+              toast.error("Network issue. Please try again.", {
+                id: "login-error",
+              });
+            } else {
+              toast.error(serverMsg, { id: "login-error" });
             }
-          }}
-        >
-          <FormInput
-            name="email"
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            className="bg-white  text-sm placeholder:text-gray-400 placeholder:opacity-100 "
-            required
-          />
+            console.error("Login failed", err);
+          } finally {
+            setLoading(false);
+          }
+        }}
+      >
+        
+          <FormInput 
+          name="email" 
+          label="Email" 
+          type="email" 
+          placeholder="you@example.com"
+          className="bg-white  text-sm placeholder:text-gray-400 placeholder:opacity-100 "
+          required
+           />
 
           <PasswordInput
             name="password"
