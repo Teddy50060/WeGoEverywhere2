@@ -1,7 +1,10 @@
 import { IS_PUBLIC_KEY } from '@backend/src/shared/decorators/public.decorator';
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import { ExecutionContext, Injectable , CanActivate  } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import * as jwt from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
+import { ExtractJwt } from 'passport-jwt';
 
 @Injectable()
 export class JwtGuard extends AuthGuard('jwt') {

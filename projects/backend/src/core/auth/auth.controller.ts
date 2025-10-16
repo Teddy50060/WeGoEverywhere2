@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { JwtGuard } from './jwt/access-jwt/jwt.guard';
+import { JwtGuard , OptionalJwtGuard } from './jwt/access-jwt/jwt.guard';
 import { Public } from '@backend/src/shared/decorators/public.decorator';
 import {
   ApiBearerAuth,
@@ -84,8 +84,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Github OAuth callback' })
   async githubCallback(@Req() req, @Res({ passthrough: true }) res: Response) {
     const existingUser = await this.oauthUsersRepository.findByGithubId(req.user.id);
+    console.log(req.user)
     if(!existingUser){
-      const accessToken = this.authService.signJwt(req.user.id);
+      const accessToken = this.authService.signJwt(req.user.id , req.user.email , 'github');
       const refreshToken = this.authService.signRefreshJwt(req.user.id);
       res.cookie('jwt', accessToken, { 
         httpOnly: true,
@@ -491,5 +492,16 @@ export class AuthController {
         details: error.message
       };
     }
+  }
+
+  @UseGuards(OptionalJwtGuard)
+  @Get('method') // ตรวจ JWT จาก cookie
+  getMethod(@Req() req) {
+    // req.user มาจาก JwtStrategy
+    console.log(req.user);
+    const method = req.user?.method || 'normal';
+    return {
+      method: method, // 'github' หรือ 'normal'
+    };
   }
 }

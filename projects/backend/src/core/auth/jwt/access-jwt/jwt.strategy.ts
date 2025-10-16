@@ -23,6 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   validate(payload: any) {
-    return { sub: payload.sub, email: payload.email };
+    return { sub: payload.sub, email: payload.email , method: payload.method }; // เพิ่ม method ใน payload ที่ส่งกลับ
   }
 }

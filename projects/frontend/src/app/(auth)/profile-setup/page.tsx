@@ -11,6 +11,7 @@ import FormSelect from "@/components/form/input/FormSelect";
 import { toast } from "react-hot-toast";
 import { apiCall } from "@/utils/api";
 import { AuthService, RegisterDto, Oauth_RegisterDto } from "@/lib/api";
+import {jwtDecode} from "jwt-decode";
 
 type HtmlDateInput = HTMLInputElement & { showPicker?: () => void };
 
@@ -123,8 +124,19 @@ export default function ProfileSetupPage() {
               // Get registration data from previous step
               // Fix this
               const registrationData = JSON.parse(sessionStorage.getItem('registrationData') || '{}');
-              
-              if (1 != 1 && (!registrationData.email || !registrationData.password)) {
+
+
+              const res = await fetch('http://localhost:3001/auth/method', {
+                method: 'GET',
+                credentials: 'include', // สำคัญ! ให้ browser ส่ง cookie httpOnly
+              });
+
+              if (!res.ok) throw new Error('Failed to fetch user');
+
+              const user = await res.json();
+              console.log(user.method);
+
+              if (user.method !== 'github' && (!registrationData.email || !registrationData.password)) {
                 toast.error("Registration data missing. Please start from the beginning.");
                 router.push("/register");
                 return;
@@ -188,7 +200,7 @@ export default function ProfileSetupPage() {
                 };
               console.log('Sending registration data:', payload);
               let result;
-              if(1 != 1){
+              if(user.method !== 'github'){
                 const requestBody: RegisterDto = {
                   email: payload.email,
                   password: payload.password,
