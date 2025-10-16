@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { JwtGuard , OptionalJwtGuard } from './jwt/access-jwt/jwt.guard';
+import { JwtGuard} from './jwt/access-jwt/jwt.guard';
 import { Public } from '@backend/src/shared/decorators/public.decorator';
 import {
   ApiBearerAuth,
@@ -41,6 +41,7 @@ import LoginDto from './dto/login.dto';
 import { compareSync } from 'bcrypt';
 import { Oauth_RegisterDto } from '@backend/src/modules/dto/Oauth_RegisterDto';
 import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
+import { OptionalAuth } from './jwt/decorator/optional-auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -493,8 +494,8 @@ export class AuthController {
       };
     }
   }
-
-  @UseGuards(OptionalJwtGuard)
+  
+  @OptionalAuth()
   @Get('method') // ตรวจ JWT จาก cookie
   getMethod(@Req() req) {
     // req.user มาจาก JwtStrategy
