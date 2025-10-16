@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
     "/register",
     "/profile-setup",
     "/forgot-password",
-    "/forgot-password/email-sent",
+    // "/forgot-password/email-sent",
   ].includes(pathname);
   // ตรวจว่าเป็น refresh API
   const isRefreshApi = pathname === "/api/auth/refresh";
