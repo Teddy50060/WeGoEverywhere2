@@ -198,13 +198,6 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
           />
           <FieldError errors={state?.errors?.eventDetails} />
 
-          <div className="mt-4 flex items-center gap-2 pb-2">
-            <span className="text-[13px] font-semibold text-black/80">
-              Optional
-            </span>
-            <div className="h-px flex-1 bg-black/20" />
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div>
               <FormInput
