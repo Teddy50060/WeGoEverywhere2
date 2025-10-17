@@ -173,15 +173,6 @@ export default function RegisterPage() {
               return;
             }
 
-<<<<<<< HEAD
-          // Store registration data for next step
-          const registrationData = { email, password };
-          sessionStorage.setItem('registrationData', JSON.stringify(registrationData));
-          
-          toast.success("Email and password saved. Complete your profile!");
-          router.push("/profile-setup?from=register"); 
-        }}
-=======
             if (!password) {
               toast.error("Password is required");
               return;
@@ -213,7 +204,6 @@ export default function RegisterPage() {
             toast.success("Email and password saved. Complete your profile!");
             router.push("/profile-setup");
           }}
->>>>>>> origin/develop
         >
           {/* E-mail */}
           <FormInput
