@@ -12,5 +12,15 @@ export type CreateEventDto = {
     detail?: string;
     rating?: number;
     userId?: number;
+    /**
+     * Must have at least 1 category
+     */
+    categories?: Array<string>;
+    imagePath?: string;
+    status?: string;
+    /**
+     * Image file to upload
+     */
+    file?: Blob;
 };
 
