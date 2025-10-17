@@ -7,40 +7,40 @@ import { schema } from '@backend/src/database/schema';
 
 @Injectable()
 export class EventRepository {
-  constructor
-  (
-    @Inject('DatabaseConnection') private readonly db: DbType,
-  ) 
-  {
-
-  }
+  constructor(@Inject('DatabaseConnection') private readonly db: DbType) {}
 
   async findAll() {
     return this.db.query.event.findMany();
   }
 
-  async create(createEventDto: CreateEventDto) {
-    const [newEvent] = await this.db
+  async create(dto: CreateEventDto) {
+    const [created] = await this.db
       .insert(schema.event)
-      .values(createEventDto)
+      .values(dto)
       .returning();
-
-    if (!newEvent) {
-      throw new NotFoundException(`The event is not created successfully.`);
-    }
-    return newEvent;
+    if (!created)
+      throw new NotFoundException('The event is not created successfully.');
+    return created;
   }
 
-  async update(id: number, updateEventDto: UpdateEventDto) {
-    const [updatedEvent] = await this.db
+  async update(id: number, dto: UpdateEventDto) {
+    const [updated] = await this.db
       .update(schema.event)
-      .set(updateEventDto)
+      .set(dto)
       .where(eq(schema.event.eventId, id))
       .returning();
+    if (!updated) throw new NotFoundException(`Event with ID ${id} not found.`);
+    return updated;
+  }
 
-    if (!updatedEvent) {
+  async findById(id: number) {
+    const rows = await this.db
+      .select()
+      .from(schema.event)
+      .where(eq(schema.event.eventId, id))
+      .limit(1);
+    if (!rows.length)
       throw new NotFoundException(`Event with ID ${id} not found.`);
-    }
-    return updatedEvent;
+    return rows[0];
   }
 }

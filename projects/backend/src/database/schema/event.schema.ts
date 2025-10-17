@@ -13,6 +13,8 @@ export const event = pgTable("event", {
     capacity: integer("capacity").notNull(),
     detail: text("detail").notNull(),
     rating: doublePrecision("rating").default(0),
+    categories: text("categories").array(),
+    imagePath: text("image_path"),
     status: varchar("status").notNull().default('active'),
     userId: integer("user_id").notNull(),
 }, (table) => [
