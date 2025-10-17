@@ -44,50 +44,56 @@ export default function EditProfilePage() {
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (submitting) return;
-  setSubmitting(true);
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
 
-  try {
-    const form = e.currentTarget;
-    const fd = new FormData(form);
+    try {
+      // const form = e.currentTarget;
+      // const fd = new FormData(form);
 
-    // แปลง FormData เป็น object สำหรับ API
-    const body: UpdateUserDto = {
-  firstName: fd.get("firstName") as string || undefined,
-  lastName: fd.get("lastName") as string || undefined,
-  birthdate: fd.get("birthDate") as string || undefined,   // ชื่อตรง
-  sex: fd.get("sex") as UpdateUserDto.sex || undefined,    // cast enum
-  telephoneNumber: fd.get("telephone") as string || undefined, // ชื่อตรง
-  bio: fd.get("bio") as string || undefined,
-};
+      // // แปลง FormData เป็น object สำหรับ API
+      // const body: UpdateUserDto = {
+      //   firstName: fd.get("firstName") as string || undefined,
+      //   lastName: fd.get("lastName") as string || undefined,
+      //   birthdate: fd.get("birthDate") as string || undefined,   // ชื่อตรง
+      //   sex: fd.get("sex") as UpdateUserDto.sex || undefined,    // cast enum
+      //   telephoneNumber: fd.get("telephone") as string || undefined, // ชื่อตรง
+      //   bio: fd.get("bio") as string || undefined,
+      // };
+      // ใช้ state แทน FormData
+      const body: UpdateUserDto = {
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        birthdate: user.birthdate || undefined,
+        sex: user.sex || undefined,
+        telephoneNumber: user.telephoneNumber || null,
+        bio: user.bio || null,
+      };
 
-   if (body.birthdate) {
-    const birthDate = new Date(body.birthdate);
-    const today = new Date();
-    const age =
-      today.getFullYear() -
-      birthDate.getFullYear() -
-      (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0);
+      if (body.birthdate) {
+        const birthDate = new Date(body.birthdate);
+        const today = new Date();
+        const age =
+          today.getFullYear() -
+          birthDate.getFullYear() -
+          (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0);
 
-    if (age < 20) {
-      toast.error("You must be at least 20 years old.");
+        if (age < 20) {
+          toast.error("You must be at least 20 years old.");
+          setSubmitting(false);
+          return; 
+        }
+      }
+      // เรียก API จริง
+      await UserService.userControllerUpdate(body);
+      toast.success("Successfully Edited");
+    } catch (err) {
+      console.error(err);
+      toast.error("Unsuccessfully Edited, try again");
+    } finally {
       setSubmitting(false);
-      return; 
     }
-  }
-
-
-    // เรียก API จริง
-    await UserService.userControllerUpdate(body);
-
-    toast.success("Successfully Edited");
-  } catch (err) {
-    console.error(err);
-    toast.error("Unsuccessfully Edited, try again");
-  } finally {
-    setSubmitting(false);
-  }
 };
 
   return (
@@ -210,7 +216,10 @@ export default function EditProfilePage() {
               type="tel"
               inputMode="tel"
               label="Telephone"
-              defaultValue={user?.telephoneNumber || ""}
+              value={user?.telephoneNumber || ""}
+              onChange={(e) => {
+                setUser({ ...user, telephoneNumber: e.target.value });
+              }}
               placeholder="Phone Number (Optional)"
               pattern="^0[689][0-9]{7,8}$"
               title="Starting with 06, 08, or 09 and up to 10 digits (e.g. 0812345678)"
@@ -222,7 +231,10 @@ export default function EditProfilePage() {
               name="bio"
               type="bio"
               label="Bio"
-              defaultValue={user?.bio || ""}
+              value={user?.bio || ""}
+              onChange={(e) => {
+                setUser({ ...user, bio: e.target.value });
+              }}
               placeholder="Bio (Optional)"
         
             />
