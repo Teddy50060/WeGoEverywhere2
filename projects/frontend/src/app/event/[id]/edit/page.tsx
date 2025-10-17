@@ -31,6 +31,8 @@ export default async function EditEventPage({
 
   if (!ev) notFound();
 
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
   const event = {
     eventId: ev?.eventId ?? -1,
     name: ev?.name ?? "Untitled Event",
@@ -41,8 +43,10 @@ export default async function EditEventPage({
     place: ev?.place ?? "-",
     detail: ev?.detail ?? "-",
     status: ev?.status ?? "publish",
-    imageUrl:
-      "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=1200&auto=format&fit=crop", // dummy ชั่วคราว
+    categories: ev?.categories ?? [],
+    imagePath: ev?.imagePath
+      ? `${baseUrl}${ev.imagePath}` // ✅ ใช้รูปจริงจาก backend
+      : null,
   };
 
   return (

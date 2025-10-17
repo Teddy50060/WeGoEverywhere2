@@ -31,8 +31,9 @@ type EventView = {
   time: string | null; // 'HH:mm'
   place: string;
   detail: string;
-  imageUrl: string;
+  imagePath: string | null;
   status?: string;
+  categories: string[];
 };
 
 export default function EditEventFormClient({ event }: { event: EventView }) {
@@ -117,7 +118,6 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
     successText: "Event updated successfully!",
     errorText: "Failed to update event.",
     onSuccess: () => {
-      // router.refresh(); // รีเฟรช server components บนหน้านี้
       router.push("/event");
     },
   });
@@ -135,11 +135,11 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
       <div className="font-alt relative rounded-3xl border border-black/10 bg-[var(--color-brand-secondary)] p-4 shadow text-sm">
         <form ref={formRef} id="updateForm" action={formAction} noValidate>
           <input type="hidden" name="id" value={event.eventId} />
-
+          <p> {event.categories[0]} </p>
           <div className="mb-4">
             <EventPhotoPicker
               name="eventPhoto"
-              value={event.imageUrl}
+              value={event.imagePath}
               linkText="Change your event photo"
               size={208}
               width={280}

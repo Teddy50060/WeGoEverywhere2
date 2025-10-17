@@ -1,17 +1,20 @@
 "use server";
 
 import { eventFormSchema } from "@/utils/schemas";
-import { EventService, UserService } from "@/lib/api";
+import {
+  EventService,
+  UserService,
+  type CreateEventDto,
+  type UpdateEventDto,
+} from "@/lib/api";
 import {
   formToDbShape,
   mapErrorsToFormKeys,
   compactZodErrors,
   toCreateDto,
   toUpdateDtoFromForm,
-  buildEventUrl,
 } from "./helpers.action";
 import { setOpenApiCookieHeader } from "@/lib/auth/CookieHeader";
-import { redirect } from "next/navigation";
 
 export type EventActionState = {
   ok: boolean;
@@ -65,7 +68,7 @@ export const createEventWithZod = async (
     const dto = toCreateDto(parsed.data, userId);
     console.log("createEventWithZod dto:", dto);
 
-    await EventService.eventControllerCreate(dto);
+    await EventService.eventControllerCreateWithImage(dto);
     return { ok: true, message: "Event created successfully!" };
   } catch (error: any) {
     console.error("createEventWithZod error:", error);

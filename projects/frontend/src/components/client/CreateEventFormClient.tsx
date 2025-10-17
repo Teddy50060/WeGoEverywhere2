@@ -15,6 +15,7 @@ import { FormInput } from "../form/input/FormInput";
 import { StatusSelect } from "../form/input/StatusSelect";
 import { useActionToasts } from "../form/useActionToasts";
 import { TimePicker } from "../form/input/TimePicker";
+import CategoryMultiSelect from "../form/input/CategoryMultiSelect";
 
 export default function CreateEventFormClient() {
   const router = useRouter();
@@ -86,12 +87,12 @@ export default function CreateEventFormClient() {
       {/* Photo */}
       <div className="mb-4">
         <EventPhotoPicker
-          name="photo"
+          name="eventPhoto"
           size={208}
           rounded="2xl"
           bgClassName="bg-gray-300"
         />
-        <FieldError errors={state?.errors?.photo} />
+        <FieldError errors={state?.errors?.eventPhoto} />
       </div>
 
       <FormInput
@@ -135,6 +136,12 @@ export default function CreateEventFormClient() {
         defaultValue={f.eventLocation}
       />
       <FieldError errors={state?.errors?.eventLocation} />
+
+      <div className="mt-3">
+        <label className="block text-sm font-medium">Categories</label>
+        <CategoryMultiSelect name="categories" />
+      </div>
+      <FieldError errors={state?.errors?.eventCategories} />
 
       <TextAreaInput
         name="eventDetails"
