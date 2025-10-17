@@ -5,15 +5,20 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   // ยกเว้นไฟล์ระบบและ public assets
   const isPublicAsset =
-    pathname.startsWith("/_next") || pathname.startsWith("/favicon.ico");
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/images");
   // ยกเว้น public pages
-  const isPublicPath = [
+  const publicPaths = [
     "/login",
     "/register",
     "/profile-setup",
     "/forgot-password",
-    // "/forgot-password/email-sent",
-  ].includes(pathname);
+    "/forgot-password/email-sent",
+  ];
+
+  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+
   // ตรวจว่าเป็น refresh API
   const isRefreshApi = pathname === "/api/auth/refresh";
 
