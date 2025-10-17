@@ -50,6 +50,13 @@
       "when": 1760460596907,
       "tag": "0007_illegal_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1760733427530,
+      "tag": "0008_illegal_the_call",
+      "breakpoints": true
     }
   ]
 }
