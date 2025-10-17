@@ -56,7 +56,7 @@ export default async function EditEventPage({
           <div className="absolute top-0 left-1/2 -translate-x-1/2 z-0">
             <div className="min-w-65 rounded-full border border-black/60 bg-[var(--color-brand-primary)] px-12 py-3 text-center shadow-sm">
               <h1 className="translate-y-[-20%] text-[25px] font-bold tracking-wide">
-                Edit Event {event.eventId}
+                Edit Event
               </h1>
             </div>
           </div>

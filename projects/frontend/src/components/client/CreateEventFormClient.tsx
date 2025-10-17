@@ -1,7 +1,7 @@
 // /components/form/CreateEventFormClient.tsx
 "use client";
 import * as React from "react";
-import { useActionState, useRef, useMemo } from "react";
+import { useActionState, useRef, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createEventWithZod, type EventActionState } from "@/actions/actions";
 import EventPhotoPicker from "@/components/form/EventPhotoPicker";
@@ -23,12 +23,21 @@ export default function CreateEventFormClient() {
   const didSubmitRef = useRef(false);
   const lastToastSigRef = useRef<string | null>(null);
 
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  // ใช้สำหรับบังคับ remount ตัวเลือกไฟล์ (ล้าง input file)
+  const [resetPickerSig, setResetPickerSig] = useState(0);
+
   const createWrapper = async (
     _prev: EventStateWithFields<EventActionState>,
     formData: FormData
   ): Promise<EventStateWithFields<EventActionState>> => {
     didSubmitRef.current = true;
     lastToastSigRef.current = null;
+
+    // แนบไฟล์จาก state (ถ้ามี)
+    if (photoFile) {
+      formData.set("eventPhoto", photoFile);
+    }
 
     try {
       const res = await createEventWithZod(formData);
@@ -37,9 +46,19 @@ export default function CreateEventFormClient() {
         message: undefined,
         fields: toFields(formData),
       };
+
+      // ❌ ถ้าไม่สำเร็จ → ล้างรูป
+      if (!nextState.ok) {
+        setPhotoFile(null);
+        setResetPickerSig((s) => s + 1);
+      }
+
       return nextState;
     } catch (err) {
       console.error(err);
+      // ❌ เคส error จริง → ล้างรูปด้วย
+      setPhotoFile(null);
+      setResetPickerSig((s) => s + 1);
       return {
         ok: false,
         errors: {},
@@ -57,14 +76,10 @@ export default function CreateEventFormClient() {
   const f = state.fields ?? {};
   const toastState = useMemo(() => {
     if (!didSubmitRef.current || !state) return undefined;
-
     const effective = { ...state, message: undefined };
-
     const sig = effective.ok ? "S" : "E";
-
     if (lastToastSigRef.current === sig) return undefined;
     lastToastSigRef.current = sig;
-
     return effective;
   }, [state]);
 
@@ -77,6 +92,10 @@ export default function CreateEventFormClient() {
     },
   });
 
+  const pickerKey = state.ok
+    ? "ok"
+    : `err-${Object.keys(state.errors ?? {}).join(",")}`;
+
   return (
     <form
       ref={formRef}
@@ -87,10 +106,13 @@ export default function CreateEventFormClient() {
       {/* Photo */}
       <div className="mb-4">
         <EventPhotoPicker
+          key={`picker-${resetPickerSig}`} // ⬅️ เมื่อ resetPickerSig เปลี่ยน => รีเซ็ต input
           name="eventPhoto"
           size={208}
           rounded="2xl"
           bgClassName="bg-gray-300"
+          linkText="Change photo"
+          onChange={(file) => setPhotoFile(file)}
         />
         <FieldError errors={state?.errors?.eventPhoto} />
       </div>
@@ -138,7 +160,6 @@ export default function CreateEventFormClient() {
       <FieldError errors={state?.errors?.eventLocation} />
 
       <div className="mt-3">
-        <label className="block text-sm font-medium">Categories</label>
         <CategoryMultiSelect name="categories" />
       </div>
       <FieldError errors={state?.errors?.eventCategories} />

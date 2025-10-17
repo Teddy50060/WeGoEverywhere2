@@ -92,7 +92,9 @@ export const updateEventWithZod = async (
     if (Number.isNaN(numericId)) {
       return { ok: false, message: "Invalid event id" };
     }
+
     const candidate = formToDbShape(formData);
+
     const parsed = eventFormSchema.safeParse(candidate);
     if (!parsed.success) {
       const fieldErrors = mapErrorsToFormKeys(
@@ -104,18 +106,22 @@ export const updateEventWithZod = async (
         message: compactZodErrors(fieldErrors),
       };
     }
+
     const dto = toUpdateDtoFromForm(formData);
-    await EventService.eventControllerUpdate(numericId, dto);
+    console.log("dto =", dto);
+
+    await EventService.eventControllerUpdateEventWithImage(numericId, dto);
 
     const nextVal = formData.get("next");
     const next = typeof nextVal === "string" && nextVal ? nextVal : undefined;
+
     return { ok: true, message: "Event updated!", next };
   } catch (error: any) {
     const status = error?.status ?? error?.statusCode;
     return {
       ok: false,
       message:
-        error?.body?.message || error?.message || "Failed to create event.",
+        error?.body?.message || error?.message || "Failed to update event.",
     };
   }
 };

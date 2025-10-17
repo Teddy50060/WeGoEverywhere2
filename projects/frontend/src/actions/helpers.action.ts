@@ -100,18 +100,31 @@ export function toUpdateDtoFromForm(fd: FormData): UpdateEventDto {
     return typeof v === "string" && v ? v : undefined;
   };
 
+  const categories = fd
+    .getAll("categories")
+    .flatMap((v) => (typeof v === "string" ? [v] : []));
+
+  const rawFile = fd.get("eventPhotoFile");
+  const file =
+    typeof File !== "undefined" && rawFile instanceof File && rawFile.size > 0
+      ? rawFile
+      : undefined;
+
+  const timeRaw = s("eventTime");
+  const time =
+    timeRaw && /^\d{2}:\d{2}$/.test(timeRaw) ? `${timeRaw}:00` : timeRaw;
+
   return {
     name: s("eventName"),
     date: s("eventDate"),
-    time: (() => {
-      const t = s("eventTime");
-      return t && /^\d{2}:\d{2}$/.test(t) ? `${t}:00` : t;
-    })(),
+    time,
     place: s("eventLocation"),
     detail: s("eventDetails"),
     capacity: num(fd.get("eventCapacity")),
     cost: num(fd.get("eventCost")),
     rating: num(fd.get("eventRating")),
     status: apiFromUiStatus(s("eventStatus")),
+    categories: categories.length ? (categories as any) : undefined,
+    file,
   };
 }
