@@ -115,3 +115,4 @@ export class CreateEventDto {
   @IsString()
   status?: string;
 }
+

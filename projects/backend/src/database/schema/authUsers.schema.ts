@@ -12,7 +12,7 @@ export const authUsers = pgTable('auth_users', {
   id: serial('id').primaryKey().notNull(),
   userId: integer('user_id')
     .notNull()
-    .references(() => users.userId)
+    .references(() => users.userId, {onDelete: "cascade"})
     .unique(),
   email: varchar('email', { length: 100 }).notNull().unique(),
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
