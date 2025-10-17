@@ -13,6 +13,7 @@ export async function middleware(req: NextRequest) {
     "/login",
     "/register",
     "/profile-setup",
+    "/reset-password",
     "/forgot-password",
     "/forgot-password/email-sent",
   ];
