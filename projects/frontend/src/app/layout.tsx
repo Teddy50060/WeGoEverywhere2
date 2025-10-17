@@ -54,14 +54,16 @@ export default function RootLayout({
                 <div className="bg-brand-primary">
                   <header className="bg-[var(--color-brand-secondary)] rounded-b-[50px] px-3 py-5 overflow-hidden">
                     <div className="flex items-center justify-between">
-                      <h1 className="text-xl font-alt sm:text-2xl font-extrabold leading-none -translate-y-0.5 sm:-translate-y-1  ml-2 sm:ml-4">
-                        <span className="block text-[var(--color-brand-tertiary)]">
-                          WeGo
-                        </span>
-                        <span className="block text-[var(--color-brand-tertiary)]">
-                          EveryWhere
-                        </span>
-                      </h1>
+                      <Link href={"/"}>
+                        <h1 className="text-xl font-alt sm:text-2xl font-extrabold leading-none -translate-y-0.5 sm:-translate-y-1  ml-2 sm:ml-4">
+                          <span className="block text-[var(--color-brand-tertiary)]">
+                            WeGo
+                          </span>
+                          <span className="block text-[var(--color-brand-tertiary)]">
+                            EveryWhere
+                          </span>
+                        </h1>
+                      </Link>
                       <Link href={"/"}>
                         <Image
                           src="/images/logo.png"
