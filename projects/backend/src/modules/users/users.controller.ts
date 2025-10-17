@@ -20,10 +20,17 @@ export class UserController{
     Getall(){
         return this.userService.getAllUsers();
     }
+  
     @UseGuards(JwtGuard)
     @Delete('me') 
     deleteMe(@GetUserId() id: number) {
         return this.userService.deleteUser(id);
     }
 
+
+    @UseGuards(JwtGuard)
+    @Get('me')
+    async getMe(@GetUserId() userId: number) {
+      return this.userService.getPublicProfileById(userId);
+    }
 }

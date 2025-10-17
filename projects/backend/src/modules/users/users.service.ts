@@ -1,15 +1,15 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common'; // <-- Add NotFoundException
 import { NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
-import { Pool } from 'pg';     
+import { Pool } from 'pg';
 import { schema } from '@backend/src/database/schema';
 import { UpdateUserDto } from './users.dto'; // <-- Import the DTO
 import { UsersRepository } from './users.repository';
 import { EventService } from '../event/event.service';
 
 @Injectable()
-export class UserService{
-    private readonly db: NodePgDatabase<typeof schema>;
+export class UserService {
+  private readonly db: NodePgDatabase<typeof schema>;
 
   constructor(
     private readonly usersRepo: UsersRepository,
@@ -20,16 +20,36 @@ export class UserService{
     return this.usersRepo.findAll();
   }
 
-  async update(id : number , updateuserdto : UpdateUserDto){
-    const[updateuser] = await this.db
-    .update(schema.users)
-    .set(updateuserdto)
-    .where(eq(schema.users.userId, id))
-    .returning();
-  if(!updateuser){
-    throw new NotFoundException(`User with ID ${id} not found.`);
+  async update(id: number, updateuserdto: UpdateUserDto) {
+    const [updateuser] = await this.db
+      .update(schema.users)
+      .set(updateuserdto)
+      .where(eq(schema.users.userId, id))
+      .returning();
+    if (!updateuser) {
+      throw new NotFoundException(`User with ID ${id} not found.`);
+    }
+    return updateuser;
   }
-  return updateuser;
+
+  async getPublicProfileById(userId: number) {
+    const u = await this.usersRepo.findById(userId);
+    if (!u) throw new NotFoundException('User not found');
+
+    return {
+      userId: u.userId,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      telephoneNumber: u.telephoneNumber,
+      bio: u.bio,
+      birthdate: u.birthdate,
+      sex: u.sex,
+      signupTime: u.signupTime,
+      signupDate: u.signupDate,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
+    };
   }
   async deleteUser(userId: number) {
       await this.eventService.markUserFutureEventsAsDeleted(userId); 
