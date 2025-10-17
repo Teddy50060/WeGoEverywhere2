@@ -113,8 +113,8 @@ export default function Home() {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  // Get background color based on event category
-    const getCategoryColor = (category: string) => {
+  // Get background color based on event categories
+    const getCategoriesColor = (categories: string) => {
     const colors: Record<string, string> = {
       'Entertainment': 'from-pink-300 to-pink-500',
       'Education': 'from-blue-300 to-blue-500',
@@ -124,7 +124,7 @@ export default function Home() {
       'Environment': 'from-emerald-300 to-emerald-500',
       'General': 'from-gray-300 to-gray-500',
     };
-    return colors[category] || 'from-gray-300 to-gray-500';
+    return colors[categories] || 'from-gray-300 to-gray-500';
   };
 
   useEffect(() => {
@@ -205,7 +205,7 @@ export default function Home() {
                   className="flex-shrink-0 w-[110px] cursor-pointer hover:opacity-90 transition-opacity"
                   onClick={() => handleEventClick(event.eventId)}
                 >
-                  <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoryColor(event.category || 'General')}`}>
+                  <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoriesColor(event.categories || 'General')}`}>
                     <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                     <img
                       src={event.coverUrl}
@@ -290,7 +290,7 @@ export default function Home() {
               className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => handleEventClick(event.eventId)}
             >
-              <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoryColor(event.category || 'General')}`}>
+              <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoriesColor(event.categories || 'General')}`}>
                 <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                 <img
                   src={event.coverUrl}
