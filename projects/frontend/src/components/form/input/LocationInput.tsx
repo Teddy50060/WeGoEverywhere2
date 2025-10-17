@@ -3,24 +3,19 @@
 import { MapPin } from "lucide-react";
 import { FormInput } from "@/components/form/input/FormInput";
 
-/**
- * อินพุต Location พร้อมไอคอน map pin
- * - ไม่บังคับค่าเริ่มต้น ทุกอย่างเป็น optional
- */
-export function LocationInput(props: {
+export function LocationInput({
+  name = "location",          
+  label = "Location",
+  defaultValue,
+  value,
+  className,
+}: {
   name?: string;
   label?: string;
   defaultValue?: string;
-  value?: string; // เผื่อกรณีคุมด้วย state ภายนอก
+  value?: string;
   className?: string;
 }) {
-  const {
-    name = "location",
-    label = "Location",
-    defaultValue,
-    value,
-    className,
-  } = props;
 
   return (
     <div className="mb-3 relative">

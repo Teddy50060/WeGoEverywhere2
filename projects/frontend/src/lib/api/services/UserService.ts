@@ -39,6 +39,16 @@ export class UserService {
     public static userControllerDeleteMe(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
+            url: '/users',
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static userControllerGetMe(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
             url: '/users/me',
         });
     }
