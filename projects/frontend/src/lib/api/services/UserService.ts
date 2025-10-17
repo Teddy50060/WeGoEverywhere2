@@ -42,4 +42,14 @@ export class UserService {
             url: '/users',
         });
     }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static userControllerGetMe(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/users/me',
+        });
+    }
 }

@@ -15,7 +15,7 @@ export type FormInputProps = {
   placeholder?: string;
   className?: string;
   readOnly?: boolean;
-  required? : boolean;
+  required?: boolean;
   pattern?: string;
 };
 
@@ -55,10 +55,10 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           {...(value !== undefined ? { value } : { defaultValue })}
           onChange={onChange}
           readOnly={readOnly}
-          required = {required}
+          required={required}
           className={`
             mt-1 w-full rounded-2xl bg-white border border-black 
-            px-4 py-2.5 text-sm focus:border-[#EB6223] focus:outline-none focus:ring-2 focus:ring-[#EB6223]/20"
+            px-4 py-2.5 text-sm focus:border-[#EB6223] focus:outline-none focus:ring-2 focus:ring-[#EB6223]/20 placeholder:text-gray-400 
             ${className ?? ""}
           `}
         />

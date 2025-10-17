@@ -1,7 +1,8 @@
-import { Controller, Get, Patch, Param, Body, ParseIntPipe , Post } from '@nestjs/common'; // <-- Add Patch, Param, Body, ParseIntPipe
+import { Controller, Get, Patch, Param, Body, ParseIntPipe , Post, UseGuards } from '@nestjs/common'; // <-- Add Patch, Param, Body, ParseIntPipe
 import { UserService } from './users.service';
 import { UpdateUserDto } from './users.dto'; // <-- Import the DTO
 import { GetUserId } from '@backend/src/shared/decorators/get-user-id.decorator';
+import { JwtGuard } from '@backend/src/core/auth/jwt/access-jwt/jwt.guard';
 
 @Controller('users')
 export class UserController{
@@ -25,5 +26,11 @@ export class UserController{
     @Get()
     Getall(){
         return this.userService.getAllUsers();
+    }
+
+    @UseGuards(JwtGuard)
+    @Get('me')
+    async getMe(@GetUserId() userId: number) {
+      return this.userService.getPublicProfileById(userId);
     }
 }
