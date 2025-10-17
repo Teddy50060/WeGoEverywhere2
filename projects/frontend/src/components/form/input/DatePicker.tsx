@@ -12,21 +12,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 type Calendar28Props = {
   name: string;
   label?: string;
-  /** string เช่น "2025-06-01", "June 01, 2025" หรือ "11/12/2025" */
-  defaultValue?: string;
-  /** ใช้ตั้งค่าเริ่มต้นแบบ Date object */
+  defaultValue?: string; // เช่น "2025-06-01" หรือ "June 01, 2025"
   initialDate?: Date;
   placeholder?: string;
   readonly?: boolean;
   className?: string;
   required?: boolean;
-  /** true = ห้ามพิมพ์ในช่อง input */
   disableTyping?: boolean;
-  /** callback เมื่อค่าเปลี่ยน */
   onChange?: (date: Date | undefined, displayText: string) => void;
 };
 
-function formatDate(date: Date | undefined) {
+/** แปลง Date → “October 02, 2025” (ไว้แสดงผลในช่อง) */
+function formatDateDisplay(date: Date | undefined) {
   if (!date) return "";
   return date.toLocaleDateString("en-US", {
     day: "2-digit",
@@ -35,15 +32,21 @@ function formatDate(date: Date | undefined) {
   });
 }
 
-/** พยายาม parse string ให้เป็น Date (รองรับ new Date, และ MM/DD/YYYY แบบง่าย ๆ) */
+/** แปลง Date → “YYYY-MM-DD” (ไว้ส่งให้ backend) */
+function formatYYYYMMDD(date: Date | undefined) {
+  if (!date) return "";
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** แปลง string → Date รองรับหลาย format */
 function parseDateFlexible(value?: string): Date | undefined {
   if (!value) return undefined;
-
-  // 1) ลอง new Date ตรง ๆ (เช่น "June 01, 2025" หรือ "2025-06-01")
   const d1 = new Date(value);
   if (!isNaN(d1.getTime())) return d1;
 
-  // 2) รองรับ "MM/DD/YYYY"
   const mdy = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (mdy) {
     const m = Number(mdy[1]);
@@ -52,7 +55,6 @@ function parseDateFlexible(value?: string): Date | undefined {
     const d2 = new Date(y, m - 1, d);
     if (!isNaN(d2.getTime())) return d2;
   }
-
   return undefined;
 }
 
@@ -70,7 +72,7 @@ export const Calendar28 = (props: Calendar28Props) => {
     onChange,
   } = props;
 
-  // init state จาก initialDate ก่อน ถ้าไม่มีค่อยลอง parse defaultValue
+  // เริ่มต้นค่า date
   const initDate =
     initialDate && !isNaN(initialDate.getTime())
       ? initialDate
@@ -79,51 +81,56 @@ export const Calendar28 = (props: Calendar28Props) => {
   const [open, setOpen] = React.useState(false);
   const [date, setDate] = React.useState<Date | undefined>(initDate);
   const [month, setMonth] = React.useState<Date | undefined>(initDate);
-  const [value, setValue] = React.useState<string>(
-    defaultValue ?? formatDate(initDate)
+  const [display, setDisplay] = React.useState<string>(
+    defaultValue ?? formatDateDisplay(initDate)
   );
 
-  // ถ้า parent เปลี่ยน initialDate หรือ defaultValue จากภายนอก ให้ sync ตาม
   React.useEffect(() => {
     if (initialDate && !isNaN(initialDate.getTime())) {
       setDate(initialDate);
       setMonth(initialDate);
-      setValue(formatDate(initialDate));
-      onChange?.(initialDate, formatDate(initialDate));
+      const disp = formatDateDisplay(initialDate);
+      setDisplay(disp);
+      onChange?.(initialDate, disp);
       return;
     }
     if (typeof defaultValue === "string") {
-      setValue(defaultValue);
       const d = parseDateFlexible(defaultValue);
       setDate(d);
       setMonth(d);
-      onChange?.(d, defaultValue);
+      setDisplay(formatDateDisplay(d));
+      onChange?.(d, formatDateDisplay(d));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialDate, defaultValue]);
 
   const handleSelect = (d?: Date) => {
     setDate(d);
-    const display = formatDate(d);
-    setValue(display);
+    const disp = formatDateDisplay(d);
+    setDisplay(disp);
     setOpen(false);
-    onChange?.(d, display);
+    onChange?.(d, disp);
   };
 
   return (
     <div className="mb-2">
       {label && (
-        <Label htmlFor={name} className="text-sm font-semibold block mb-1">
+        <Label
+          htmlFor={`${name}Display`}
+          className="text-sm font-semibold block mb-1"
+        >
           {label}
         </Label>
       )}
-      <div className="h-1" />
+      {/* hidden input ตัวนี้คือค่าที่ส่งไปจริง (YYYY-MM-DD) */}
+      <input type="hidden" name={name} value={formatYYYYMMDD(date)} />
 
       <div className="relative">
+        {/* ช่องให้ผู้ใช้เห็น */}
         <Input
-          id={name}
-          name={name}
-          value={value}
+          id={`${name}Display`}
+          name={`${name}Display`}
+          value={display}
           placeholder={placeholder}
           className={`pr-10 ${className} focus-visible:ring-offset-0 focus-visible:ring-1`}
           readOnly={readonly || disableTyping}
@@ -131,7 +138,7 @@ export const Calendar28 = (props: Calendar28Props) => {
           onChange={(e) => {
             if (readonly || disableTyping) return;
             const raw = e.target.value;
-            setValue(raw);
+            setDisplay(raw);
             const d = parseDateFlexible(raw);
             if (d) {
               setDate(d);

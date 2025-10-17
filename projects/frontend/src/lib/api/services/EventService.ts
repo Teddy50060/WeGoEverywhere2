@@ -120,4 +120,29 @@ export class EventService {
             mediaType: 'multipart/form-data',
         });
     }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static eventControllerGetAll(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/events',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any
+     * @throws ApiError
+     */
+    public static eventControllerCreate(
+        requestBody: CreateEventDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/events',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
 }
