@@ -4,9 +4,21 @@ import type { NextRequest } from "next/server";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   // ยกเว้นไฟล์ระบบและ public assets
-  const isPublicAsset = pathname.startsWith("/_next") || pathname.startsWith("/favicon.ico");
+  const isPublicAsset =
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/images");
   // ยกเว้น public pages
-  const isPublicPath = ["/login", "/register", "/profile-setup","/reset-password","/forgot-password"].includes(pathname);
+  const publicPaths = [
+    "/login",
+    "/register",
+    "/profile-setup",
+    "/forgot-password",
+    "/forgot-password/email-sent",
+  ];
+
+  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+
   // ตรวจว่าเป็น refresh API
   const isRefreshApi = pathname === "/api/auth/refresh";
 
@@ -21,9 +33,12 @@ export async function middleware(req: NextRequest) {
       const data = await res.json();
       valid = data.valid;
     }
-    if(!valid){
+    if (!valid) {
       return NextResponse.redirect(
-        new URL(`/api/auth/refresh?next=${encodeURIComponent(pathname)}`, req.url)
+        new URL(
+          `/api/auth/refresh?next=${encodeURIComponent(pathname)}`,
+          req.url
+        )
       );
     }
   }
