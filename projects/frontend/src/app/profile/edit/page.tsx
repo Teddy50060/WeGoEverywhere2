@@ -212,8 +212,9 @@ export default function EditProfilePage() {
               label="Telephone"
               defaultValue={user?.telephoneNumber || ""}
               placeholder="Phone Number (Optional)"
-              pattern="[0-9]*"
-              maxLength={20}  
+              pattern="^0[689][0-9]{7,8}$"
+              title="Starting with 06, 08, or 09 and up to 10 digits (e.g. 0812345678)"
+              maxLength={10} 
            
             />
 
