@@ -11,5 +11,7 @@ export type CreateEventDto = {
     capacity?: number;
     detail?: string;
     rating?: number;
+    userId?: number;
+    status?: string;
 };
 

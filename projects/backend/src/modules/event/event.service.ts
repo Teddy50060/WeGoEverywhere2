@@ -2,46 +2,38 @@
 // backend/src/events/events.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';                                         
+import { Pool } from 'pg';
 import { eq } from 'drizzle-orm';
 import { schema } from '@backend/src/database/schema';
 import { UpdateEventDto, CreateEventDto } from './event.dto';
-import { db } from '@backend/src/database/connection';
+import { EventRepository } from './event.repository';
 
 @Injectable()
 export class EventService {
-   private readonly db = db;
-  async findAll() {
-    return this.db.select().from(schema.event);
+  constructor(private readonly eventRepo: EventRepository) {}
+
+  async getEventById(id: number) {
+    return this.eventRepo.findById(id);
   }
 
-  // --- ADD THIS METHOD ---
-  async update(id: number, updateEventDto: UpdateEventDto) {
-    // NOTE: Replace 'schema.events.eventId' with the actual ID column from your schema.ts
-    const [updatedEvent] = await this.db
-      .update(schema.event)
-      .set(updateEventDto) // Drizzle can often use the DTO directly!
-      .where(eq(schema.event.eventId, id)) 
-      .returning();
-
-    if (!updatedEvent) {
-      throw new NotFoundException(`Event with ID ${id} not found.`);
-    }
-    return updatedEvent;
+  async getAllEvents() {
+    return this.eventRepo.findAll();
   }
 
-  async create(createEventDto: CreateEventDto, user_id: number){
-    const eventData = {
-      ...createEventDto,
-      userId: user_id
-      };
-    const[newEvent] = await this.db
-      .insert(schema.event)
-      .values(eventData)
-      .returning();
-    if(!newEvent){
-      throw new NotFoundException(`The event is not created successfully.`);
-    }
-    return newEvent;
+  async createEvent(createEventDto: CreateEventDto) {
+    return this.eventRepo.create(createEventDto);
+  }
+
+  async updateEvent(id: number, updateEventDto: UpdateEventDto) {
+    return this.eventRepo.update(id, updateEventDto);
+  }
+  async markUserFutureEventsAsDeleted(userId: number) {
+    const now = new Date();
+    return this.eventRepo.bulkUpdateStatusByUserId(
+      userId,
+      'deleted',
+      now,
+      ['active']
+    );
   }
 }

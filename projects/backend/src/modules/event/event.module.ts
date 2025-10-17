@@ -9,5 +9,6 @@ import { EventRepository } from './event.repository';
   imports: [DatabaseModule],
   controllers: [EventController],
   providers: [EventService, EventRepository],
+  exports: [EventService],
 })
 export class EventsModule {}

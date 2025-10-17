@@ -1,8 +1,14 @@
 // backend/src/events/dto/update-event.dto.ts
 
-
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, IsInt, Min, IsDateString , IsIn} from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsInt,
+  Min,
+  IsDateString,
+} from 'class-validator';
 
 export class UpdateEventDto {
   @ApiPropertyOptional()
@@ -54,8 +60,13 @@ export class UpdateEventDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @IsIn(['draft','active','deleted'])
   status?: string; // ถ้ามี enum ใช้ enum ดีกว่า
+}
+
+export enum EventStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+  CANCELLED = 'cancelled',
 }
 
 export class CreateEventDto {
@@ -95,4 +106,12 @@ export class CreateEventDto {
   @IsNumber()
   rating?: number;
 
+  @ApiPropertyOptional()
+  @IsInt()
+  userId!: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  status?: string;
 }

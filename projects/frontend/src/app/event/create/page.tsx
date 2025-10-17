@@ -15,7 +15,6 @@ export default function CreateEventPage() {
           </div>
 
           <div className="relative rounded-[28px] border border-black/50 bg-[var(--color-brand-secondary)] shadow-[0_6px_0_#00000020] z-10">
-            {/* ฟอร์ม client: ไม่ redirect, toast เด้ง, แสดง zod error รายฟิลด์ */}
             <CreateEventFormClient />
           </div>
         </section>

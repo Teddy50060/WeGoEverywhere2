@@ -8,7 +8,7 @@ import PasswordInput from "@/components/form/input/PasswordInput";
 import { AuthService, LoginDto } from "@/lib/api";
 import toast from "react-hot-toast";
 import { useState } from "react";
-
+import Link from "next/link";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -23,8 +23,10 @@ export default function LoginPage() {
       </section>
 
       {/* Card Cream + โค้งบนซ้ายแต่งให้เหมือนดีไซน์ */}
-      <div className="relative -mt-10 w-full max-w-sm mx-auto flex-1 rounded-t-[50px] bg-[var(--color-brand-secondary)] p-5 shadow-lg border border-black/5
-        overflow-hidden pb-24 sm:pb-28 ">
+      <div
+        className="relative -mt-10 w-full max-w-sm mx-auto flex-1 rounded-t-[50px] bg-[var(--color-brand-secondary)] p-5 shadow-lg border border-black/5
+        overflow-hidden pb-24 sm:pb-28 "
+      >
         {/* หัวข้อ */}
         <h2 className="text-4xl font-extrabold text-center text-gray-800 leading-tight mb-2">
           Log In
@@ -139,7 +141,7 @@ export default function LoginPage() {
             focus-visible:outline-none focus-visible:ring-2
             focus-visible:ring-[var(--color-brand-tertiary)]
             appearance-none [-webkit-tap-highlight-color:transparent]"
-            type="submit" 
+            type="submit"
           />
         </form>
 
@@ -163,15 +165,20 @@ export default function LoginPage() {
             hover:!brightness-100 active:!brightness-100 active:scale-90
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-primary)]
             "
-            onClick={() => {window.location.href = "/register";}}
+            onClick={() => {
+              window.location.href = "/register";
+            }}
           />
 
           <GoogleButton onClick={() => {window.open("http://localhost:3001/auth/github");}} />
         </div>
 
-        <a href="#" className="block mt-4 text-center text-sm text-gray-600 hover:underline">
-          forgot password
-        </a>
+        <Link
+          href="/forgot-password"
+          className="block mt-4 text-center text-sm text-gray-600 hover:underline"
+        >
+          Forgot password?
+        </Link>
       </div>
     </main>
   );
