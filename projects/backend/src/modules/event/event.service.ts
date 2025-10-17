@@ -144,4 +144,11 @@ export class EventService {
       throw e;
     }
   }
+
+  async markUserFutureEventsAsDeleted(userId: number) {
+    const now = new Date();
+    return this.eventRepo.bulkUpdateStatusByUserId(userId, 'deleted', now, [
+      'active',
+    ]);
+  }
 }

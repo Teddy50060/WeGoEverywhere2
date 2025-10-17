@@ -1,5 +1,5 @@
 {
-  "id": "bc589bca-5bc8-462e-8c1c-895ce60d4372",
+  "id": "25856628-b95c-418b-bd53-7d68b180684a",
   "prevId": "2477bf17-3b71-4900-818c-ceb0fb46d7e7",
   "version": "7",
   "dialect": "postgresql",
@@ -110,7 +110,7 @@
           "columnsTo": [
             "user_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -372,18 +372,6 @@
           "notNull": false,
           "default": 0
         },
-        "categories": {
-          "name": "categories",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "image_path": {
-          "name": "image_path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "status": {
           "name": "status",
           "type": "varchar",
@@ -395,7 +383,7 @@
           "name": "user_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {
@@ -417,6 +405,19 @@
         }
       },
       "foreignKeys": {
+        "event_user_id_users_user_id_fk": {
+          "name": "event_user_id_users_user_id_fk",
+          "tableFrom": "event",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
         "event_userId_fkey": {
           "name": "event_userId_fkey",
           "tableFrom": "event",
@@ -427,7 +428,7 @@
           "columnsTo": [
             "user_id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -556,7 +557,7 @@
           "columnsTo": [
             "user_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -781,7 +782,7 @@
           "columnsTo": [
             "user_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -846,7 +847,7 @@
           "columnsTo": [
             "user_id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
