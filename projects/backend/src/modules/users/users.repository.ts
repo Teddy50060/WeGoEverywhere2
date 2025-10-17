@@ -4,6 +4,7 @@ import { users } from '@backend/src/database/schema/users.schema';
 import { RegisterDto } from '@backend/src/modules/dto/register.dto';
 import { eq } from 'drizzle-orm';
 import type { DbType } from '@backend/src/database/connection';
+import { UpdateUserDto } from './users.dto';
 
 @Injectable()
 export class UsersRepository {
@@ -41,8 +42,6 @@ export class UsersRepository {
     return row ?? null;
   }
 
-  
-
   async createUser(input: RegisterDto) {
     const [row] = await this.db
       .insert(users)
@@ -68,5 +67,14 @@ export class UsersRepository {
         cookiePolicyAcceptedAt: users.cookiePolicyAcceptedAt,
       });
     return row;
+  }
+
+  async updateById(id: number, updateUserDto: UpdateUserDto) {
+    const [updatedUser] = await this.db
+      .update(users)
+      .set(updateUserDto)
+      .where(eq(users.userId, id))
+      .returning();
+    return updatedUser;
   }
 }
