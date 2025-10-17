@@ -2,24 +2,24 @@ import { apiCall } from '@/utils/api';
 
 export interface Event {
   eventId: number;
+  cost: string;
   name: string;
-  cost: number;
   date: string;
   time: string;
-  place?: string;
+  place: string;
   capacity: number;
   detail: string;
-  rating?: number;
+  rating: number;
   status: string;
   userId: number;
-  currentParticipants: number; // Now comes from backend joined table count
-  // Additional fields for UI compatibility
-  title?: string; // Will map from name
-  price?: number; // Will map from cost
-  location?: string; // Will map from place
-  description?: string; // Will map from detail
-  category?: string; // Default or derived
-  coverUrl?: string; // Default placeholder
+  currentParticipants: number;
+  title?: string;
+  description?: string;
+  location?: string;
+  image?: string;
+  categories?: string;
+  coverUrl?: string;
+  price?: string;
 }
 
 export interface CreateEventDto {
@@ -183,7 +183,7 @@ export const convertEventToUIFormat = (event: Event): Event => {
     price: event.cost,
     location: event.place || 'TBD',
     description: event.detail,
-    category: category,
+    categories: category,
     coverUrl: getRandomImageForCategory(category),
     // currentParticipants now comes directly from backend (joined table count)
     // No need to mock it anymore!

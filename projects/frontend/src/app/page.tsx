@@ -83,7 +83,7 @@ export default function Home() {
     .filter(event => {
       const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                            (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesFilter = !selectedFilter || event.category === selectedFilter;
+      const matchesFilter = !selectedFilter || event.categories === selectedFilter;
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
