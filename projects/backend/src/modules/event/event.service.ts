@@ -57,10 +57,10 @@ export class EventService {
     }
     if (/^\d{2}:\d{2}$/.test(dto.time)) dto.time = `${dto.time}:00`;
 
-    const uploadRoot = join(process.cwd(), 'uploads');
+    const uploadRoot = join(process.cwd(), 'uploads', 'events');
     const filename = `${Date.now()}-${sanitizeFilename(file.originalname)}`;
     const fsPath = join(uploadRoot, filename);
-    const publicPath = `/uploads/${filename}`;
+    const publicPath = `/uploads/events/${filename}`;
 
     await fs.mkdir(uploadRoot, { recursive: true });
 
@@ -78,6 +78,69 @@ export class EventService {
       return created;
     } catch (e) {
       await fs.rm(fsPath, { force: true });
+      throw e;
+    }
+  }
+
+  async updateEventWithImage(
+    id: number,
+    dto: UpdateEventDto,
+    file?: Express.Multer.File,
+  ) {
+    const existing = await this.eventRepo.findById(id);
+    if (!existing) throw new NotFoundException(`Event ${id} not found`);
+
+    if (dto.time && /^\d{2}:\d{2}$/.test(dto.time)) {
+      dto.time = `${dto.time}:00`;
+    }
+
+    let newPublicPath: string | undefined;
+    let newFsPath: string | undefined;
+    let oldFsPathToDelete: string | undefined;
+
+    if (file) {
+      if (!file.buffer?.length || !file.originalname) {
+        throw new BadRequestException('Invalid image file');
+      }
+
+      const uploadRoot = join(process.cwd(), 'uploads', 'events');
+      await fs.mkdir(uploadRoot, { recursive: true });
+
+      const filename = `${Date.now()}-${sanitizeFilename(file.originalname)}`;
+      newFsPath = join(uploadRoot, filename);
+      newPublicPath = `/uploads/events/${filename}`;
+
+      try {
+        await fs.writeFile(newFsPath, file.buffer);
+      } catch {
+        throw new BadRequestException('Failed to save image file');
+      }
+
+      if (existing.imagePath) {
+        const rel = existing.imagePath.replace(/^\//, '');
+        oldFsPathToDelete = join(process.cwd(), rel);
+      }
+    }
+
+    try {
+      const updated = await this.eventRepo.update(id, {
+        ...dto,
+        ...(newPublicPath ? { imagePath: newPublicPath } : {}),
+      });
+
+      if (oldFsPathToDelete) {
+        try {
+          await fs.rm(oldFsPathToDelete, { force: true });
+        } catch {}
+      }
+
+      return updated;
+    } catch (e) {
+      if (newFsPath) {
+        try {
+          await fs.rm(newFsPath, { force: true });
+        } catch {}
+      }
       throw e;
     }
   }
