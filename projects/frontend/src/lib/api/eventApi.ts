@@ -18,7 +18,7 @@ export interface Event {
   price?: number; // Will map from cost
   location?: string; // Will map from place
   description?: string; // Will map from detail
-  category?: string; // Default or derived
+  categories?: string; // Default or derived
   coverUrl?: string; // Default placeholder
 }
 
@@ -149,9 +149,9 @@ const getRandomImageForCategory = (category: string): string => {
 };
 
 // Helper function to assign mock category based on event name/content
-const getMockCategory = (event: Event): string => {
-  const eventName = event.name.toLowerCase();
-  const eventDetail = event.detail.toLowerCase();
+const assignCategories = (name: string, detail: string): string => {
+  const eventName = name.toLowerCase();
+  const eventDetail = detail.toLowerCase();
   
   // Simple keyword-based category assignment
   if (eventName.includes('concert') || eventName.includes('music') || eventName.includes('party') || eventDetail.includes('entertainment')) {
@@ -175,7 +175,7 @@ const getMockCategory = (event: Event): string => {
 
 // Helper function to convert backend event to UI format
 export const convertEventToUIFormat = (event: Event): Event => {
-  const category = getMockCategory(event);
+  const category = assignCategories(event.name, event.detail);
   
   return {
     ...event,
@@ -183,7 +183,7 @@ export const convertEventToUIFormat = (event: Event): Event => {
     price: event.cost,
     location: event.place || 'TBD',
     description: event.detail,
-    category: category,
+    categories: category,
     coverUrl: getRandomImageForCategory(category),
     // currentParticipants now comes directly from backend (joined table count)
     // No need to mock it anymore!
