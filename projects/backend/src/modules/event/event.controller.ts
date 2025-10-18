@@ -1,3 +1,4 @@
+// ...existing code...
 import { Controller, Get, Patch, Param, Body, ParseIntPipe, Post, Delete, UseGuards } from '@nestjs/common';
 import { EventService } from './event.service';
 import { UpdateEventDto, CreateEventDto } from './event.dto';
@@ -7,6 +8,13 @@ import { GetUserId } from '@backend/src/shared/decorators/get-user-id.decorator'
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
+
+
+  @UseGuards(JwtGuard)
+  @Post(':id/join')
+  async joinEvent(@Param('id', ParseIntPipe) id: number, @GetUserId() userId: number) {
+    return this.eventService.joinEvent(id, userId);
+  }
 
   @Get(':id')
   getById(@Param('id', ParseIntPipe) id: number) {

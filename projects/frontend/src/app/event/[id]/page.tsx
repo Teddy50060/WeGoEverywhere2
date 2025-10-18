@@ -229,7 +229,22 @@ export default function EventDetailPage() {
       {/* Action Buttons - Outside the frame */}
       <div className="-mt-10 space-y-3 mb-20">
         <button
-          onClick={() => !hasJoined && console.log("Register to this activity")}
+          onClick={async () => {
+            if (hasJoined || !event) return;
+            try {
+              await eventApi.joinEvent(event.eventId);
+              setHasJoined(true);
+              // Optionally, refresh event data to update participant count
+              const updatedEvent = await eventApi.getEventById(event.eventId);
+              setEvent(convertEventToUIFormat(updatedEvent));
+              // Refresh upcoming events on home page if possible
+              if (typeof window !== 'undefined' && window.fetchUserJoinedEvents) {
+                window.fetchUserJoinedEvents();
+              }
+            } catch (err) {
+              alert('Failed to register for this event.');
+            }
+          }}
           className={`w-full font-bold py-3 px-6 rounded-full border border-black transition-colors shadow-sm ${
             hasJoined
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'

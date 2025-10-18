@@ -6,6 +6,10 @@ import { UserService } from '../users/users.service';
 
 @Injectable()
 export class EventService {
+
+  async joinEvent(eventId: number, userId: number) {
+    return this.eventRepo.joinEvent(eventId, userId);
+  }
   constructor(
     private readonly eventRepo: EventRepository,
   @Inject(forwardRef(() => UserService))

@@ -1,4 +1,11 @@
+
 "use client";
+// Extend the Window type to allow fetchUserJoinedEvents
+declare global {
+  interface Window {
+    fetchUserJoinedEvents?: () => void;
+  }
+}
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -113,6 +120,10 @@ export default function Home() {
     fetchUser();
     fetchEvents();
     fetchUserJoinedEvents();
+    // Expose fetchUserJoinedEvents globally so event detail page can trigger refresh
+    if (typeof window !== 'undefined') {
+      window.fetchUserJoinedEvents = fetchUserJoinedEvents;
+    }
     const defaultHeader = document.getElementById('default-header');
     if (defaultHeader) {
       defaultHeader.style.display = 'none';
@@ -121,6 +132,9 @@ export default function Home() {
       const defaultHeader = document.getElementById('default-header');
       if (defaultHeader) {
         defaultHeader.style.display = 'block';
+      }
+      if (typeof window !== 'undefined' && window.fetchUserJoinedEvents) {
+        delete window.fetchUserJoinedEvents;
       }
     };
   }, []);

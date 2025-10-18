@@ -46,6 +46,10 @@ export interface UpdateEventDto {
 }
 
 export const eventApi = {
+  // Join an event (register)
+  joinEvent: async (eventId: number): Promise<void> => {
+    return apiCall(`/events/${eventId}/join`, { method: 'POST' });
+  },
   // Get all events
   getAllEvents: async (): Promise<Event[]> => {
     return apiCall('/events');

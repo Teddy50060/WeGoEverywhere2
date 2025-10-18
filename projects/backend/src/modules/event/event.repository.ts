@@ -1,3 +1,4 @@
+// ...existing code...
 // src/core/event/event.repository.ts
 import type { DbType } from '@backend/src/database/connection';
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
@@ -8,6 +9,24 @@ import { schema } from '@backend/src/database/schema';
 
 @Injectable()
 export class EventRepository {
+  async joinEvent(eventId: number, userId: number) {
+    // Check if already joined
+    const existing = await this.db
+      .select()
+      .from(schema.joined)
+      .where(
+        and(
+          eq(schema.joined.eventId, eventId),
+          eq(schema.joined.userId, userId)
+        )
+      );
+    if (existing.length > 0) {
+      return { message: 'Already joined' };
+    }
+    // Insert join record
+    await this.db.insert(schema.joined).values({ eventId, userId });
+    return { message: 'Joined successfully' };
+  }
   constructor(@Inject('DatabaseConnection') private readonly db: DbType) {}
 
   async findById(id: number) {
