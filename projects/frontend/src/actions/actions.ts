@@ -1,69 +1,48 @@
 "use server";
+
 import { eventFormSchema } from "@/utils/schemas";
+import { EventService, UserService } from "@/lib/api";
+import {
+  formToDbShape,
+  mapErrorsToFormKeys,
+  compactZodErrors,
+  toCreateDto,
+  toUpdateDtoFromForm,
+  buildEventUrl,
+} from "./helpers.action";
+import { setOpenApiCookieHeader } from "@/lib/auth/CookieHeader";
+import { redirect } from "next/navigation";
 
 export type EventActionState = {
   ok: boolean;
   errors?: Record<string, string[]>;
   message?: string;
-  /** เผื่ออนาคตอยากให้ client redirect ต่อ (เช่น router.push(state.next)) */
   next?: string;
 };
 
-/** ดึงค่า photo แบบ backward-compatible:
- * - ถ้ามี photoFile ที่เป็นไฟล์จริง → ใช้อันนี้
- * - ไม่งั้นถ้ามี photoExisting (string) → ใช้อันนี้
- * - ไม่งั้นลองอ่าน field เดิมชื่อ "photo" (อาจเป็น File หรือ string หรือ null)
- */
-function extractPhoto(
-  formData: FormData,
-  base = "photo"
-): File | string | null {
-  const file = formData.get(`${base}File`);
-  if (file instanceof File && file.size > 0) return file;
-
-  const existing = formData.get(`${base}Existing`);
-  if (typeof existing === "string" && existing.length > 0) return existing;
-
-  // fallback รองรับฟอร์มเวอร์ชันเก่า
-  const legacy = formData.get(base);
-  if (legacy instanceof File) return legacy.size > 0 ? legacy : null;
-  if (typeof legacy === "string") return legacy.length > 0 ? legacy : null;
-
-  return null;
-}
-
-/** รวม error ของ Zod ให้อ่านง่ายสั้น ๆ (หยิบอย่างน้อย field แรก ๆ) */
-function compactZodErrors(
-  errors: Record<string, string[] | undefined>,
-  max = 3
-): string {
-  const parts: string[] = [];
-  for (const [field, arr] of Object.entries(errors)) {
-    if (arr && arr.length) parts.push(`${field}: ${arr[0]}`);
-    if (parts.length >= max) break;
+export async function fetchMe() {
+  try {
+    await setOpenApiCookieHeader();
+    const me = await UserService.userControllerGetMe();
+    return { ok: true, data: me };
+  } catch (err: any) {
+    console.error("Error fetching user info:", err);
+    return { ok: false, message: err?.message || "Failed to fetch user info" };
   }
-  return parts.join(" | ") || "Validation failed";
 }
 
-/** CREATE: ตรวจด้วย Zod → ไม่ redirect (คืนค่า state ให้ client เอาไปเด้ง toast เอง) */
 export const createEventWithZod = async (
   formData: FormData
 ): Promise<EventActionState> => {
   try {
-    const data = {
-      eventName: formData.get("eventName"),
-      eventDate: formData.get("eventDate"),
-      location: formData.get("location"),
-      details: formData.get("details"),
-      capacity: formData.get("capacity"),
-      status: formData.get("status"),
-      photo: extractPhoto(formData, "photo"),
-    };
+    await setOpenApiCookieHeader();
 
-    const parsed = eventFormSchema.safeParse(data);
+    const candidate = formToDbShape(formData);
+    const parsed = eventFormSchema.safeParse(candidate);
     if (!parsed.success) {
-      const fieldErrors = parsed.error.flatten().fieldErrors;
-      console.error("ZOD VALIDATION FAILED (CREATE):", fieldErrors);
+      const fieldErrors = mapErrorsToFormKeys(
+        parsed.error.flatten().fieldErrors
+      );
       return {
         ok: false,
         errors: fieldErrors,
@@ -71,95 +50,114 @@ export const createEventWithZod = async (
       };
     }
 
-    const { photo, ...rest } = parsed.data as Record<string, any>;
-    const photoLog =
-      photo instanceof File
-        ? { name: photo.name, size: photo.size, type: photo.type }
-        : photo ?? null;
+    const meRes = await fetchMe();
+    if (!meRes.ok || !meRes.data) {
+      return { ok: false, message: "Not authenticated" };
+    }
+    const raw = meRes.data as any;
+    const userId: number | undefined = Number(
+      raw?.userId ?? raw?.id ?? raw?.user?.id
+    );
+    if (!userId || Number.isNaN(userId)) {
+      return { ok: false, message: "Cannot determine user id" };
+    }
 
-    console.log("CREATE EVENT (VALIDATED, LOG ONLY):", {
-      data: rest,
-      photo: photoLog,
-    });
+    const dto = toCreateDto(parsed.data, userId);
+    console.log("createEventWithZod dto:", dto);
 
-    // เผื่ออนาคต client อยาก redirect ต่อ: รับ next จากฟอร์มแล้วส่งกลับไป
-    const nextVal = formData.get("next");
-    const next = typeof nextVal === "string" && nextVal ? nextVal : undefined;
-
-    return { ok: true, message: "Event created!", next };
-  } catch (error) {
+    await EventService.eventControllerCreate(dto);
+    return { ok: true, message: "Event created successfully!" };
+  } catch (error: any) {
     console.error("createEventWithZod error:", error);
+    const status = error?.status ?? error?.statusCode;
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unknown error",
+      message:
+        error?.body?.message || error?.message || "Failed to create event.",
     };
   }
 };
 
-/** UPDATE: validate → ไม่ redirect (คืนค่า state ให้ client เด้ง toast เอง) */
 export const updateEventWithZod = async (
   id: string,
   formData: FormData
 ): Promise<EventActionState> => {
   try {
-    const data = {
-      eventName: formData.get("eventName"),
-      eventDate: formData.get("eventDate"),
-      location: formData.get("location"),
-      details: formData.get("details"),
-      capacity: formData.get("capacity"),
-      status: formData.get("status"),
-      photo: extractPhoto(formData, "photo"),
-    };
+    await setOpenApiCookieHeader();
 
-    const parsed = eventFormSchema.safeParse(data);
+    const numericId = Number(id);
+    if (Number.isNaN(numericId)) {
+      return { ok: false, message: "Invalid event id" };
+    }
+    const candidate = formToDbShape(formData);
+    const parsed = eventFormSchema.safeParse(candidate);
     if (!parsed.success) {
-      const fieldErrors = parsed.error.flatten().fieldErrors;
-      console.error("ZOD VALIDATION FAILED (UPDATE):", fieldErrors);
+      const fieldErrors = mapErrorsToFormKeys(
+        parsed.error.flatten().fieldErrors
+      );
       return {
         ok: false,
         errors: fieldErrors,
         message: compactZodErrors(fieldErrors),
       };
     }
-
-    const { photo, ...rest } = parsed.data as Record<string, any>;
-    const photoLog =
-      photo instanceof File
-        ? { name: photo.name, size: photo.size, type: photo.type }
-        : photo ?? null;
-
-    console.log("UPDATE EVENT (LOG ONLY):", {
-      id,
-      data: rest,
-      photo: photoLog,
-    });
+    const dto = toUpdateDtoFromForm(formData);
+    await EventService.eventControllerUpdate(numericId, dto);
 
     const nextVal = formData.get("next");
     const next = typeof nextVal === "string" && nextVal ? nextVal : undefined;
-
     return { ok: true, message: "Event updated!", next };
-  } catch (error) {
-    console.error("updateEventWithZod error:", error);
+  } catch (error: any) {
+    const status = error?.status ?? error?.statusCode;
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unknown error",
+      message:
+        error?.body?.message || error?.message || "Failed to create event.",
     };
   }
 };
 
-/** DELETE: ลบอีเวนต์ → ไม่ redirect (คืนค่า state ให้ client เด้ง toast เอง) */
 export const deleteEventById = async (
   id: string
 ): Promise<EventActionState> => {
   try {
-    console.log("DELETE EVENT (LOG ONLY):", { id });
+    await setOpenApiCookieHeader();
+
+    const numericId = Number(id);
+    if (Number.isNaN(numericId))
+      return { ok: false, message: "Invalid event id" };
+    await EventService.eventControllerSoftDelete(numericId);
     return { ok: true, message: "Event deleted!" };
-  } catch (error) {
-    console.error("deleteEventById error:", error);
+  } catch (error: any) {
+    const status = error?.status ?? error?.statusCode;
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unknown error",
+      message:
+        error?.body?.message || error?.message || "Failed to Delete event.",
     };
   }
 };
+
+export async function getAllEvents() {
+  await setOpenApiCookieHeader();
+  return EventService.eventControllerGetAll();
+}
+
+export async function getEventById(id: number) {
+  await setOpenApiCookieHeader();
+  return EventService.eventControllerGetById(id);
+}
+
+export async function logUserRegisteredEvent(
+  userId: number | string,
+  eventId: number | string
+) {
+  console.log(`UserID:${userId} has registered to eventID:${eventId}`);
+}
+
+export async function logUserReportEvent(
+  userId: number | string,
+  eventId: number | string
+) {
+  console.log(`UserID:${userId} has reported eventID:${eventId}`);
+}

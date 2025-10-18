@@ -44,7 +44,7 @@ export default function ProfilePage() {
     try {
         // จำลอง API call ใช้ setTimeout แทน
         await new Promise((resolve) => setTimeout(resolve, 1000)); 
-
+        
         toast.success('Successfully Delete')
     } catch {
         toast.error("Unsuccessfully, try again.")

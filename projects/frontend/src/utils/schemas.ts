@@ -1,22 +1,66 @@
 import { z } from "zod";
 
-export const eventFormSchema = z.object({
-  eventName: z.string().min(2, "Event name must be at least 2 characters"),
-  eventDate: z
-    .string()
-    .refine((v) => !Number.isNaN(Date.parse(v)), "Invalid date"),
-  location: z.string().min(1, "Location is required"),
-  details: z.string().optional().default(""),
-  capacity: z.preprocess(
-    (v) => (v === "" || v == null ? undefined : Number(v)),
-    z.number().int().min(0).optional()
-  ),
-  status: z
-    .enum(["unpublish", "publish", "open", "full", "closed"])
-    .default("open"),
-  photo: z
-    .any()
-    .transform((v) => (v instanceof File && v.size > 0 ? v : null))
-    .nullable()
-    .optional(),
-});
+const toNumberOr = (fallback: number) => (v: unknown) => {
+  if (v === "" || v == null) return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+};
+
+export const eventFormSchema = z
+  .object({
+    name: z.string().min(1, "Event name is required").max(100),
+    date: z.string().trim().min(1, "Date is required"),
+    time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use 24h time HH:mm"),
+    place: z.string().trim().min(1, "Location is required"),
+    detail: z.string().min(1, "Detail is required"),
+    capacity: z.preprocess(
+      (v) => (v === "" || v == null ? 0 : Number(v)),
+      z.number().int().min(1, "Capacity cannot be 0")
+    ),
+    cost: z
+      .preprocess(toNumberOr(0), z.number().min(0, "Cost must be >= 0"))
+      .transform((n) => Number(n.toFixed(2))),
+    status: z.string().default("active"),
+    rating: z.preprocess(toNumberOr(0), z.number().min(0)).default(0),
+    photo: z
+      .any()
+      .transform((v) =>
+        typeof File !== "undefined" && v instanceof File && v.size > 0
+          ? v
+          : null
+      )
+      .nullable()
+      .optional(),
+    userId: z.number().optional(),
+  })
+  .refine(
+    (data) => {
+      const today = new Date();
+      const eventDate = new Date(`${data.date}T00:00`);
+      if (eventDate < new Date(today.toDateString())) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Date cannot be in the past",
+      path: ["date"],
+    }
+  )
+  .refine(
+    (data) => {
+      const now = new Date();
+      const today = now.toISOString().split("T")[0];
+      if (data.date === today) {
+        const [hh, mm] = data.time.split(":").map(Number);
+        const eventTime = hh * 60 + mm;
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+        return eventTime > currentTime;
+      }
+      return true;
+    },
+    {
+      message: "Time must be later than now",
+      path: ["time"],
+    }
+  );

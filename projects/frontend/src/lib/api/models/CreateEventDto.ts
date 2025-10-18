@@ -12,5 +12,6 @@ export type CreateEventDto = {
     detail?: string;
     rating?: number;
     userId?: number;
+    status?: string;
 };
 

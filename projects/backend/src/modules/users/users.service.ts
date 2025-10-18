@@ -1,23 +1,35 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
+import { eq } from 'drizzle-orm';
+import { Pool } from 'pg';
+import { schema } from '@backend/src/database/schema';
 import { UpdateUserDto } from './users.dto';
 import { UsersRepository } from './users.repository';
+import { EventService } from '../event/event.service';
 
 @Injectable()
 export class UserService {
+  private readonly db: NodePgDatabase<typeof schema>;
+
   constructor(
-    private readonly usersRepo: UsersRepository
+    private readonly usersRepo: UsersRepository,
+    private readonly eventService: EventService
   ) {}
 
   async getAllUsers() {
     return this.usersRepo.findAll();
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const updatedUser = await this.usersRepo.updateById(id, updateUserDto);
-    if (!updatedUser) {
+  async update(id: number, updateuserdto: UpdateUserDto) {
+    const [updateuser] = await this.db
+      .update(schema.users)
+      .set(updateuserdto)
+      .where(eq(schema.users.userId, id))
+      .returning();
+    if (!updateuser) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
-    return updatedUser;
+    return updateuser;
   }
 
   async getPublicProfileById(userId: number) {
@@ -28,14 +40,24 @@ export class UserService {
       userId: u.userId,
       firstName: u.firstName,
       lastName: u.lastName,
+      email: u.email,
       telephoneNumber: u.telephoneNumber,
       bio: u.bio,
       birthdate: u.birthdate,
       sex: u.sex,
       signupTime: u.signupTime,
       signupDate: u.signupDate,
-      cookiePolicyVersionAccepted: u.cookiePolicyVersionAccepted,
-      cookiePolicyAcceptedAt: u.cookiePolicyAcceptedAt,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
     };
+  }
+
+  async deleteUser(userId: number) {
+    await this.eventService.markUserFutureEventsAsDeleted(userId); 
+    const deletedUser = await this.usersRepo.deleteById(userId); 
+    if (!deletedUser) {
+      throw new NotFoundException(`User with ID ${userId} not found.`);
+    }
+    return deletedUser;
   }
 }

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -35,7 +35,6 @@ export default function Home() {
       setEvents(uiFormattedEvents);
     } catch (error) {
       console.error('Failed to fetch events:', error);
-      // Fallback to empty array
       setEvents([]);
     }
   };
@@ -44,35 +43,27 @@ export default function Home() {
     try {
       const joinedEventsData = await eventApi.getUserJoinedEvents();
       const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0); // Set to start of current day
-      
+      currentDate.setHours(0, 0, 0, 0);
       const uiFormattedJoinedEvents = joinedEventsData
         .map(convertEventToUIFormat)
         .filter(event => {
-          // Only show future events (upcoming)
           const eventDate = new Date(event.date);
           return eventDate >= currentDate;
         })
         .sort((a, b) => {
-          // Sort by date first, then by time (upcoming first)
           const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
           if (dateComparison !== 0) return dateComparison;
-          
-          // If dates are the same, sort by time
           return a.time.localeCompare(b.time);
         });
       setUpcomingEvents(uiFormattedJoinedEvents);
     } catch (error) {
       console.error('Failed to fetch user joined events:', error);
-      // Fallback to empty array - user might not be authenticated or have no joined events
       setUpcomingEvents([]);
     }
   };
 
-    // Filter tags include all available categories
   const filterTags: string[] = ['Entertainment', 'Education', 'Health', 'Lifestyle', 'Technology', 'Environment'];
 
-  // Filter events based on search and selected category, then sort by date
   const filteredEvents = events
     .filter(event => {
       const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -81,24 +72,16 @@ export default function Home() {
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
-      // Sort by date first, then by time
       const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
       if (dateComparison !== 0) return dateComparison;
-      
-      // If dates are the same, sort by time
       return a.time.localeCompare(b.time);
     });
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Format time for display
   const formatTime = (timeString: string) => {
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours);
@@ -107,7 +90,6 @@ export default function Home() {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  // Get background color based on event categories
   const getCategoriesColor = (categories: string) => {
     const colors: Record<string, string> = {
       'Entertainment': 'from-pink-300 to-pink-500',
@@ -119,18 +101,16 @@ export default function Home() {
       'General': 'from-gray-300 to-gray-500',
     };
     return colors[categories] || 'from-gray-300 to-gray-500';
-  };  useEffect(() => {
+  };
+
+  useEffect(() => {
     fetchUser();
     fetchEvents();
     fetchUserJoinedEvents();
-    
-    // Hide the default header from layout.tsx when on home page
     const defaultHeader = document.getElementById('default-header');
     if (defaultHeader) {
       defaultHeader.style.display = 'none';
     }
-
-    // Show the default header again when leaving this page
     return () => {
       const defaultHeader = document.getElementById('default-header');
       if (defaultHeader) {
@@ -170,8 +150,6 @@ export default function Home() {
               )}
             </div>
           </div>
-          
-          {/* Good Morning below, centered */}
           <div className="flex justify-center mt-3">
             <div className="font-inter font-bold text-[15px] leading-[20px] text-black">
               Good Morning, "{loading ? 'first name' : user?.firstName || 'first name'}"
@@ -187,13 +165,11 @@ export default function Home() {
           <h2 className="font-inter font-bold text-[17px] leading-[22px] text-black mb-4">
             Up Coming Event
           </h2>
-          
-          {/* Horizontal Scrollable Events */}
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
               {upcomingEvents.map((event) => (
                 <div key={event.eventId} className="flex-shrink-0 w-[110px]">
-                                    <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoriesColor(event.categories || 'General')}`}>
+                  <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoriesColor(event.categories || 'General')}`}>
                     <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                     <img
                       src={event.coverUrl}
@@ -201,7 +177,6 @@ export default function Home() {
                       className="absolute inset-0 w-full h-full object-cover z-10"
                       onError={(e) => {
                         console.log('Image failed to load:', event.coverUrl);
-                        // Hide image on error and show gradient background
                         e.currentTarget.style.display = 'none';
                       }}
                       onLoad={() => {
@@ -209,7 +184,6 @@ export default function Home() {
                       }}
                     />
                   </div>
-                  
                   <div className="w-full bg-white rounded-[18px] p-2">
                     <div className="space-y-1">
                       <div className="font-inter font-medium text-[10px] leading-[12px] text-black">
@@ -288,15 +262,12 @@ export default function Home() {
                     console.log('Main grid image loaded successfully:', event.coverUrl);
                   }}
                 />
-                
-                {/* Price tag */}
                 <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center justify-center z-20">
                   <span className="text-[8px] font-medium text-black">
                     {(event.price || event.cost || 0) === 0 ? 'Free' : `฿${event.price || event.cost}`}
                   </span>
                 </div>
               </div>
-              
               <div className="bg-[#D4DDFF] rounded-t-[18px] p-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1">
@@ -305,18 +276,15 @@ export default function Home() {
                       {formatDate(event.date)} • {formatTime(event.time)}
                     </span>
                   </div>
-                  
                   <h3 className="font-inter font-medium text-[10px] leading-[12px] text-black line-clamp-2 min-h-[24px] max-h-[24px] overflow-hidden flex items-start">
                     {event.title || event.name}
                   </h3>
-                  
                   <div className="flex items-center gap-1">
                     <MapPin className="w-3 h-3 text-gray-600" />
                     <span className="font-inter font-normal text-[8px] text-gray-700 truncate">
                       {event.location || event.place || 'TBD'}
                     </span>
                   </div>
-                  
                   <div className="flex items-center gap-1">
                     <Users className="w-3 h-3 text-gray-600" />
                     <span className="font-inter font-normal text-[8px] text-gray-700">
