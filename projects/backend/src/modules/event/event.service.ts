@@ -45,15 +45,6 @@ export class EventService {
     );
   }
 
-  async markUserFutureEventsAsDeleted(userId: number) {
-    const now = new Date();
-    return this.eventRepo.bulkUpdateStatusByUserId(
-      userId,
-      'deleted',
-      now,
-      ['active'],
-    );
-  }
 
   async getUserJoinedEvents(userId: number) {
     return this.eventRepo.findUserJoinedEvents(userId);
