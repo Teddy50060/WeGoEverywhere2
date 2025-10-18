@@ -119,6 +119,23 @@ export class EventRepository {
       .from(schema.event)
       .where(inArray(schema.event.eventId, eventIds));
 
-    return joinedEvents;
+    // Count participants for each joined event
+    let joinedCounts: Record<number, number> = {};
+    if (eventIds.length > 0) {
+      const joinedRows = await this.db
+        .select({ eventId: schema.joined.eventId })
+        .from(schema.joined)
+        .where(inArray(schema.joined.eventId, eventIds));
+      joinedCounts = joinedRows.reduce((acc, row) => {
+        acc[row.eventId] = (acc[row.eventId] || 0) + 1;
+        return acc;
+      }, {} as Record<number, number>);
+    }
+
+    // Attach currentParticipants to each joined event
+    return joinedEvents.map(event => ({
+      ...event,
+      currentParticipants: joinedCounts[event.eventId] || 0,
+    }));
   }
 }
