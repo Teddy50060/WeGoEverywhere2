@@ -11,6 +11,7 @@ export class EventRepository {
   constructor(@Inject('DatabaseConnection') private readonly db: DbType) {}
 
   async findById(id: number) {
+    // Get the event
     const rows = await this.db
       .select()
       .from(schema.event)
@@ -21,7 +22,18 @@ export class EventRepository {
     if (!found) {
       throw new NotFoundException(`Event ${id} not found`);
     }
-    return found;
+
+    // Count participants for this event from joined table
+    const joinedRows = await this.db
+      .select({ eventId: schema.joined.eventId })
+      .from(schema.joined)
+      .where(eq(schema.joined.eventId, id));
+    const currentParticipants = joinedRows.length;
+
+    return {
+      ...found,
+      currentParticipants,
+    };
   }
 
   async findAll() {
