@@ -8,7 +8,7 @@ export type ResetPasswordDto = {
      */
     token: string;
     /**
-     * New password (minimum 8 characters)
+     * New password (must meet all security requirements)
      */
     password: string;
 };

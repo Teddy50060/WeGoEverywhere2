@@ -30,13 +30,20 @@ export class UserService {
     return this.usersRepo.findAll();
   }
 
-  async update(id: number, updateuserdto: UpdateUserDto) {
+  async getUser(
+    id : number ,
+  ) {
+    return await this.usersRepo.findById(id);
+  }
+
+
+  async update(id : number , updateuserdto : UpdateUserDto){
     const [updateuser] = await this.db
-      .update(schema.users)
-      .set(updateuserdto)
-      .where(eq(schema.users.userId, id))
-      .returning();
-    if (!updateuser) {
+    .update(schema.users)
+    .set(updateuserdto)
+    .where(eq(schema.users.userId, id))
+    .returning();
+    if(!updateuser){
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
     return updateuser;
