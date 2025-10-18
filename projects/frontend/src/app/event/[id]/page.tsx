@@ -259,7 +259,7 @@ export default function EventDetailPage() {
           {hasJoined ? "Already registered, Unregister?" : "Register !"}
         </button>
         <button
-          onClick={() => console.log("Report this activity")}
+          onClick={() => alert('Thank you for your feedback! Our team will review this activity.')}
           className="w-full text-gray-500 hover:text-gray-700 font-medium py-2 px-6 transition-colors text-sm text-center underline"
         >
           Report this activity
