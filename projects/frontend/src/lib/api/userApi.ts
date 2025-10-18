@@ -31,4 +31,9 @@ export const userApi = {
   getAllUsers: async (): Promise<User[]> => {
     return apiCall('/users');
   },
+
+  // Get user by ID
+  getUserById: async (id: number): Promise<User> => {
+    return apiCall(`/users/${id}`);
+  },
 };

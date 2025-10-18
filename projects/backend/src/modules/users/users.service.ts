@@ -1,3 +1,4 @@
+// ...existing code...
 import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import { NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
@@ -9,6 +10,15 @@ import { EventService } from '../event/event.service';
 
 @Injectable()
 export class UserService {
+  /**
+   * Find user by ID (public, returns all fields from repo)
+   */
+  async findById(id: string | number) {
+    // Accept string or number for controller compatibility
+    const userId = typeof id === 'string' ? parseInt(id, 10) : id;
+    if (isNaN(userId)) return null;
+    return this.usersRepo.findById(userId);
+  }
   private readonly db: NodePgDatabase<typeof schema>;
 
   constructor(
