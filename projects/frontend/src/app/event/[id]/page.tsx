@@ -126,7 +126,7 @@ export default function EventDetailPage() {
         {/* Event Title and Joined Count */}
         <div className="flex items-center gap-4 mb-6">
           <div className="bg-[#E8C5C5] rounded-full px-6 py-3 flex-1 min-w-0">
-            <h2 className="font-bold text-black text-xl truncate max-w-[200px]">
+            <h2 className="font-bold text-black text-lg leading-tight max-w-[200px] break-words line-clamp-2 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
               {event.title || event.name}
             </h2>
           </div>
@@ -256,7 +256,7 @@ export default function EventDetailPage() {
               : 'bg-[#9BE28C] hover:bg-green-400 text-green-900'
           }`}
         >
-          {hasJoined ? "Unregister" : "Register !"}
+          {hasJoined ? "Already registered, Unregister?" : "Register !"}
         </button>
         <button
           onClick={() => console.log("Report this activity")}
