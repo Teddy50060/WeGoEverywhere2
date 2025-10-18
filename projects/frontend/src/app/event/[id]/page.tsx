@@ -230,11 +230,16 @@ export default function EventDetailPage() {
       <div className="-mt-10 space-y-3 mb-20">
         <button
           onClick={async () => {
-            if (hasJoined || !event) return;
+            if (!event) return;
             try {
-              await eventApi.joinEvent(event.eventId);
-              setHasJoined(true);
-              // Optionally, refresh event data to update participant count
+              if (hasJoined) {
+                await eventApi.unjoinEvent(event.eventId);
+                setHasJoined(false);
+              } else {
+                await eventApi.joinEvent(event.eventId);
+                setHasJoined(true);
+              }
+              // Refresh event data to update participant count
               const updatedEvent = await eventApi.getEventById(event.eventId);
               setEvent(convertEventToUIFormat(updatedEvent));
               // Refresh upcoming events on home page if possible
@@ -242,17 +247,16 @@ export default function EventDetailPage() {
                 window.fetchUserJoinedEvents();
               }
             } catch (err) {
-              alert('Failed to register for this event.');
+              alert(hasJoined ? 'Failed to unjoin this event.' : 'Failed to register for this event.');
             }
           }}
           className={`w-full font-bold py-3 px-6 rounded-full border border-black transition-colors shadow-sm ${
             hasJoined
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-red-200 text-red-700 hover:bg-red-300'
               : 'bg-[#9BE28C] hover:bg-green-400 text-green-900'
           }`}
-          disabled={hasJoined}
         >
-          {hasJoined ? "Already Registered" : "Register !"}
+          {hasJoined ? "Unregister" : "Register !"}
         </button>
         <button
           onClick={() => console.log("Report this activity")}

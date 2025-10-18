@@ -46,6 +46,10 @@ export interface UpdateEventDto {
 }
 
 export const eventApi = {
+  // Unjoin an event
+  unjoinEvent: async (eventId: number): Promise<void> => {
+    return apiCall(`/events/${eventId}/join`, { method: 'DELETE' });
+  },
   // Join an event (register)
   joinEvent: async (eventId: number): Promise<void> => {
     return apiCall(`/events/${eventId}/join`, { method: 'POST' });

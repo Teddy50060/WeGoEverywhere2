@@ -7,6 +7,11 @@ import { GetUserId } from '@backend/src/shared/decorators/get-user-id.decorator'
 
 @Controller('events')
 export class EventController {
+  @UseGuards(JwtGuard)
+  @Delete(':id/join')
+  async unjoinEvent(@Param('id', ParseIntPipe) id: number, @GetUserId() userId: number) {
+    return this.eventService.unjoinEvent(id, userId);
+  }
   constructor(private readonly eventService: EventService) {}
 
 

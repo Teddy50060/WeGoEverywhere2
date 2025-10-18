@@ -9,6 +9,18 @@ import { schema } from '@backend/src/database/schema';
 
 @Injectable()
 export class EventRepository {
+  async unjoinEvent(eventId: number, userId: number) {
+    // Remove the join record if it exists
+    const deleted = await this.db
+      .delete(schema.joined)
+      .where(
+        and(
+          eq(schema.joined.eventId, eventId),
+          eq(schema.joined.userId, userId)
+        )
+      );
+    return { message: 'Unjoined successfully' };
+  }
   async joinEvent(eventId: number, userId: number) {
     // Check if already joined
     const existing = await this.db

@@ -7,6 +7,10 @@ import { UserService } from '../users/users.service';
 @Injectable()
 export class EventService {
 
+  async unjoinEvent(eventId: number, userId: number) {
+    return this.eventRepo.unjoinEvent(eventId, userId);
+  }
+
   async joinEvent(eventId: number, userId: number) {
     return this.eventRepo.joinEvent(eventId, userId);
   }
