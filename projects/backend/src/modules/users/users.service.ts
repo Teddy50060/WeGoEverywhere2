@@ -19,6 +19,12 @@ export class UserService {
   async getAllUsers() {
     return this.usersRepo.findAll();
   }
+  
+  async getUser(
+    id : number ,
+  ) {
+    return await this.usersRepo.findById(id);
+  }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     const updatedUser = await this.usersRepo.update(id, updateUserDto);

@@ -1,7 +1,7 @@
 // src/app/(whatever)/edit-profile/page.tsx
 "use client";
 
-import { useRef, useState ,useEffect} from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { FiArrowLeft, FiCalendar, FiChevronDown } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -17,28 +17,19 @@ type HtmlDateInput = HTMLInputElement & { showPicker?: () => void };
 export default function EditProfilePage() {
   // const birthRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [user, setUser] = useState<any>({});
 
-  const [userData, setUserData] = useState({
-    firstName: "",
-    lastName: "",
-    birthdate: "",
-    sex: "",
-    telephoneNumber: "",
-    bio: ""
-    });
-
+  // ✅ ดึงข้อมูล user ทันทีเมื่อเข้าเพจ
   useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const data = await UserService.userControllerGetMe();
-      setUserData(data);
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-      toast.error("Failed to load profile data");
-    }
-  };
-  fetchUserData();
-}, []);
+    UserService.userControllerGetUser()
+      .then((res) => {
+        setUser(res);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Cannot load user info");
+      });
+  }, []);
 
 
   const dateRef = useRef<HtmlDateInput | null>(null);
@@ -53,34 +44,56 @@ export default function EditProfilePage() {
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (submitting) return;
-  setSubmitting(true);
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
 
-  try {
-    const form = e.currentTarget;
-    const fd = new FormData(form);
+    try {
+      // const form = e.currentTarget;
+      // const fd = new FormData(form);
 
-    // แปลง FormData เป็น object สำหรับ API
-    const body: UpdateUserDto = {
-  firstName: fd.get("firstName") as string || undefined,
-  lastName: fd.get("lastName") as string || undefined,
-  birthdate: fd.get("birthDate") as string || undefined,   // ชื่อตรง
-  sex: fd.get("sex") as UpdateUserDto.sex || undefined,    // cast enum
-  telephoneNumber: fd.get("telephone") as string || undefined, // ชื่อตรง
-  bio: fd.get("bio") as string || undefined,
-};
+      // // แปลง FormData เป็น object สำหรับ API
+      // const body: UpdateUserDto = {
+      //   firstName: fd.get("firstName") as string || undefined,
+      //   lastName: fd.get("lastName") as string || undefined,
+      //   birthdate: fd.get("birthDate") as string || undefined,   // ชื่อตรง
+      //   sex: fd.get("sex") as UpdateUserDto.sex || undefined,    // cast enum
+      //   telephoneNumber: fd.get("telephone") as string || undefined, // ชื่อตรง
+      //   bio: fd.get("bio") as string || undefined,
+      // };
+      // ใช้ state แทน FormData
+      const body: UpdateUserDto = {
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        birthdate: user.birthdate || undefined,
+        sex: user.sex || undefined,
+        telephoneNumber: user.telephoneNumber || null,
+        bio: user.bio || null,
+      };
 
-    // เรียก API จริง
-    await UserService.userControllerUpdate(body);
+      if (body.birthdate) {
+        const birthDate = new Date(body.birthdate);
+        const today = new Date();
+        const age =
+          today.getFullYear() -
+          birthDate.getFullYear() -
+          (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0);
 
-    toast.success("Successfully Edited");
-  } catch (err) {
-    console.error(err);
-    toast.error("Unsuccessfully Edited, try again");
-  } finally {
-    setSubmitting(false);
-  }
+        if (age < 20) {
+          toast.error("You must be at least 20 years old.");
+          setSubmitting(false);
+          return; 
+        }
+      }
+      // เรียก API จริง
+      await UserService.userControllerUpdate(body);
+      toast.success("Successfully Edited");
+    } catch (err) {
+      console.error(err);
+      toast.error("Unsuccessfully Edited, try again");
+    } finally {
+      setSubmitting(false);
+    }
 };
 
   return (
@@ -136,7 +149,8 @@ export default function EditProfilePage() {
               name="firstName"
               type="text"
               label="First name"
-              defaultValue = {userData.firstName}
+              defaultValue={user?.firstName || ""}
+              pattern="[ก-ฮะ-๛A-Za-z\s]+"
               required
             />
 
@@ -144,7 +158,8 @@ export default function EditProfilePage() {
               name="lastName"
               type="text"
               label="Last name"
-              defaultValue={userData.lastName}
+              defaultValue={user?.lastName || ""}
+              pattern="[ก-ฮะ-๛A-Za-z\s]+"
               required
             />
 
@@ -159,9 +174,9 @@ export default function EditProfilePage() {
                 type="date"
                 max={today}
                 containerClassName="mb-0" 
+                defaultValue={user?.birthdate || ""}
 
                 required
-                defaultValue={userData.birthdate}
                 className="pr-11 appearance-none
                           [&::-webkit-calendar-picker-indicator]:hidden
                           [&::-webkit-clear-button]:hidden
@@ -183,14 +198,12 @@ export default function EditProfilePage() {
               name="sex"
               label="Sex"
               required
+              value={user?.sex || ""}
               className = "bg-gray-200"
-              containerClassName="mb-2.5"
-              value={userData.sex || ""}
-              onChange={(e) => {
-                setUserData({...userData, sex: e.target.value});
-              }}
+              containerClassName="mb-2.5" 
+              onChange={(e) => setUser({ ...user, sex: e.target.value })}
               options={[
-                { label: "Select", value: "" , disabled: true  },
+                { label: "Select…", value: "", disabled: true },
                 { label: "Female", value: "female" },
                 { label: "Male", value: "male" },
                 { label: "Other", value: "other" },
@@ -203,18 +216,27 @@ export default function EditProfilePage() {
               type="tel"
               inputMode="tel"
               label="Telephone"
-              defaultValue={userData.telephoneNumber}
-              placeholder="xxx-xxx-xxxx"
-              required
+              value={user?.telephoneNumber || ""}
+              onChange={(e) => {
+                setUser({ ...user, telephoneNumber: e.target.value });
+              }}
+              placeholder="Phone Number (Optional)"
+              pattern="^0[689][0-9]{7,8}$"
+              title="Starting with 06, 08, or 09 and up to 10 digits (e.g. 0812345678)"
+              maxLength={10} 
+           
             />
 
             <EditInput
               name="bio"
               type="bio"
               label="Bio"
-              defaultValue={userData.bio}
-              placeholder="we love cat"
-              required
+              value={user?.bio || ""}
+              onChange={(e) => {
+                setUser({ ...user, bio: e.target.value });
+              }}
+              placeholder="Bio (Optional)"
+        
             />
 
             {/* Save */}
