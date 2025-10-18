@@ -1,7 +1,7 @@
 // backend/src/events/events.controller.ts
-import { Controller, Get, Patch, Param, Body, ParseIntPipe , Post, Delete, UseGuards } from '@nestjs/common'; // <-- Add Patch, Param, Body, ParseIntPipe
+import { Controller, Get, Patch, Param, Body, ParseIntPipe, Post, Delete, UseGuards } from '@nestjs/common';
 import { EventService } from './event.service';
-import { UpdateEventDto , CreateEventDto } from './event.dto'; // <-- Import the DTO
+import { UpdateEventDto, CreateEventDto } from './event.dto';
 import { JwtGuard } from '@backend/src/core/auth/jwt/access-jwt/jwt.guard';
 import { GetUserId } from '@backend/src/shared/decorators/get-user-id.decorator';
 
@@ -25,7 +25,6 @@ export class EventController {
     return this.eventService.getUserJoinedEvents(userId);
   }
 
-  // --- ADD THIS ENDPOINT ---
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -35,9 +34,7 @@ export class EventController {
   }
 
   @Post()
-  create(
-    @Body() CreateEventDto: CreateEventDto,
-  ){
+  create(@Body() CreateEventDto: CreateEventDto) {
     return this.eventService.createEvent(CreateEventDto);
   }
 

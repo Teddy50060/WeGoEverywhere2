@@ -3,7 +3,7 @@ import { users } from "./users.schema";
 
 export const refreshTokens = pgTable("refresh_tokens", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.userId).unique(), // FK, unique constraint
+  userId: integer("user_id").notNull().references(() => users.userId, {onDelete:"cascade"}).unique(), // FK, unique constraint
   tokenHash: varchar("token_hash", { length: 255 }).notNull(),
   revoked: boolean("revoked").default(false),
   expiresAt: timestamp("expires_at").notNull(),

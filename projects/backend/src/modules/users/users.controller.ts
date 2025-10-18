@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, ParseIntPipe , Post, UseGuards } from '@nestjs/common'; // <-- Add Patch, Param, Body, ParseIntPipe
+import { Controller, Get, Patch, Param, Body, ParseIntPipe , Post, Delete, UseGuards } from '@nestjs/common';
 import { UserService } from './users.service';
 import { UpdateUserDto } from './users.dto'; // <-- Import the DTO
 import { GetUserId } from '@backend/src/shared/decorators/get-user-id.decorator';
@@ -19,6 +19,11 @@ export class UserController{
     @Get()
     Getall(){
         return this.userService.getAllUsers();
+    }
+    @UseGuards(JwtGuard)
+    @Delete('me') 
+    deleteMe(@GetUserId() id: number) {
+        return this.userService.deleteUser(id);
     }
 
     @UseGuards(JwtGuard)

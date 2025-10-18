@@ -1,9 +1,10 @@
 // src/core/event/event.repository.ts
 import type { DbType } from '@backend/src/database/connection';
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { eq, count, inArray } from 'drizzle-orm';
+import { eq, and , gt, or } from 'drizzle-orm';
 import { CreateEventDto, UpdateEventDto } from './event.dto';
 import { schema } from '@backend/src/database/schema';
+
 
 @Injectable()
 export class EventRepository {
@@ -11,24 +12,9 @@ export class EventRepository {
 
   async findById(id: number) {
     const rows = await this.db
-      .select({
-        eventId: schema.event.eventId,
-        cost: schema.event.cost,
-        name: schema.event.name,
-        date: schema.event.date,
-        time: schema.event.time,
-        place: schema.event.place,
-        capacity: schema.event.capacity,
-        detail: schema.event.detail,
-        rating: schema.event.rating,
-        status: schema.event.status,
-        userId: schema.event.userId,
-        currentParticipants: count(schema.joined.userId).as('currentParticipants')
-      })
+      .select()
       .from(schema.event)
-      .leftJoin(schema.joined, eq(schema.event.eventId, schema.joined.eventId))
       .where(eq(schema.event.eventId, id))
-      .groupBy(schema.event.eventId)
       .limit(1);
 
     const found = rows[0];
@@ -39,28 +25,32 @@ export class EventRepository {
   }
 
   async findAll() {
-    // Get events with participant counts, sorted by date (upcoming first)
-    const eventsWithCounts = await this.db
-      .select({
-        eventId: schema.event.eventId,
-        cost: schema.event.cost,
-        name: schema.event.name,
-        date: schema.event.date,
-        time: schema.event.time,
-        place: schema.event.place,
-        capacity: schema.event.capacity,
-        detail: schema.event.detail,
-        rating: schema.event.rating,
-        status: schema.event.status,
-        userId: schema.event.userId,
-        currentParticipants: count(schema.joined.userId).as('currentParticipants')
-      })
-      .from(schema.event)
-      .leftJoin(schema.joined, eq(schema.event.eventId, schema.joined.eventId))
-      .groupBy(schema.event.eventId)
-      .orderBy(schema.event.date, schema.event.time);
+    // Get all events
+    const events = await this.db
+      .select()
+      .from(schema.event);
 
-    return eventsWithCounts;
+    // For each event, count participants from joined table
+    const eventIds = events.map(e => e.eventId);
+    let joinedCounts: Record<number, number> = {};
+    if (eventIds.length > 0) {
+      const { inArray } = require('drizzle-orm');
+      const joinedRows = await this.db
+        .select({ eventId: schema.joined.eventId })
+        .from(schema.joined)
+        .where(inArray(schema.joined.eventId, eventIds));
+      // Count participants for each event
+      joinedCounts = joinedRows.reduce((acc, row) => {
+        acc[row.eventId] = (acc[row.eventId] || 0) + 1;
+        return acc;
+      }, {} as Record<number, number>);
+    }
+
+    // Attach currentParticipants to each event
+    return events.map(event => ({
+      ...event,
+      currentParticipants: joinedCounts[event.eventId] || 0,
+    }));
   }
 
   async create(createEventDto: CreateEventDto) {
@@ -88,6 +78,27 @@ export class EventRepository {
     return updatedEvent;
   }
 
+  async bulkUpdateStatusByUserId(
+    userId: number,
+    newStatus: string,
+    afterDate: Date,
+    allowedStatuses: string[]
+  ) {
+    const dateString = afterDate.toISOString().slice(0, 10);
+    const result = await this.db
+      .update(schema.event)
+      .set({ status: newStatus })
+      .where(
+        and(
+          eq(schema.event.userId, userId),
+          gt(schema.event.date, dateString),
+          or(...allowedStatuses.map(status => eq(schema.event.status, status)))
+        )
+      )
+      .returning();
+
+    return result;
+  }
   async findUserJoinedEvents(userId: number) {
     // First get the event IDs that the user joined
     const userJoinedEventIds = await this.db
@@ -101,27 +112,12 @@ export class EventRepository {
 
     const eventIds = userJoinedEventIds.map(j => j.eventId);
 
-    // Then get full event details with participant counts for those events, sorted by date
+    // Then get full event details for those events
+    const { inArray } = require('drizzle-orm');
     const joinedEvents = await this.db
-      .select({
-        eventId: schema.event.eventId,
-        cost: schema.event.cost,
-        name: schema.event.name,
-        date: schema.event.date,
-        time: schema.event.time,
-        place: schema.event.place,
-        capacity: schema.event.capacity,
-        detail: schema.event.detail,
-        rating: schema.event.rating,
-        status: schema.event.status,
-        userId: schema.event.userId,
-        currentParticipants: count(schema.joined.userId).as('currentParticipants')
-      })
+      .select()
       .from(schema.event)
-      .leftJoin(schema.joined, eq(schema.event.eventId, schema.joined.eventId))
-      .where(inArray(schema.event.eventId, eventIds))
-      .groupBy(schema.event.eventId)
-      .orderBy(schema.event.date, schema.event.time);
+      .where(inArray(schema.event.eventId, eventIds));
 
     return joinedEvents;
   }
