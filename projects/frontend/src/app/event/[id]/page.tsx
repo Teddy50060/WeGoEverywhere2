@@ -15,9 +15,10 @@ export default function EventDetailPage() {
   const [organizer, setOrganizer] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasJoined, setHasJoined] = useState(false);
 
   useEffect(() => {
-    const fetchEventAndOrganizer = async () => {
+  const fetchEventAndOrganizer = async () => {
       try {
         setLoading(true);
         const eventData = await eventApi.getEventById(parseInt(eventId));
@@ -48,6 +49,11 @@ export default function EventDetailPage() {
                 } as User);
               }
             }
+
+            // Check if user already joined this event
+            const joinedEvents = await eventApi.getUserJoinedEvents();
+            const joined = joinedEvents.some(e => e.eventId === eventData.eventId);
+            setHasJoined(joined);
           } catch (userErr) {
             console.error('Failed to fetch current user:', userErr);
             // Set fallback organizer name
@@ -150,10 +156,10 @@ export default function EventDetailPage() {
         </div>
 
         {/* Category Tag */}
-        {event.category && (
+        {event.categories && (
           <div className="mb-6">
             <span className="bg-[#E8C5C5] rounded-full px-4 py-2 text-sm font-medium text-black border border-black">
-              {event.category}
+              {event.categories}
             </span>
           </div>
         )}
@@ -223,10 +229,15 @@ export default function EventDetailPage() {
       {/* Action Buttons - Outside the frame */}
       <div className="-mt-10 space-y-3 mb-20">
         <button
-          onClick={() => console.log("Register to this activity")}
-          className="w-full bg-[#9BE28C] hover:bg-green-400 text-green-900 font-bold py-3 px-6 rounded-full border border-black transition-colors shadow-sm"
+          onClick={() => !hasJoined && console.log("Register to this activity")}
+          className={`w-full font-bold py-3 px-6 rounded-full border border-black transition-colors shadow-sm ${
+            hasJoined
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-[#9BE28C] hover:bg-green-400 text-green-900'
+          }`}
+          disabled={hasJoined}
         >
-          Register !
+          {hasJoined ? "Already Registered" : "Register !"}
         </button>
         <button
           onClick={() => console.log("Report this activity")}
