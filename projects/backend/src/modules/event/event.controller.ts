@@ -1,4 +1,3 @@
-// backend/src/events/events.controller.ts
 import { Controller, Get, Patch, Param, Body, ParseIntPipe, Post, Delete, UseGuards } from '@nestjs/common';
 import { EventService } from './event.service';
 import { UpdateEventDto, CreateEventDto } from './event.dto';
@@ -42,5 +41,10 @@ export class EventController {
   softDelete(@Param('id', ParseIntPipe) id: number) {
     const updateEventDto = { status: 'deleted' };
     return this.eventService.updateEvent(id, updateEventDto);
+  }
+
+  @Get(':id/organizer')
+  async getEventOrganizer(@Param('id', ParseIntPipe) id: number) {
+    return this.eventService.getEventOrganizer(id);
   }
 }

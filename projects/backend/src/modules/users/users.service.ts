@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import { NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
 import { Pool } from 'pg';
@@ -13,7 +13,8 @@ export class UserService {
 
   constructor(
     private readonly usersRepo: UsersRepository,
-    private readonly eventService: EventService
+  @Inject(forwardRef(() => EventService))
+  private readonly eventService: EventService
   ) {}
 
   async getAllUsers() {
