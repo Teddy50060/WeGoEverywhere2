@@ -120,7 +120,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[393px] mx-auto min-h-screen bg-white">
+  <div className="relative w-full max-w-[393px] mx-auto min-h-screen bg-white flex flex-col">
       {/* Custom Header Banner for Home Page - Sticky */}
       <div className="sticky top-0 z-50 bg-brand-primary">
         <header className="bg-[var(--color-brand-secondary)] rounded-b-[50px] px-3 py-5 overflow-hidden">
@@ -299,7 +299,7 @@ export default function Home() {
       </div>
 
       {/* Navbar at bottom with same positioning as other pages */}
-      <footer className="sticky bottom-[-6px] px-1 pb-[env(safe-area-inset-bottom)] z-50">
+      <footer className="mt-auto sticky bottom-0 w-full px-1 pb-[env(safe-area-inset-bottom)] z-50">
         <Navbar />
       </footer>
     </div>
