@@ -2,7 +2,7 @@ import { apiCall } from '@/utils/api';
 
 export interface Event {
   eventId: number;
-  cost: string;
+  cost: string | number;
   name: string;
   date: string;
   time: string;
@@ -12,14 +12,15 @@ export interface Event {
   rating: number;
   status: string;
   userId: number;
-  currentParticipants: number;
-  title?: string;
-  description?: string;
-  location?: string;
-  image?: string;
-  categories?: string;
-  coverUrl?: string;
-  price?: string;
+  currentParticipants: number; // Now comes from backend joined table count
+  // Additional fields for UI compatibility
+  title?: string; // Will map from name
+  price?: number | string; // Will map from cost
+  location?: string; // Will map from place
+  description?: string; // Will map from detail
+  categories?: string; // Default or derived
+  coverUrl?: string; // Default placeholder
+// ...existing code...
 }
 
 export interface CreateEventDto {
@@ -157,9 +158,9 @@ const getRandomImageForCategory = (category: string): string => {
 };
 
 // Helper function to assign mock category based on event name/content
-const getMockCategory = (event: Event): string => {
-  const eventName = event.name.toLowerCase();
-  const eventDetail = event.detail.toLowerCase();
+const assignCategories = (name: string, detail: string): string => {
+  const eventName = name.toLowerCase();
+  const eventDetail = detail.toLowerCase();
   
   // Simple keyword-based category assignment
   if (eventName.includes('concert') || eventName.includes('music') || eventName.includes('party') || eventDetail.includes('entertainment')) {
@@ -183,7 +184,7 @@ const getMockCategory = (event: Event): string => {
 
 // Helper function to convert backend event to UI format
 export const convertEventToUIFormat = (event: Event): Event => {
-  const category = getMockCategory(event);
+  const category = assignCategories(event.name, event.detail);
   
   return {
     ...event,

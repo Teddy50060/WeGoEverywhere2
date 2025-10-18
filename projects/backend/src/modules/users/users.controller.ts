@@ -21,21 +21,21 @@ export class UserController{
     Getall(){
         return this.userService.getAllUsers();
     }
-       /**
-        * Get public user profile by ID
-        * GET /users/:id
-        */
-       @Public()
-       @Get(':id')
-       async getUserById(@Param('id') id: string) {
-           // You may want to select only public fields
-            const user = await this.userService.findById(id);
-            if (!user) {
-                return { statusCode: 404, message: 'User not found' };
-            }
-            // No password field present, just return user
-            return user;
-       }
+    /**
+     * Get public user profile by ID
+     * GET /users/:id
+     */
+    @Public()
+    @Get(':id')
+    async getUserById(@Param('id') id: string) {
+        // You may want to select only public fields
+        const user = await this.userService.findById(id);
+        if (!user) {
+            return { statusCode: 404, message: 'User not found' };
+        }
+        // No password field present, just return user
+        return user;
+    }
     @UseGuards(JwtGuard)
     @Delete('me') 
     deleteMe(@GetUserId() id: number) {

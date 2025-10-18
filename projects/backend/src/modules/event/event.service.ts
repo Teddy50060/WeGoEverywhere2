@@ -35,6 +35,15 @@ export class EventService {
   async updateEvent(id: number, updateEventDto: UpdateEventDto) {
     return this.eventRepo.update(id, updateEventDto);
   }
+  async markUserFutureEventsAsDeleted(userId: number) {
+    const now = new Date();
+    return this.eventRepo.bulkUpdateStatusByUserId(
+      userId,
+      'deleted',
+      now,
+      ['active']
+    );
+  }
 
   async markUserFutureEventsAsDeleted(userId: number) {
     const now = new Date();

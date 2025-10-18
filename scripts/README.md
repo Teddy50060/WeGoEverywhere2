@@ -1,7 +1,12 @@
 # Hot CLI:
 - python manage.py start all --dev  # run -> backend, frontend, db, pgadmin โหมด dev
-- python manage.py start all --install --dev    # install dependency ของ frontend และ backend, run -> backend, frontend, db, pgadmin โหมด dev
+- 🌟python manage.py start all --install --migrate --dev    # install dependency ของ frontend และ backend, run -> backend, frontend, db, ทำ migration ให้ database, pgadmin โหมด dev
 - python manage.py generate-api     # Generate api from backend
+
+# Migration:
+- python manage.py generate-migration     # Generate migration to db if schema changed, with random migration file name
+- 🌟python manage.py generate-migration --name [MIGRATION_NAME]     # With specific name
+
 
 # คำสั่งพื้นฐาน:
 - เริ่มทุกอย่าง (backend, frontend, db, pgadmin):

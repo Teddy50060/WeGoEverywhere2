@@ -1,4 +1,3 @@
-// ...existing code...
 import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import { NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
@@ -23,8 +22,8 @@ export class UserService {
 
   constructor(
     private readonly usersRepo: UsersRepository,
-  @Inject(forwardRef(() => EventService))
-  private readonly eventService: EventService
+    @Inject(forwardRef(() => EventService))
+    private readonly eventService: EventService
   ) {}
 
   async getAllUsers() {

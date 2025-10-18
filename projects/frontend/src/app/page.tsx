@@ -1,4 +1,3 @@
-
 "use client";
 // Extend the Window type to allow fetchUserJoinedEvents
 declare global {

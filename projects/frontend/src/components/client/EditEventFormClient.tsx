@@ -1,9 +1,8 @@
-// /components/form/EditEventFormClient.tsx
 "use client";
 
 import * as React from "react";
-import { useActionState } from "react";
-
+import { useActionState, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import EventPhotoPicker from "@/components/form/EventPhotoPicker";
 import { FormInput } from "@/components/form/input/FormInput";
 import { TextAreaInput } from "@/components/form/input/TextAreaInout";
@@ -17,193 +16,230 @@ import DeleteButton from "@/components/form/input/deletebutton";
 import { useActionToasts } from "../form/useActionToasts";
 import { LocationInput } from "../form/input/LocationInput";
 import { StatusSelect } from "../form/input/StatusSelect";
-import { EventService, UpdateEventDto } from "@/lib/api";
+import { TimePicker } from "../form/input/TimePicker";
+import { FieldError } from "../form/FieldError";
+import { toFields, type EventStateWithFields } from "@/lib/forms";
+import { uiFromApiStatus } from "@/utils/statusMapper";
 
-type Existing = {
-  photoUrl: string;
+type EventView = {
+  eventId: number;
   name: string;
-  dateString: string;
-  location: string;
-  details: string;
   capacity: number;
-  status: "publish" | "unpublish";
+  joined?: number;
+  userId: number | string;
+  date: string | null; // 'YYYY-MM-DD'
+  time: string | null; // 'HH:mm'
+  place: string;
+  detail: string;
+  imageUrl: string;
+  status?: string;
 };
 
-
-
-
-
-export default function EditEventFormClient({
-  id,
-  existing,
-}: {
-  id: string;
-  existing: Existing;
-}) {
-  function formDataToUpdateDto(fd: FormData): UpdateEventDto {
-  const toNum = (v: FormDataEntryValue | null) =>
-    v == null || v === "" ? undefined : Number(v);
-
-  const dateVal = fd.get("eventDate") as string;
-  let isoDate: string | undefined = undefined;
-  if (dateVal) {
-    const d = new Date(dateVal);
-    if (!isNaN(d.getTime())) isoDate = d.toISOString().slice(0, 10);
-  }
-
-  return {
-    name: fd.get("eventName") as string || undefined,
-    cost: toNum(fd.get("cost")),
-    date: isoDate,
-    time: fd.get("time") as string || undefined,
-    place: fd.get("location") as string || undefined,
-    capacity: toNum(fd.get("capacity")),
-    detail: fd.get("details") as string || undefined,
-    rating: toNum(fd.get("rating")),
-    userId: 28, // ใส่ hard code หรือจาก session
-    status: fd.get("status") as string || undefined,
-  };
-}
-
+export default function EditEventFormClient({ event }: { event: EventView }) {
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const didSubmitUpdateRef = useRef(false);
+  const lastUpdateToastSigRef = useRef<string | null>(null);
+  const didSubmitDeleteRef = useRef(false);
+  const lastDeleteToastSigRef = useRef<string | null>(null);
 
   const updateWrapper = async (
-    _prev: { ok: boolean; message?: string },
+    _prev: EventStateWithFields<EventActionState>,
     formData: FormData
-  ): Promise<{ ok: boolean; message?: string }> => {
+  ): Promise<EventStateWithFields<EventActionState>> => {
+    didSubmitUpdateRef.current = true;
+    lastUpdateToastSigRef.current = null;
+
     try {
-      // ✅ ตรวจ id และแปลงเป็น number
-      const numericId = typeof id === "number" ? id : parseInt(id, 10);
-      if (Number.isNaN(numericId)) {
-        console.log({ ok: false, message: "Invalid event id" })
-      }
-
-      const dto = formDataToUpdateDto(formData);
-      await EventService.eventControllerUpdate(17, dto);
-
-      return { ok: true, message: "Event updated successfully" };
-    } catch (err: any) {
-      console.error("Update error:", err);
-      return { ok: false, message: err?.message ?? "Update failed" };
+      const res = await updateEventWithZod(String(event.eventId), formData);
+      const nextState: EventStateWithFields<EventActionState> = {
+        ...(res ?? { ok: false }),
+        fields: toFields(formData),
+        message: undefined,
+      };
+      return nextState;
+    } catch (err) {
+      console.error(err);
+      return {
+        ok: false,
+        errors: {},
+        fields: toFields(formData),
+        message: undefined,
+      };
     }
   };
-
-
 
   const deleteWrapper = async (
     _prev: EventActionState,
     _formData: FormData
-  ): Promise<EventActionState> => deleteEventById(id);
+  ): Promise<EventActionState> => {
+    didSubmitDeleteRef.current = true;
+    lastDeleteToastSigRef.current = null;
+    try {
+      const res = await deleteEventById(String(event.eventId));
+      return { ...(res ?? { ok: false }), message: undefined };
+    } catch (err) {
+      console.error(err);
+      return { ok: false, message: undefined };
+    }
+  };
 
-  const [updateState, updateFormAction] = useActionState<
-    EventActionState,
+  const [state, formAction] = useActionState<
+    EventStateWithFields<EventActionState>,
     FormData
-  >(updateWrapper, { ok: false });
-  const [deleteState, deleteFormAction] = useActionState<
-    EventActionState,
-    FormData
-  >(deleteWrapper, { ok: false });
+  >(updateWrapper, { ok: false, fields: {} });
 
-  useActionToasts(updateState);
-  useActionToasts(deleteState);
+  const [deleteState, deleteFormAction] = useActionState(deleteWrapper, {
+    ok: false,
+  });
+
+  const f = state.fields ?? {};
+
+  const updateToastState = useMemo(() => {
+    if (!didSubmitUpdateRef.current || !state) return undefined;
+    const effective = { ...state, message: undefined };
+    const sig = effective.ok ? "S" : "E";
+    if (lastUpdateToastSigRef.current === sig) return undefined;
+    lastUpdateToastSigRef.current = sig;
+    return effective;
+  }, [state]);
+
+  const deleteToastState = useMemo(() => {
+    if (!didSubmitDeleteRef.current || !deleteState) return undefined;
+    const effective = { ...deleteState, message: undefined };
+    const sig = effective.ok ? "S" : "E";
+    if (lastDeleteToastSigRef.current === sig) return undefined;
+    lastDeleteToastSigRef.current = sig;
+    return effective;
+  }, [deleteState]);
+
+  useActionToasts(updateToastState, {
+    successText: "Event updated successfully!",
+    errorText: "Failed to update event.",
+    onSuccess: () => {
+      // router.refresh(); // รีเฟรช server components บนหน้านี้
+      router.push("/event");
+    },
+  });
+
+  useActionToasts(deleteToastState, {
+    successText: "Event deleted.",
+    errorText: "Failed to delete event.",
+    onSuccess: () => {
+      router.push("/event");
+    },
+  });
 
   return (
-    <div className="relative rounded-[28px] border border-black/50 bg-[var(--color-brand-secondary)] shadow-[0_6px_0_#00000020] z-10">
-      {/* UPDATE FORM */}
-      <form
-        id="updateForm"
-        action={updateFormAction}
-        className="px-4 pb-2 pt-10 text-sm"
-      >
-        <div className="mb-4">
-          <EventPhotoPicker
-            name="photo"
-            value={existing.photoUrl}
-            linkText="Change your event photo"
-            size={208}
-            width={280}
-            rounded="2xl"
-            className="mx-auto"
-          />
-        </div>
+    <>
+      <div className="font-alt relative rounded-3xl border border-black/10 bg-[var(--color-brand-secondary)] p-4 shadow text-sm">
+        <form ref={formRef} id="updateForm" action={formAction} noValidate>
+          <input type="hidden" name="id" value={event.eventId} />
 
-        <FormInput
-          name="eventName"
-          type="text"
-          label="Event name"
-          defaultValue={existing.name}
-          className="h-10 !bg-[var(--color-brand-background)] rounded-full border-black/30"
-        />
-
-        <Calendar28
-          name="eventDate"
-          label="Event date"
-          placeholder="June 01, 2025"
-          defaultValue={existing.dateString}
-          initialDate={new Date(existing.dateString)}
-          required
-          className="h-10 !bg-[var(--color-brand-background)] rounded-full border-black/30"
-          disableTyping
-        />
-
-        <LocationInput defaultValue={existing.location} />
-
-        <TextAreaInput
-          name="details"
-          label="Details"
-          defaultValue={existing.details}
-          className="block w-full h-22 overflow-y-auto rounded-[20px] border border-black/30 !bg-[var(--color-brand-background)] resize-none focus:border-black"
-        />
-      </form>
-
-      {/* FOOTER */}
-      <div className="px-4 pb-6">
-        {/* Optional line */}
-        <div className="flex items-center gap-2 pb-2">
-          <span className="text-[13px] font-semibold text-black/80">
-            Optional
-          </span>
-          <div className="h-px flex-1 bg-black/30" />
-        </div>
-
-        {/* Capacity / Status */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[13px] font-semibold">Capacity</label>
-            <input
-              form="updateForm"
-              name="capacity"
-              type="number"
-              defaultValue={String(existing.capacity)}
-              className="mt-1 h-11 w-full leading-none text-[15px] px-4 rounded-full border border-black/30 !bg-[var(--color-brand-background)] outline-none focus-visible:ring-1 focus-visible:ring-offset-0 focus:border-neutral-400"
+          <div className="mb-4">
+            <EventPhotoPicker
+              name="eventPhoto"
+              value={event.imageUrl}
+              linkText="Change your event photo"
+              size={208}
+              width={280}
+              rounded="2xl"
+              className="mx-auto"
             />
+            <FieldError errors={state?.errors?.photo} />
           </div>
 
-          <StatusSelect
-            name="status"
-            label="Status"
-            options={[
-              { value: "publish", label: "Publish" },
-              { value: "unpublish", label: "Unpublish" },
-              // เติมเพิ่มได้ เช่น draft/archived/private/internal ...
-            ]}
-            defaultValue={existing.status}
-            formId="updateForm" // select อยู่ใน footer นอก <form> เลยผูกฟอร์มด้วย
-            placeholder="Select…"
+          <FormInput
+            name="eventName"
+            type="text"
+            label="Event name"
+            className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
+            defaultValue={f.eventName ?? event.name}
           />
-        </div>
+          <FieldError errors={state?.errors?.eventName} />
 
-        {/* Save ใหญ่เต็ม + Delete เล็กขวา */}
-        <div className="grid grid-cols-[1fr_auto] gap-3 mt-3 items-center">
+          <div className="mb-3 grid grid-cols-5 gap-3">
+            <div className="col-span-5 sm:col-span-3">
+              <Calendar28
+                name="eventDate"
+                label="Event date"
+                readonly
+                className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
+                defaultValue={f.eventDate ?? event.date ?? ""}
+              />
+              <FieldError errors={state?.errors?.eventDate} />
+            </div>
+
+            <div className="col-span-5 sm:col-span-2">
+              <TimePicker
+                name="eventTime"
+                label="Time"
+                readOnly
+                className="!bg-[var(--color-brand-background)] border border-gray-300 text-sm text-gray-700"
+                defaultValue={f.eventTime ?? event.time ?? "00:00"}
+              />
+              <FieldError errors={state?.errors?.eventTime} />
+            </div>
+          </div>
+
+          <LocationInput
+            name="eventLocation"
+            label="Location"
+            defaultValue={f.eventLocation ?? event.place ?? ""}
+            className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
+          />
+          <FieldError errors={state?.errors?.eventLocation} />
+
+          <TextAreaInput
+            name="eventDetails"
+            label="Details"
+            defaultValue={f.eventDetails ?? event.detail}
+            className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
+          />
+          <FieldError errors={state?.errors?.eventDetails} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <FormInput
+                name="eventCapacity"
+                type="number"
+                label="Capacity"
+                className="!bg-[var(--color-brand-background)] rounded-full border-black/30"
+                defaultValue={f.eventCapacity ?? event.capacity}
+              />
+              <FieldError errors={state?.errors?.eventCapacity} />
+            </div>
+
+            <div>
+              <StatusSelect
+                name="eventStatus"
+                label="Status"
+                options={[
+                  { value: "publish", label: "Publish" },
+                  { value: "unpublish", label: "Unpublish" },
+                ]}
+                defaultValue={
+                  (f.eventStatus as string) ?? uiFromApiStatus(event.status)
+                }
+                formId="updateForm"
+                className="!bg-[var(--color-brand-background)] rounded-full border border-black/30 text-sm"
+              />
+              <FieldError errors={state?.errors?.eventStatus} />
+            </div>
+          </div>
+        </form>
+
+        <div className="grid grid-cols-[1fr_auto] gap-3 mt-4 items-center">
           <button
             form="updateForm"
             type="submit"
-            className="h-11 w-full rounded-full border border-black/40 bg-[var(--color-brand-greenbutton)] hover:bg-[var(--color-brand-greenbutton)] text-black font-medium shadow-[0_2px_0_#00000020]"
+            className="h-11 w-full rounded-full bg-[var(--color-brand-greenbutton)] text-sm font-semibold"
           >
             Save
           </button>
           <DeleteButton action={deleteFormAction} />
         </div>
       </div>
-    </div>
+    </>
   );
 }
