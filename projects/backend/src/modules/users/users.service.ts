@@ -9,9 +9,12 @@ import { EventService } from '../event/event.service';
 
 @Injectable()
 export class UserService {
-  /**
-   * Find user by ID (public, returns all fields from repo)
-   */
+  constructor(
+    private readonly usersRepo: UsersRepository,
+    @Inject(forwardRef(() => EventService))
+    private readonly eventService: EventService
+  ) {}
+
   async findById(id: string | number) {
     // Accept string or number for controller compatibility
     const userId = typeof id === 'string' ? parseInt(id, 10) : id;
@@ -19,12 +22,6 @@ export class UserService {
     return this.usersRepo.findById(userId);
   }
   private readonly db: NodePgDatabase<typeof schema>;
-
-  constructor(
-    private readonly usersRepo: UsersRepository,
-    @Inject(forwardRef(() => EventService))
-    private readonly eventService: EventService
-  ) {}
 
   async getAllUsers() {
     return this.usersRepo.findAll();
