@@ -1,4 +1,3 @@
-// ...existing code...
 // src/core/event/event.repository.ts
 import type { DbType } from '@backend/src/database/connection';
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
@@ -9,6 +8,7 @@ import { schema } from '@backend/src/database/schema';
 
 @Injectable()
 export class EventRepository {
+  constructor(@Inject('DatabaseConnection') private readonly db: DbType) {}
   async unjoinEvent(eventId: number, userId: number) {
     // Remove the join record if it exists
     const deleted = await this.db
@@ -39,7 +39,6 @@ export class EventRepository {
     await this.db.insert(schema.joined).values({ eventId, userId });
     return { message: 'Joined successfully' };
   }
-  constructor(@Inject('DatabaseConnection') private readonly db: DbType) {}
 
   async findById(id: number) {
     // Get the event
