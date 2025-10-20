@@ -85,4 +85,39 @@ export class EventService {
             mediaType: 'application/json',
         });
     }
+    /**
+     * @param formData
+     * @returns any
+     * @throws ApiError
+     */
+    public static eventControllerCreateWithImage(
+        formData: CreateEventDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/events/withImage',
+            formData: formData,
+            mediaType: 'multipart/form-data',
+        });
+    }
+    /**
+     * @param id
+     * @param formData
+     * @returns any
+     * @throws ApiError
+     */
+    public static eventControllerUpdateEventWithImage(
+        id: number,
+        formData: UpdateEventDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/events/withImage/{id}',
+            path: {
+                'id': id,
+            },
+            formData: formData,
+            mediaType: 'multipart/form-data',
+        });
+    }
 }
