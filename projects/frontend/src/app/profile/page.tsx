@@ -10,6 +10,7 @@ import { FiBell } from "react-icons/fi";
 import { AuthService, UserService } from "@/lib/api";
 import { useEffect, useState } from "react";
 
+
 export default function ProfilePage() {
     const [user, setUser] = useState<any>({});
 
@@ -60,13 +61,17 @@ export default function ProfilePage() {
     if (!ok) return;
 
     try {
-        // จำลอง API call ใช้ setTimeout แทน
-        await new Promise((resolve) => setTimeout(resolve, 1000)); 
-        
-        toast.success('Successfully Delete')
+    await UserService.userControllerDeleteMe();
+    try {
+        await AuthService.authControllerLogout();// call logout to clear cookie
     } catch {
-        toast.error("Unsuccessfully, try again.")
+        
     }
+    toast.success('Successfully Delete');
+    window.location.href = '/login';
+} catch {
+    toast.error("Unsuccessfully, try again.");
+}
   };
 
   return (
