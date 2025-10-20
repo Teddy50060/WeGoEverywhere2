@@ -43,13 +43,29 @@ export class UserService {
         });
     }
     /**
+     * @param id
+     * @returns any
+     * @throws ApiError
+     */
+    public static userControllerGetUserById(
+        id: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/users/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
      * @returns any
      * @throws ApiError
      */
     public static userControllerDeleteMe(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/users',
+            url: '/users/me',
         });
     }
     /**

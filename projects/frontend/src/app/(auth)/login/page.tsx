@@ -170,7 +170,7 @@ export default function LoginPage() {
             }}
           />
 
-          {/* <GoogleButton onClick={() => {window.open("http://localhost:3001/auth/github");}} /> */}
+          <GoogleButton onClick={() => {window.open("http://localhost:3001/auth/github");}} />
         </div>
 
         <Link

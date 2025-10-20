@@ -27,8 +27,8 @@ export class AuthService {
   }
 
   // Access token
-  signJwt(userId: number | string, email?: string) {
-    const payload = { sub: userId, email, jti: crypto.randomUUID() };
+  signJwt(userId: number | string, email?: string , method?: 'github' | 'normal' , githubId?: string) {
+    const payload = { sub: userId, email, method, githubId, jti: crypto.randomUUID()};
     return this.jwtService.sign(payload);
   }
 

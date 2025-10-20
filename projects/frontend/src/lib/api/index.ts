@@ -18,6 +18,7 @@ export type { DeletePolicyResponseDto } from './models/DeletePolicyResponseDto';
 export type { FileUploadResponseDto } from './models/FileUploadResponseDto';
 export type { ForgotPasswordDto } from './models/ForgotPasswordDto';
 export type { LoginDto } from './models/LoginDto';
+export type { Oauth_RegisterDto } from './models/Oauth_RegisterDto';
 export type { PolicyHistoryResponseDto } from './models/PolicyHistoryResponseDto';
 export type { PolicyResponseDto } from './models/PolicyResponseDto';
 export type { RegisterDto } from './models/RegisterDto';

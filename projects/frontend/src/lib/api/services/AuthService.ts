@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { ForgotPasswordDto } from '../models/ForgotPasswordDto';
 import type { LoginDto } from '../models/LoginDto';
+import type { Oauth_RegisterDto } from '../models/Oauth_RegisterDto';
 import type { RegisterDto } from '../models/RegisterDto';
 import type { ResetPasswordDto } from '../models/ResetPasswordDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -159,6 +160,31 @@ export class AuthService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/auth/logout-all',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any
+     * @throws ApiError
+     */
+    public static authControllerRegisterOauth(
+        requestBody: Oauth_RegisterDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/auth/registerOauth',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static authControllerGetMethod(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/auth/method',
         });
     }
 }

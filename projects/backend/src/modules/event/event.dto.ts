@@ -204,3 +204,4 @@ export class CreateEventDto {
   @IsOptional()
   file?: Express.Multer.File;
 }
+

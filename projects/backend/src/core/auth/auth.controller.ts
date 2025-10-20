@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { JwtGuard } from './jwt/access-jwt/jwt.guard';
+import { JwtGuard} from './jwt/access-jwt/jwt.guard';
 import { Public } from '@backend/src/shared/decorators/public.decorator';
 import {
   ApiBearerAuth,
@@ -25,6 +25,7 @@ import { RefreshJwtGuard } from './jwt/refresh-jwt/refresh-jwt.guard';
 import { GitHubAuthGuard } from './github/github-auth.guard';
 
 import { UsersRepository } from '@backend/src/modules/users/users.repository';
+import { OAuthUsersRepository } from '@backend/src/modules/oauthUsersRepository';
 import { RegisterDto } from '@backend/src/modules/dto/register.dto';
 import { RefreshTokensRepository } from '@backend/src/modules/refreshTokens.repository';
 
@@ -38,6 +39,9 @@ import { AuthUsersRepository } from '@backend/src/modules/auth-users.repository'
 import { ONE_MINUTE, ONE_WEEK } from '@backend/src/consts/jwt-age';
 import LoginDto from './dto/login.dto';
 import { compareSync } from 'bcrypt';
+import { Oauth_RegisterDto } from '@backend/src/modules/dto/Oauth_RegisterDto';
+import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
+import { OptionalAuth } from './jwt/decorator/optional-auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -46,6 +50,7 @@ export class AuthController {
     private readonly configService: ConfigService,
     private readonly usersRepository: UsersRepository,
     private readonly authUsersRepository: AuthUsersRepository,
+    private readonly oauthUsersRepository: OAuthUsersRepository,
     private readonly refreshTokensRepo: RefreshTokensRepository,
   ) {}
 
@@ -78,25 +83,43 @@ export class AuthController {
   @UseGuards(GitHubAuthGuard)
   @Get('callback')
   @ApiOperation({ summary: 'Github OAuth callback' })
-  githubCallback(@Req() req, @Res({ passthrough: true }) res: Response) {
-    const accessToken = this.authService.signJwt(req.user.id);
-    const refreshToken = this.authService.signRefreshJwt(req.user.id);
-    res.cookie('jwt', accessToken, { 
-      httpOnly: true,
-      secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-      sameSite: 'strict',
-      maxAge: 15 * ONE_MINUTE,
-    });
-    res.cookie('refresh_jwt', refreshToken, { 
-      httpOnly: true,
-      secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-      sameSite: 'strict',
-      maxAge: ONE_WEEK,
-    });
-    // need fix hard code localhost:3000
-    return res.redirect('http://localhost:3000/profile-setup');
+  async githubCallback(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const existingUser = await this.oauthUsersRepository.findByGithubId(req.user.id);
+    console.log(req.user)
+    if(!existingUser){
+      const accessToken = this.authService.signJwt(req.user.id , req.user.email , 'github');
+      const refreshToken = this.authService.signRefreshJwt(req.user.id);
+      res.cookie('jwt', accessToken, { 
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'lax',
+        maxAge: 15 * ONE_MINUTE,
+      });
+      res.cookie('refresh_jwt', refreshToken, { 
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'lax',
+        maxAge: ONE_WEEK,
+      });
+      return res.redirect('http://localhost:3000/consent');
+    }else{
+      const accessToken = this.authService.signJwt(existingUser.userId);
+      const refreshToken = this.authService.signRefreshJwt(existingUser.userId);
+      res.cookie('jwt', accessToken, { 
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'lax',
+        maxAge: 15 * ONE_MINUTE,
+      });
+      res.cookie('refresh_jwt', refreshToken, { 
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'lax',
+        maxAge: ONE_WEEK,
+      });
+      return res.redirect('http://localhost:3000/');
+    }
   }
-
   @Public()
   @UseGuards(RefreshJwtGuard)
   @Post('refresh-jwt-token')
@@ -404,5 +427,82 @@ export class AuthController {
   async logoutAll(@Req() req: any) {
     await this.refreshTokensRepo.revokeAllByUser(Number(req.user.sub));
     return { message: 'Logged out on all devices' };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('registerOauth')
+  async registerOauth(@Req() req: any, @Body() body: Oauth_RegisterDto, @Res({ passthrough: true }) res: Response) {
+    try {
+      const existingUser = await this.oauthUsersRepository.findByGithubId(req.user.githubId);
+      if (existingUser) {
+        return {
+          success: false,
+          error: 'Email already registered'
+        };
+      } 
+      // 3) Create user in users table
+      const user = await this.usersRepository.createUserOauth(body);
+
+      // 4) Create auth record in auth_users table
+      console.log('req.user', req.user);
+      await this.oauthUsersRepository.createOAuthUser(user.userId, 'github' , req.user.sub , req.user.email);
+
+      // 5) Generate JWT token
+      const accessToken = this.authService.signJwt(user.userId.toString(), req.user.email);
+      const { refreshToken, tokenId } = this.authService.signRefreshJwt(
+        user.userId,
+        req.user.email,
+      );
+
+      // 6) Set cookie
+      res.cookie('jwt', accessToken, {
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'strict',
+        maxAge: 1000 * 60 * 15,
+      });
+      res.cookie('refresh_jwt', refreshToken, {
+        httpOnly: true,
+        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        sameSite: 'strict',
+        maxAge: ONE_WEEK,
+      });
+
+      await this.refreshTokensRepo.createOrUpdateRefreshToken(
+        user.userId,
+        refreshToken,
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      );
+
+      // 7) Return success response
+      return { 
+        success: true,
+        user: {
+          userId: user.userId,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: req.user.email,
+        },
+        accessToken 
+      };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return {
+        success: false,
+        error: 'Registration failed',
+        details: error.message
+      };
+    }
+  }
+  
+  @OptionalAuth()
+  @Get('method') // ตรวจ JWT จาก cookie
+  getMethod(@Req() req) {
+    // req.user มาจาก JwtStrategy
+    console.log(req.user);
+    const method = req.user?.method || 'normal';
+    return {
+      method: method, // 'github' หรือ 'normal'
+    };
   }
 }

@@ -8,5 +8,5 @@ export const oauthIdentities = pgTable("oauth_identities", {
   subject: varchar("subject", { length: 100 }).notNull(),// Unique ID from provider
   email: varchar("email", { length: 100 }),
   emailVerified: timestamp("email_verified"),
-  createdAt: timestamp("created_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
