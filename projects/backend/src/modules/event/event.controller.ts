@@ -1,4 +1,3 @@
-// backend/src/events/events.controller.ts
 import {
   Controller,
   Get,
@@ -8,11 +7,14 @@ import {
   ParseIntPipe,
   Post,
   Delete,
+  UseGuards,
   UseInterceptors,
   UploadedFile,
-} from '@nestjs/common'; // <-- Add Patch, Param, Body, ParseIntPipe
+} from '@nestjs/common';
 import { EventService } from './event.service';
-import { UpdateEventDto, CreateEventDto } from './event.dto'; // <-- Import the DTO
+import { UpdateEventDto, CreateEventDto } from './event.dto';
+import { JwtGuard } from '@backend/src/core/auth/jwt/access-jwt/jwt.guard';
+import { GetUserId } from '@backend/src/shared/decorators/get-user-id.decorator';
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
 import { ApiConsumes } from '@nestjs/swagger/dist/decorators/api-consumes.decorator';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
@@ -22,14 +24,32 @@ import multer from 'multer';
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
+  @UseGuards(JwtGuard)
+  @Delete(':id/join')
+  async unjoinEvent(@Param('id', ParseIntPipe) id: number, @GetUserId() userId: number) {
+    return this.eventService.unjoinEvent(id, userId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post(':id/join')
+  async joinEvent(@Param('id', ParseIntPipe) id: number, @GetUserId() userId: number) {
+    return this.eventService.joinEvent(id, userId);
+  }
+
   @Get(':id')
   getById(@Param('id', ParseIntPipe) id: number) {
     return this.eventService.getEventById(id);
   }
 
   @Get()
-  GetAll() {
+  getAll() {
     return this.eventService.getAllEvents();
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('user/joined')
+  getUserJoinedEvents(@GetUserId() userId: number) {
+    return this.eventService.getUserJoinedEvents(userId);
   }
 
   @Patch(':id')
@@ -41,8 +61,8 @@ export class EventController {
   }
 
   @Post()
-  create(@Body() CreateEventDto: CreateEventDto) {
-    return this.eventService.createEvent(CreateEventDto);
+  create(@Body() createEventDto: CreateEventDto) {
+    return this.eventService.createEvent(createEventDto);
   }
 
   @Delete(':id')
@@ -61,22 +81,22 @@ export class EventController {
   @ApiConsumes('multipart/form-data')
   createWithImage(
     @UploadedFile() file: Express.Multer.File,
-    @Body() CreateEventDto: CreateEventDto,
+    @Body() createEventDto: CreateEventDto,
   ) {
-    const categories: string[] = Array.isArray(CreateEventDto.categories)
-      ? CreateEventDto.categories
-      : [CreateEventDto.categories].filter(Boolean);
+    const categories: string[] = Array.isArray(createEventDto.categories)
+      ? createEventDto.categories
+      : [createEventDto.categories].filter(Boolean);
 
     const dto: CreateEventDto = {
-      name: CreateEventDto.name,
-      date: CreateEventDto.date,
-      time: CreateEventDto.time,
-      place: CreateEventDto.place,
-      capacity: Number(CreateEventDto.capacity),
-      detail: CreateEventDto.detail,
-      cost: Number(CreateEventDto.cost ?? 0),
-      status: CreateEventDto.status ?? 'active',
-      userId: CreateEventDto.userId,
+      name: createEventDto.name,
+      date: createEventDto.date,
+      time: createEventDto.time,
+      place: createEventDto.place,
+      capacity: Number(createEventDto.capacity),
+      detail: createEventDto.detail,
+      cost: Number(createEventDto.cost ?? 0),
+      status: createEventDto.status ?? 'active',
+      userId: createEventDto.userId,
       categories,
     };
     return this.eventService.createEventWithImage(dto, file);
@@ -110,5 +130,10 @@ export class EventController {
     };
 
     return this.eventService.updateEventWithImage(id, dto, file);
+  }
+
+  @Get(':id/organizer')
+  async getEventOrganizer(@Param('id', ParseIntPipe) id: number) {
+    return this.eventService.getEventOrganizer(id);
   }
 }

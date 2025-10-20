@@ -1,26 +1,35 @@
-// backend/src/events/events.service.ts
-// backend/src/events/events.service.ts
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
-import { NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import { eq } from 'drizzle-orm';
-import { schema } from '@backend/src/database/schema';
 import { UpdateEventDto, CreateEventDto } from './event.dto';
 import { EventRepository } from './event.repository';
-import { join } from 'path/win32';
-
+import { join } from 'path';
 import { promises as fs } from 'fs';
+import { UserService } from '../users/users.service';
+
 function sanitizeFilename(name: string) {
-  return name.replace(/[^\w.\-]+/g, '_');
+  return name.replace(/[^\\w.\\-]+/g, '_');
 }
 
 @Injectable()
 export class EventService {
-  constructor(private readonly eventRepo: EventRepository) {}
+  constructor(
+    private readonly eventRepo: EventRepository,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
+
+  async unjoinEvent(eventId: number, userId: number) {
+    return this.eventRepo.unjoinEvent(eventId, userId);
+  }
+
+  async joinEvent(eventId: number, userId: number) {
+    return this.eventRepo.joinEvent(eventId, userId);
+  }
 
   private assertCategories(categories: unknown) {
     if (!Array.isArray(categories) || categories.length < 1) {
@@ -33,29 +42,13 @@ export class EventService {
     }
   }
 
-  async getAllEvents() {
-    return this.eventRepo.findAll();
-  }
-
-  async createEvent(createEventDto: CreateEventDto) {
-    return this.eventRepo.create(createEventDto);
-  }
-
-  async updateEvent(id: number, updateEventDto: UpdateEventDto) {
-    return this.eventRepo.update(id, updateEventDto);
-  }
-
-  async getEventById(id: number) {
-    return this.eventRepo.findById(id);
-  }
-
   async createEventWithImage(dto: CreateEventDto, file?: Express.Multer.File) {
     this.assertCategories(dto.categories);
 
     if (!file?.buffer || !file.originalname) {
       throw new BadRequestException('file (image) is required');
     }
-    if (/^\d{2}:\d{2}$/.test(dto.time)) dto.time = `${dto.time}:00`;
+    if (/^\\d{2}:\\d{2}$/.test(dto.time)) dto.time = `${dto.time}:00`;
 
     const uploadRoot = join(process.cwd(), 'uploads', 'events');
     const filename = `${Date.now()}-${sanitizeFilename(file.originalname)}`;
@@ -90,7 +83,7 @@ export class EventService {
     const existing = await this.eventRepo.findById(id);
     if (!existing) throw new NotFoundException(`Event ${id} not found`);
 
-    if (dto.time && /^\d{2}:\d{2}$/.test(dto.time)) {
+    if (dto.time && /^\\d{2}:\\d{2}$/.test(dto.time)) {
       dto.time = `${dto.time}:00`;
     }
 
@@ -145,10 +138,36 @@ export class EventService {
     }
   }
 
+  async getAllEvents() {
+    return this.eventRepo.findAll();
+  }
+
+  async createEvent(createEventDto: CreateEventDto) {
+    return this.eventRepo.create(createEventDto);
+  }
+
+  async updateEvent(id: number, updateEventDto: UpdateEventDto) {
+    return this.eventRepo.update(id, updateEventDto);
+  }
+
+  async getEventById(id: number) {
+    return this.eventRepo.findById(id);
+  }
+
   async markUserFutureEventsAsDeleted(userId: number) {
     const now = new Date();
     return this.eventRepo.bulkUpdateStatusByUserId(userId, 'deleted', now, [
       'active',
     ]);
+  }
+
+  async getUserJoinedEvents(userId: number) {
+    return this.eventRepo.findUserJoinedEvents(userId);
+  }
+
+  async getEventOrganizer(eventId: number) {
+    const event = await this.eventRepo.findById(eventId);
+    if (!event.userId) throw new NotFoundException('Event has no organizer');
+    return this.userService.getPublicProfileById(event.userId);
   }
 }
