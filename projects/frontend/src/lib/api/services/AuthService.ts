@@ -177,4 +177,14 @@ export class AuthService {
             mediaType: 'application/json',
         });
     }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static authControllerGetMethod(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/auth/method',
+        });
+    }
 }

@@ -13,6 +13,38 @@ export class EventService {
      * @returns any
      * @throws ApiError
      */
+    public static eventControllerUnjoinEvent(
+        id: number,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/events/{id}/join',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @returns any
+     * @throws ApiError
+     */
+    public static eventControllerJoinEvent(
+        id: number,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/events/{id}/join',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @returns any
+     * @throws ApiError
+     */
     public static eventControllerGetById(
         id: number,
     ): CancelablePromise<any> {
@@ -86,6 +118,16 @@ export class EventService {
         });
     }
     /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static eventControllerGetUserJoinedEvents(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/events/user/joined',
+        });
+    }
+    /**
      * @param formData
      * @returns any
      * @throws ApiError
@@ -118,6 +160,22 @@ export class EventService {
             },
             formData: formData,
             mediaType: 'multipart/form-data',
+        });
+    }
+    /**
+     * @param id
+     * @returns any
+     * @throws ApiError
+     */
+    public static eventControllerGetEventOrganizer(
+        id: number,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/events/{id}/organizer',
+            path: {
+                'id': id,
+            },
         });
     }
 }
