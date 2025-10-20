@@ -1,17 +1,20 @@
 "use server";
 
 import { eventFormSchema } from "@/utils/schemas";
-import { EventService, UserService } from "@/lib/api";
+import {
+  EventService,
+  UserService,
+  type CreateEventDto,
+  type UpdateEventDto,
+} from "@/lib/api";
 import {
   formToDbShape,
   mapErrorsToFormKeys,
   compactZodErrors,
   toCreateDto,
   toUpdateDtoFromForm,
-  buildEventUrl,
 } from "./helpers.action";
 import { setOpenApiCookieHeader } from "@/lib/auth/CookieHeader";
-import { redirect } from "next/navigation";
 
 export type EventActionState = {
   ok: boolean;
@@ -65,7 +68,7 @@ export const createEventWithZod = async (
     const dto = toCreateDto(parsed.data, userId);
     console.log("createEventWithZod dto:", dto);
 
-    await EventService.eventControllerCreate(dto);
+    await EventService.eventControllerCreateWithImage(dto);
     return { ok: true, message: "Event created successfully!" };
   } catch (error: any) {
     console.error("createEventWithZod error:", error);
@@ -89,7 +92,9 @@ export const updateEventWithZod = async (
     if (Number.isNaN(numericId)) {
       return { ok: false, message: "Invalid event id" };
     }
+
     const candidate = formToDbShape(formData);
+
     const parsed = eventFormSchema.safeParse(candidate);
     if (!parsed.success) {
       const fieldErrors = mapErrorsToFormKeys(
@@ -101,18 +106,22 @@ export const updateEventWithZod = async (
         message: compactZodErrors(fieldErrors),
       };
     }
+
     const dto = toUpdateDtoFromForm(formData);
-    await EventService.eventControllerUpdate(numericId, dto);
+    console.log("dto =", dto);
+
+    await EventService.eventControllerUpdateEventWithImage(numericId, dto);
 
     const nextVal = formData.get("next");
     const next = typeof nextVal === "string" && nextVal ? nextVal : undefined;
+
     return { ok: true, message: "Event updated!", next };
   } catch (error: any) {
     const status = error?.status ?? error?.statusCode;
     return {
       ok: false,
       message:
-        error?.body?.message || error?.message || "Failed to create event.",
+        error?.body?.message || error?.message || "Failed to update event.",
     };
   }
 };

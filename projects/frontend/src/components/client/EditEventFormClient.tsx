@@ -1,7 +1,8 @@
+// /components/client/EditEventFormClient.tsx
 "use client";
 
 import * as React from "react";
-import { useActionState, useRef, useMemo } from "react";
+import { useActionState, useRef, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import EventPhotoPicker from "@/components/form/EventPhotoPicker";
 import { FormInput } from "@/components/form/input/FormInput";
@@ -20,6 +21,8 @@ import { TimePicker } from "../form/input/TimePicker";
 import { FieldError } from "../form/FieldError";
 import { toFields, type EventStateWithFields } from "@/lib/forms";
 import { uiFromApiStatus } from "@/utils/statusMapper";
+import CategoryMultiSelect from "../form/input/CategoryMultiSelect";
+import { CATEGORY_OPTIONS } from "@/utils/schemas";
 
 type EventView = {
   eventId: number;
@@ -31,8 +34,9 @@ type EventView = {
   time: string | null; // 'HH:mm'
   place: string;
   detail: string;
-  imageUrl: string;
+  imagePath: string | null;
   status?: string;
+  categories: string[];
 };
 
 export default function EditEventFormClient({ event }: { event: EventView }) {
@@ -43,12 +47,41 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
   const didSubmitDeleteRef = useRef(false);
   const lastDeleteToastSigRef = useRef<string | null>(null);
 
+  // จัดการรูป: ใช้ state จับไฟล์ใหม่ + ตัวนับเพื่อรีเซ็ต input file ให้กลับไปแสดงรูปเดิม
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [resetPickerSig, setResetPickerSig] = useState(0);
+
+  type Category = (typeof CATEGORY_OPTIONS)[number];
+
+  function normalizeCategories(
+    input: unknown,
+    fallback: unknown = []
+  ): Category[] {
+    const rawList: string[] = Array.isArray(input)
+      ? (input as unknown[]).map(String)
+      : typeof input === "string"
+      ? input.split(",")
+      : Array.isArray(fallback)
+      ? (fallback as unknown[]).map(String)
+      : [];
+
+    const trimmed = rawList.map((s) => s.trim()).filter(Boolean);
+    return trimmed.filter((s): s is Category =>
+      (CATEGORY_OPTIONS as readonly string[]).includes(s)
+    );
+  }
+
   const updateWrapper = async (
     _prev: EventStateWithFields<EventActionState>,
     formData: FormData
   ): Promise<EventStateWithFields<EventActionState>> => {
     didSubmitUpdateRef.current = true;
     lastUpdateToastSigRef.current = null;
+
+    // แนบไฟล์ถ้ามีเลือกใหม่
+    if (photoFile) {
+      formData.set("eventPhoto", photoFile);
+    }
 
     try {
       const res = await updateEventWithZod(String(event.eventId), formData);
@@ -57,9 +90,21 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
         fields: toFields(formData),
         message: undefined,
       };
+
+      // ถ้าไม่ผ่านและรอบนี้มีเลือกรูปใหม่ → รีเซ็ตให้กลับไปแสดงรูปเดิม
+      if (!nextState.ok && photoFile) {
+        setPhotoFile(null);
+        setResetPickerSig((s) => s + 1); // เปลี่ยน key -> remount -> แสดงรูปเดิมผ่าน value
+      }
+
       return nextState;
     } catch (err) {
       console.error(err);
+      // error จริง: ถ้าเคยเลือกรูปใหม่ก็รีเซ็ตกลับรูปเดิมเช่นกัน
+      if (photoFile) {
+        setPhotoFile(null);
+        setResetPickerSig((s) => s + 1);
+      }
       return {
         ok: false,
         errors: {},
@@ -117,7 +162,6 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
     successText: "Event updated successfully!",
     errorText: "Failed to update event.",
     onSuccess: () => {
-      // router.refresh(); // รีเฟรช server components บนหน้านี้
       router.push("/event");
     },
   });
@@ -135,16 +179,17 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
       <div className="font-alt relative rounded-3xl border border-black/10 bg-[var(--color-brand-secondary)] p-4 shadow text-sm">
         <form ref={formRef} id="updateForm" action={formAction} noValidate>
           <input type="hidden" name="id" value={event.eventId} />
-
           <div className="mb-4">
             <EventPhotoPicker
+              key={`picker-${resetPickerSig}`} // เปลี่ยน key เพื่อรีเซ็ต input file
               name="eventPhoto"
-              value={event.imageUrl}
-              linkText="Change your event photo"
+              value={event.imagePath} // รีเซ็ตแล้วจะกลับมาแสดงรูปเดิม
+              linkText="Change your photo"
               size={208}
               width={280}
               rounded="2xl"
               className="mx-auto"
+              onChange={(file) => setPhotoFile(file ?? null)}
             />
             <FieldError errors={state?.errors?.photo} />
           </div>
@@ -189,6 +234,17 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
             className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
           />
           <FieldError errors={state?.errors?.eventLocation} />
+
+          <div className="mt-3">
+            <CategoryMultiSelect
+              name="categories"
+              defaultSelected={normalizeCategories(
+                f.categories,
+                event.categories
+              )}
+            />
+          </div>
+          <FieldError errors={state?.errors?.eventCategories} />
 
           <TextAreaInput
             name="eventDetails"

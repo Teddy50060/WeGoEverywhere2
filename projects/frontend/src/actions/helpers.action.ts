@@ -4,27 +4,10 @@ import { OpenAPI } from "@/lib/api/core/OpenAPI";
 import type { CreateEventDto, UpdateEventDto } from "@/lib/api";
 import { apiFromUiStatus } from "@/utils/statusMapper";
 
-/* ---------- Helpers: file / photo ---------- */
-export function extractPhoto(
-  formData: FormData,
-  base = "photo"
-): File | string | null {
-  const file = formData.get(`${base}File`);
-  if (file instanceof File && file.size > 0) return file;
-
-  const existing = formData.get(`${base}Existing`);
-  if (typeof existing === "string" && existing.length > 0) return existing;
-
-  const legacy = formData.get(base);
-  if (legacy instanceof File) return legacy.size > 0 ? legacy : null;
-  if (typeof legacy === "string") return legacy.length > 0 ? legacy : null;
-  return null;
-}
-
 /* ---------- Helpers: error mapping ---------- */
 export function compactZodErrors(
   errors: Record<string, string[] | undefined>,
-  max = 10
+  max = 20
 ): string {
   const parts: string[] = [];
   for (const [field, arr] of Object.entries(errors)) {
@@ -34,7 +17,6 @@ export function compactZodErrors(
   return parts.join(" | ") || "Validation failed";
 }
 
-/** map error keys (DB → Form UI) */
 export function mapErrorsToFormKeys(
   fieldErrors: Record<string, string[] | undefined>
 ): Record<string, string[]> {
@@ -52,7 +34,8 @@ export function mapErrorsToFormKeys(
   set("eventTime", fieldErrors.time);
   set("eventCost", fieldErrors.cost);
   set("eventRating", fieldErrors.rating);
-  set("eventPhoto", fieldErrors.photo);
+  set("eventPhoto", fieldErrors.file);
+  set("eventCategories", fieldErrors.categories);
   set("userId", fieldErrors.userId);
   return m;
 }
@@ -64,6 +47,14 @@ export function formToDbShape(fd: FormData) {
     return typeof v === "string" ? v : "";
   };
 
+  const categories: string[] = fd
+    .getAll("categories")
+    .flatMap((v) => (typeof v === "string" ? [v] : []));
+
+  const file = fd.get("eventPhotoFile");
+  console.log("formToDbShape file instanceof File", file instanceof File);
+  console.log("dto.file", file);
+
   return {
     name: s("eventName"),
     date: s("eventDate"),
@@ -73,8 +64,9 @@ export function formToDbShape(fd: FormData) {
     detail: s("eventDetails"),
     cost: fd.get("eventCost"),
     rating: fd.get("eventRating"),
-    status: apiFromUiStatus(s("eventStatus")) ?? "active", // ✅ ใช้ helper
-    photo: extractPhoto(fd, "photo"),
+    status: apiFromUiStatus(s("eventStatus")) ?? "active",
+    file,
+    categories,
   };
 }
 
@@ -96,6 +88,8 @@ export function toCreateDto(parsed: any, userId: number): CreateEventDto {
     rating: num(parsed.rating),
     userId,
     status: parsed.status as string | any,
+    categories: parsed.categories,
+    file: parsed.file,
   };
 }
 /* ---------- Helpers: DTO Update ---------- */
@@ -106,24 +100,31 @@ export function toUpdateDtoFromForm(fd: FormData): UpdateEventDto {
     return typeof v === "string" && v ? v : undefined;
   };
 
+  const categories = fd
+    .getAll("categories")
+    .flatMap((v) => (typeof v === "string" ? [v] : []));
+
+  const rawFile = fd.get("eventPhotoFile");
+  const file =
+    typeof File !== "undefined" && rawFile instanceof File && rawFile.size > 0
+      ? rawFile
+      : undefined;
+
+  const timeRaw = s("eventTime");
+  const time =
+    timeRaw && /^\d{2}:\d{2}$/.test(timeRaw) ? `${timeRaw}:00` : timeRaw;
+
   return {
     name: s("eventName"),
     date: s("eventDate"),
-    time: (() => {
-      const t = s("eventTime");
-      return t && /^\d{2}:\d{2}$/.test(t) ? `${t}:00` : t;
-    })(),
+    time,
     place: s("eventLocation"),
     detail: s("eventDetails"),
     capacity: num(fd.get("eventCapacity")),
     cost: num(fd.get("eventCost")),
     rating: num(fd.get("eventRating")),
     status: apiFromUiStatus(s("eventStatus")),
+    categories: categories.length ? (categories as any) : undefined,
+    file,
   };
-}
-
-/* ---------- Helpers: SSR fetch ---------- */
-export function buildEventUrl(id: number) {
-  const base = (OpenAPI as any).BASE ?? (OpenAPI as any).BASE_URL ?? "";
-  return `${base}/events/${id}`;
 }

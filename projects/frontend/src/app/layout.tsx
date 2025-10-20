@@ -52,7 +52,7 @@ export default function RootLayout({
             >
               <div className="size-full flex flex-col overflow-hidden pt-[2px] pb-0 pl-[5px] pr-[3px]">
                 <div className="bg-brand-primary">
-                  <header className="bg-[var(--color-brand-secondary)] rounded-b-[50px] px-3 py-5 overflow-hidden">
+                  <header className="bg-[var(--color-brand-secondary)] rounded-b-[50px] px-3 py-5 overflow-hidden" id="default-header">
                     <div className="flex items-center justify-between">
                       <Link href={"/"}>
                         <h1 className="text-xl font-alt sm:text-2xl font-extrabold leading-none -translate-y-0.5 sm:-translate-y-1  ml-2 sm:ml-4">
