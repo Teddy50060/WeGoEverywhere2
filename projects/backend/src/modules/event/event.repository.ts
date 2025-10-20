@@ -96,29 +96,24 @@ export class EventRepository {
     }));
   }
 
-  async create(createEventDto: CreateEventDto) {
-    const [newEvent] = await this.db
+  async create(dto: CreateEventDto) {
+    const [created] = await this.db
       .insert(schema.event)
-      .values(createEventDto)
+      .values(dto)
       .returning();
-
-    if (!newEvent) {
-      throw new NotFoundException(`The event is not created successfully.`);
-    }
-    return newEvent;
+    if (!created)
+      throw new NotFoundException('The event is not created successfully.');
+    return created;
   }
 
-  async update(id: number, updateEventDto: UpdateEventDto) {
-    const [updatedEvent] = await this.db
+  async update(id: number, dto: UpdateEventDto) {
+    const [updated] = await this.db
       .update(schema.event)
-      .set(updateEventDto)
+      .set(dto)
       .where(eq(schema.event.eventId, id))
       .returning();
-
-    if (!updatedEvent) {
-      throw new NotFoundException(`Event with ID ${id} not found.`);
-    }
-    return updatedEvent;
+    if (!updated) throw new NotFoundException(`Event with ID ${id} not found.`);
+    return updated;
   }
 
   async bulkUpdateStatusByUserId(

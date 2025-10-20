@@ -6,6 +6,16 @@ const toNumberOr = (fallback: number) => (v: unknown) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
+const CATEGORY_OPTIONS = [
+  "Entertainment",
+  "Education",
+  "Health",
+  "Lifestyle",
+  "Technology",
+  "Environment",
+] as const;
+export type CategoryOption = (typeof CATEGORY_OPTIONS)[number];
+
 export const eventFormSchema = z
   .object({
     name: z.string().min(1, "Event name is required").max(100),
@@ -22,15 +32,13 @@ export const eventFormSchema = z
       .transform((n) => Number(n.toFixed(2))),
     status: z.string().default("active"),
     rating: z.preprocess(toNumberOr(0), z.number().min(0)).default(0),
-    photo: z
+    categories: z.preprocess((v) => {
+      if (v == null) return [];
+      return Array.isArray(v) ? v : [v];
+    }, z.array(z.enum(CATEGORY_OPTIONS)).min(1, "Pick at least 1 category")),
+    file: z
       .any()
-      .transform((v) =>
-        typeof File !== "undefined" && v instanceof File && v.size > 0
-          ? v
-          : null
-      )
-      .nullable()
-      .optional(),
+      .transform((v) => (v instanceof File && v.size > 0 ? v : null)),
     userId: z.number().optional(),
   })
   .refine(
@@ -64,3 +72,5 @@ export const eventFormSchema = z
       path: ["time"],
     }
   );
+
+export { CATEGORY_OPTIONS };

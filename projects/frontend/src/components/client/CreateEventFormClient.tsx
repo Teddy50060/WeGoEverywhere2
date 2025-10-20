@@ -1,7 +1,7 @@
 // /components/form/CreateEventFormClient.tsx
 "use client";
 import * as React from "react";
-import { useActionState, useRef, useMemo } from "react";
+import { useActionState, useRef, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createEventWithZod, type EventActionState } from "@/actions/actions";
 import EventPhotoPicker from "@/components/form/EventPhotoPicker";
@@ -15,12 +15,17 @@ import { FormInput } from "../form/input/FormInput";
 import { StatusSelect } from "../form/input/StatusSelect";
 import { useActionToasts } from "../form/useActionToasts";
 import { TimePicker } from "../form/input/TimePicker";
+import CategoryMultiSelect from "../form/input/CategoryMultiSelect";
 
 export default function CreateEventFormClient() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const didSubmitRef = useRef(false);
   const lastToastSigRef = useRef<string | null>(null);
+
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  // ใช้สำหรับบังคับ remount ตัวเลือกไฟล์ (ล้าง input file)
+  const [resetPickerSig, setResetPickerSig] = useState(0);
 
   const createWrapper = async (
     _prev: EventStateWithFields<EventActionState>,
@@ -29,6 +34,11 @@ export default function CreateEventFormClient() {
     didSubmitRef.current = true;
     lastToastSigRef.current = null;
 
+    // แนบไฟล์จาก state (ถ้ามี)
+    if (photoFile) {
+      formData.set("eventPhoto", photoFile);
+    }
+
     try {
       const res = await createEventWithZod(formData);
       const nextState: EventStateWithFields<EventActionState> = {
@@ -36,9 +46,19 @@ export default function CreateEventFormClient() {
         message: undefined,
         fields: toFields(formData),
       };
+
+      // ❌ ถ้าไม่สำเร็จ → ล้างรูป
+      if (!nextState.ok) {
+        setPhotoFile(null);
+        setResetPickerSig((s) => s + 1);
+      }
+
       return nextState;
     } catch (err) {
       console.error(err);
+      // ❌ เคส error จริง → ล้างรูปด้วย
+      setPhotoFile(null);
+      setResetPickerSig((s) => s + 1);
       return {
         ok: false,
         errors: {},
@@ -56,14 +76,10 @@ export default function CreateEventFormClient() {
   const f = state.fields ?? {};
   const toastState = useMemo(() => {
     if (!didSubmitRef.current || !state) return undefined;
-
     const effective = { ...state, message: undefined };
-
     const sig = effective.ok ? "S" : "E";
-
     if (lastToastSigRef.current === sig) return undefined;
     lastToastSigRef.current = sig;
-
     return effective;
   }, [state]);
 
@@ -76,6 +92,10 @@ export default function CreateEventFormClient() {
     },
   });
 
+  const pickerKey = state.ok
+    ? "ok"
+    : `err-${Object.keys(state.errors ?? {}).join(",")}`;
+
   return (
     <form
       ref={formRef}
@@ -86,12 +106,15 @@ export default function CreateEventFormClient() {
       {/* Photo */}
       <div className="mb-4">
         <EventPhotoPicker
-          name="photo"
+          key={`picker-${resetPickerSig}`} // ⬅️ เมื่อ resetPickerSig เปลี่ยน => รีเซ็ต input
+          name="eventPhoto"
           size={208}
           rounded="2xl"
           bgClassName="bg-gray-300"
+          linkText="Change photo"
+          onChange={(file) => setPhotoFile(file)}
         />
-        <FieldError errors={state?.errors?.photo} />
+        <FieldError errors={state?.errors?.eventPhoto} />
       </div>
 
       <FormInput
@@ -135,6 +158,11 @@ export default function CreateEventFormClient() {
         defaultValue={f.eventLocation}
       />
       <FieldError errors={state?.errors?.eventLocation} />
+
+      <div className="mt-3">
+        <CategoryMultiSelect name="categories" />
+      </div>
+      <FieldError errors={state?.errors?.eventCategories} />
 
       <TextAreaInput
         name="eventDetails"

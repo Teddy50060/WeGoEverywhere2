@@ -14,9 +14,9 @@ export interface User {
 }
 
 export const userApi = {
-  // Get current user profile
+  // Get current user profile (use /users/user for consistency with profile page)
   getCurrentUser: async (): Promise<User> => {
-    return apiCall('/users/me');
+    return apiCall('/users/user');
   },
   
   // Update user profile
