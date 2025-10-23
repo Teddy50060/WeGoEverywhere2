@@ -119,17 +119,17 @@ export default function CategoryMultiSelect({
                     )}
                   >
                     {cat}
-                    <button
-                      type="button"
+                    <span
+                      role="button"
                       aria-label={`Remove ${cat}`}
-                      className="ml-2 grid place-items-center rounded-full hover:bg-black/5"
+                      className="ml-2 grid place-items-center rounded-full hover:bg-black/5 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         clear(cat);
                       }}
                     >
                       <X className="size-3" />
-                    </button>
+                    </span>
                   </Badge>
                 ))
               )}
