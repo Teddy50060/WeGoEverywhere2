@@ -43,27 +43,6 @@
       "when": 1759054001185,
       "tag": "0006_puzzling_the_leader",
       "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1759386360989,
-      "tag": "0007_AddNotificationTable",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1760528797184,
-      "tag": "0008_ChangeNotificationSchema",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1760592393595,
-      "tag": "0009_AddUserIdForeignKeyContraint",
-      "breakpoints": true
     }
   ]
 }
