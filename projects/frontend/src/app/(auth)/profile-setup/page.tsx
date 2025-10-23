@@ -1,16 +1,17 @@
 // src/app/(auth)/profile-setup/page.tsx - COMPLETE VALIDATION
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { FormInput } from "@/components/form/input/FormInput";
 import PhotoPicker from "@/components/form/PhotoPicker";
 import FormSelect from "@/components/form/input/FormSelect";
 import { toast } from "react-hot-toast";
 import { apiCall } from "@/utils/api";
-import { AuthService, RegisterDto } from "@/lib/api";
+import { AuthService, RegisterDto, Oauth_RegisterDto } from "@/lib/api";
+import {jwtDecode} from "jwt-decode";
 
 type HtmlDateInput = HTMLInputElement & { showPicker?: () => void };
 
@@ -80,10 +81,15 @@ export default function ProfileSetupPage() {
     }
   };
 
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+
+  const backHref = from === "oauth" ? "/consent" : "/register";
+
   return (
     <main className="font-alt">
       <Link
-        href="/register"
+        href={backHref}
         aria-label="Back to register"
         className="mt-3 inline-flex h-8 w-8 items-center justify-center rounded-full 
                    bg-[#EB6223] text-black active:scale-95 transition"
@@ -117,13 +123,25 @@ export default function ProfileSetupPage() {
             setIsLoading(true);
 
             try {
+            
               const formData = new FormData(e.currentTarget);
               
               // Get registration data from previous step
               // Fix this
               const registrationData = JSON.parse(sessionStorage.getItem('registrationData') || '{}');
-              
-              if (!registrationData.email || !registrationData.password) {
+
+
+              const res = await fetch('http://localhost:3001/auth/method', {
+                method: 'GET',
+                credentials: 'include', // สำคัญ! ให้ browser ส่ง cookie httpOnly
+              });
+
+              if (!res.ok) throw new Error('Failed to fetch user');
+
+              const user = await res.json();
+              console.log(user.method);
+
+              if (user.method !== 'github' && (!registrationData.email || !registrationData.password)) {
                 toast.error("Registration data missing. Please start from the beginning.");
                 router.push("/register");
                 return;
@@ -173,8 +191,6 @@ export default function ProfileSetupPage() {
                 toast.error(sexError);
                 return;
               }
-              
-              // Combine all data for API
               const payload = {
                 // From registration page
                 email: registrationData.email,
@@ -186,25 +202,34 @@ export default function ProfileSetupPage() {
                 bio: bio || null, // Allow empty string to be null
                 birthdate,
                 sex,
-              };
-
+                };
               console.log('Sending registration data:', payload);
+              let result;
+              if(user.method !== 'github'){
+                const requestBody: RegisterDto = {
+                  email: payload.email,
+                  password: payload.password,
+                  firstName: payload.firstName,
+                  lastName: payload.lastName,
+                  telephoneNumber: payload.telephoneNumber ?? undefined,
+                  bio: payload.bio ?? undefined,
+                  birthdate: payload.birthdate,
+                  sex: payload.sex,
+                };
+                result = await AuthService.authControllerRegister(requestBody);
+              }
+              else{
+                const requestBody: Oauth_RegisterDto = {
+                  firstName: payload.firstName,
+                  lastName: payload.lastName,
+                  telephoneNumber: payload.telephoneNumber ?? undefined,
+                  bio: payload.bio ?? undefined,
+                  birthdate: payload.birthdate,
+                  sex: payload.sex,
+                };
+                result = await AuthService.authControllerRegisterOauth(requestBody);
+              }
 
-              const requestBody: RegisterDto = {
-                email: payload.email,
-                password: payload.password,
-                firstName: payload.firstName,
-                lastName: payload.lastName,
-                telephoneNumber: payload.telephoneNumber ?? undefined,
-                bio: payload.bio ?? undefined,
-                birthdate: payload.birthdate,
-                sex: payload.sex,
-              };
-
-
-              // Call registration API
-              const result = await AuthService.authControllerRegister(requestBody);
-              
               console.log('Registration result:', result);
 
               if (result.success) {
@@ -255,8 +280,8 @@ export default function ProfileSetupPage() {
             }
           }}
         >
-          <FormInput name="firstName" type="text" label="First name" placeholder="Enter your first name"  className="bg-white border border-black" required />
-          <FormInput name="lastName"  type="text" label="Last name" placeholder="Enter your last name" className="bg-white border border-black" required/>
+          <FormInput name="firstName" type="text" label="First name" placeholder="Enter your first name"  className="bg-white border border-black" pattern="[ก-ฮA-Za-z\s]+" required />
+          <FormInput name="lastName"  type="text" label="Last name" placeholder="Enter your last name" className="bg-white border border-black" pattern="[ก-ฮA-Za-z\s]+" required/>
 
           {/* Birth date + ปุ่มไอคอนเปิดปฏิทิน */}
           <div className="mb-0">
@@ -299,8 +324,8 @@ export default function ProfileSetupPage() {
               ]}
           />
 
-          <FormInput name="telephoneNumber" type="tel" label="Phone Number (Optional)" placeholder="Enter your phone number" className="bg-white border border-black" required />
-          <FormInput name="bio"  type="text" label="Bio (Optional)" placeholder="Tell us about yourself" className="bg-white border border-black" required />
+          <FormInput name="telephoneNumber" type="tel" label="Phone Number (Optional)" placeholder="Enter your phone number" pattern="[0-9]*" className="bg-white border border-black" />
+          <FormInput name="bio"  type="text" label="Bio (Optional)" placeholder="Tell us about yourself" className="bg-white border border-black" />
 
           <button
             type="submit"

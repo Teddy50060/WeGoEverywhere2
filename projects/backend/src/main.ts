@@ -5,6 +5,7 @@ import { setupSwagger } from '@core/swagger/setupSwagger';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
+import { setupUploads } from './modules/upload/upload.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,7 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
   );
   const configService = app.get(ConfigService);
+  setupUploads(app); //upload pic
 
   app.enableCors({
     origin: configService.get<string>('app.frontendUrl') || 'http://localhost:3000',
