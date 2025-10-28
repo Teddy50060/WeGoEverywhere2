@@ -14,7 +14,7 @@
 # check
 - docker exec -it wegoeverywhere-db-1 psql -U admin -d WEGO_EVERYWHERE_DB
 - \d
-- \pset pager off
+- \pset pager off (Disable the use of less/more in psql)
 - \d users
 
 
