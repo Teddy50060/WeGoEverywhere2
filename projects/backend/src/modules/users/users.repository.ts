@@ -26,6 +26,7 @@ export class UsersRepository {
         bio: users.bio,
         birthdate: users.birthdate,
         sex: users.sex,
+        profilePicture: users.profilePicture,
         signupTime: users.signupTime,
         signupDate: users.signupDate,
         cookiePolicyVersionAccepted: users.cookiePolicyVersionAccepted,
@@ -62,6 +63,7 @@ export class UsersRepository {
         bio: users.bio,
         birthdate: users.birthdate,
         sex: users.sex,
+        profilePicture: users.profilePicture,
         signupTime: users.signupTime,
         signupDate: users.signupDate,
         cookiePolicyVersionAccepted: users.cookiePolicyVersionAccepted,
@@ -97,6 +99,7 @@ export class UsersRepository {
         bio: users.bio,
         birthdate: users.birthdate,
         sex: users.sex,
+        profilePicture: users.profilePicture,
         signupTime: users.signupTime,
         signupDate: users.signupDate,
         cookiePolicyVersionAccepted: users.cookiePolicyVersionAccepted,
@@ -109,7 +112,20 @@ export class UsersRepository {
       .update(users) // Use the imported schema object
       .set(updateUserDto)
       .where(eq(users.userId, id))
-      .returning();
+      .returning({
+        userId: users.userId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        telephoneNumber: users.telephoneNumber,
+        bio: users.bio,
+        birthdate: users.birthdate,
+        sex: users.sex,
+        profilePicture: users.profilePicture,
+        signupTime: users.signupTime,
+        signupDate: users.signupDate,
+        cookiePolicyVersionAccepted: users.cookiePolicyVersionAccepted,
+        cookiePolicyAcceptedAt: users.cookiePolicyAcceptedAt,
+      });
     
     // Return the updated user or null if not found
     return updatedUser ?? null;

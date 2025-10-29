@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { OpenAPI } from "@/lib/api";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Calendar } from "lucide-react";
@@ -15,9 +16,12 @@ import {jwtDecode} from "jwt-decode";
 
 type HtmlDateInput = HTMLInputElement & { showPicker?: () => void };
 
-export default function ProfileSetupPage() {
+
+function ProfileSetupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  // State for profile picture file
+  const [profileFile, setProfileFile] = useState<File | null>(null);
 
   /* ---------- Date picker ---------- */
   const dateRef = useRef<HtmlDateInput | null>(null);
@@ -112,6 +116,7 @@ export default function ProfileSetupPage() {
             rounded="full"
             accept="image/*"
             caption="Upload your profile photo"
+            onChange={(file) => setProfileFile(file)}
           />
         </div>
 
@@ -233,24 +238,41 @@ export default function ProfileSetupPage() {
               console.log('Registration result:', result);
 
               if (result.success) {
+                // Upload profile picture if selected
+                if (profileFile) {
+                  const formDataPic = new FormData();
+                  formDataPic.append("file", profileFile);
+                  let token = null;
+                  if (typeof window !== "undefined") {
+                    token = localStorage.getItem("access_token") || null;
+                  }
+                  const uploadRes = await fetch(`${OpenAPI.BASE}/users/profile-picture`, {
+                    method: "POST",
+                    body: formDataPic,
+                    credentials: "include",
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                  });
+                  if (!uploadRes.ok) {
+                    toast.error("Profile created, but failed to upload profile picture");
+                  }
+                }
                 try {
                   const policyResult = await apiCall('/api/consent/current-policy');
-                    if (policyResult.version) {
-                      await apiCall('/api/consent/accept', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                          userId: result.user.userId,
-                          policyVersion: policyResult.version
-                        }),
-                      });
-                    }
-                  } catch (consentError) {
-                    console.error('Failed to accept consent:', consentError);
-                    // Don't fail registration for consent error - just log it
+                  if (policyResult.version) {
+                    await apiCall('/api/consent/accept', {
+                      method: 'POST',
+                      body: JSON.stringify({
+                        userId: result.user.userId,
+                        policyVersion: policyResult.version
+                      }),
+                    });
                   }
+                } catch (consentError) {
+                  console.error('Failed to accept consent:', consentError);
+                }
                 toast.success('Registration successful! Welcome to WeGoEveryWhere!');
                 sessionStorage.removeItem('registrationData');
-                router.push('/'); // Or wherever you want to redirect
+                router.push('/');
               } else {
                 // Handle specific backend errors
                 if (result.error === 'Email already registered') {
@@ -297,7 +319,7 @@ export default function ProfileSetupPage() {
                           [&::-webkit-inner-spin-button]:hidden
                           [-moz-appearance:textfield]
                           bg-white border border-black required"
-              />
+              />\
               <button
                 type="button"
                 onClick={openDate}
@@ -341,3 +363,5 @@ export default function ProfileSetupPage() {
     </main>
   );
 }
+
+export default ProfileSetupPage;

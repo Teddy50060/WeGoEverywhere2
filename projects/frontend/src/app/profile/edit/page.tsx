@@ -2,6 +2,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import PhotoPicker from "@/components/form/PhotoPicker";
+import { OpenAPI } from "@/lib/api";
 import Image from "next/image";
 import { FiArrowLeft, FiCalendar, FiChevronDown } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -18,6 +20,8 @@ export default function EditProfilePage() {
   // const birthRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState<any>({});
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
 
   // ✅ ดึงข้อมูล user ทันทีเมื่อเข้าเพจ
   useEffect(() => {
@@ -49,19 +53,26 @@ export default function EditProfilePage() {
     setSubmitting(true);
 
     try {
-      // const form = e.currentTarget;
-      // const fd = new FormData(form);
+      // 1. Upload profile picture if selected
 
-      // // แปลง FormData เป็น object สำหรับ API
-      // const body: UpdateUserDto = {
-      //   firstName: fd.get("firstName") as string || undefined,
-      //   lastName: fd.get("lastName") as string || undefined,
-      //   birthdate: fd.get("birthDate") as string || undefined,   // ชื่อตรง
-      //   sex: fd.get("sex") as UpdateUserDto.sex || undefined,    // cast enum
-      //   telephoneNumber: fd.get("telephone") as string || undefined, // ชื่อตรง
-      //   bio: fd.get("bio") as string || undefined,
-      // };
-      // ใช้ state แทน FormData
+      if (profileFile) {
+        const formData = new FormData();
+        formData.append("file", profileFile);
+        // Try to get JWT from localStorage or cookies
+        let token = null;
+        if (typeof window !== "undefined") {
+          token = localStorage.getItem("access_token") || null;
+        }
+        const res = await fetch(`${OpenAPI.BASE}/users/profile-picture`, {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        if (!res.ok) throw new Error("Failed to upload profile picture");
+      }
+
+      // 2. Update user info
       const body: UpdateUserDto = {
         firstName: user.firstName || undefined,
         lastName: user.lastName || undefined,
@@ -82,19 +93,20 @@ export default function EditProfilePage() {
         if (age < 20) {
           toast.error("You must be at least 20 years old.");
           setSubmitting(false);
-          return; 
+          return;
         }
       }
-      // เรียก API จริง
       await UserService.userControllerUpdate(body);
       toast.success("Successfully Edited");
+      setProfileFile(null);
+      setProfilePreview(null);
     } catch (err) {
       console.error(err);
       toast.error("Unsuccessfully Edited, try again");
     } finally {
       setSubmitting(false);
     }
-};
+  };
 
   return (
     <main className="min-h-screen py-1 font-alt bg-white">
@@ -121,19 +133,25 @@ export default function EditProfilePage() {
         <section className="relative z-20  mx-4 bg-[#FFF5E9] rounded-t-[60px] p-5 shadow">
           {/* Avatar */}
           <div className="flex flex-col items-center">
-            <div className="shadow-xl rounded-full">
-              <div className="w-28 h-28 rounded-full overflow-hidden">
-                <Image
-                  src="/images/profile_image.png"
-                  alt="profile"
-                  width={112}
-                  height={112}
-                />
-              </div>
-            </div>
-            <button className="mt-3 text-[12px] text-[#606770] underline underline-offset-2">
-              Change your profile photo
-            </button>
+            <PhotoPicker
+              name="profilePhoto"
+              value={
+                profilePreview
+                  || (user?.profilePicture
+                    ? user.profilePicture.startsWith('http')
+                      ? user.profilePicture
+                      : `${OpenAPI.BASE}${user.profilePicture}`
+                    : "/images/profile_image.png"
+                  )
+              }
+              onChange={(file, url) => {
+                setProfileFile(file);
+                setProfilePreview(url);
+              }}
+              size={112}
+              rounded="full"
+              caption="Change your profile photo"
+            />
           </div>
 
           {/* Form */}
