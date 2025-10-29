@@ -290,11 +290,7 @@ export default function Home() {
                     console.log('Main grid image loaded successfully:', event.coverUrl);
                   }}
                 />
-                <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center justify-center z-20">
-                  <span className="text-[8px] font-medium text-black">
-                    {(event.price || event.cost || 0) === 0 ? 'Free' : `฿${event.price || event.cost}`}
-                  </span>
-                </div>
+                {/* Price badge removed as requested */}
               </div>
               <div className="bg-[#D4DDFF] rounded-t-[18px] p-3">
                 <div className="space-y-1">
