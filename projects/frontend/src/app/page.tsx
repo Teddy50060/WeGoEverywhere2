@@ -325,8 +325,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Navbar at bottom with same positioning as other pages */}
-      <footer className="mt-auto sticky bottom-0 w-full px-1 pb-[env(safe-area-inset-bottom)] z-50">
+      {/* Sticky bottom Navbar, consistent across all pages */}
+      <footer className="sticky bottom-0 w-full z-50 bg-transparent max-w-[393px] mx-auto">
         <Navbar />
       </footer>
     </div>
