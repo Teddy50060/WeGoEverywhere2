@@ -319,7 +319,7 @@ function ProfileSetupPage() {
                           [&::-webkit-inner-spin-button]:hidden
                           [-moz-appearance:textfield]
                           bg-white border border-black required"
-              />\
+              />
               <button
                 type="button"
                 onClick={openDate}
