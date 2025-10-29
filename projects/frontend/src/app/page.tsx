@@ -58,6 +58,7 @@ export default function Home() {
       currentDate.setHours(0, 0, 0, 0);
       const uiFormattedJoinedEvents = joinedEventsData
         .map(convertEventToUIFormat)
+        .filter(event => event.status !== 'deleted')
         .filter(event => {
           const eventDate = new Date(event.date);
           return eventDate >= currentDate;
@@ -83,7 +84,9 @@ export default function Home() {
     return 'General';
   };
 
+  // Filter out deleted events
   const filteredEvents = events
+    .filter(event => event.status !== 'deleted')
     .filter(event => {
       const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                            (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
