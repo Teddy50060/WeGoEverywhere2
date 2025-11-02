@@ -111,7 +111,7 @@ export default function CreateEventFormClient() {
           size={208}
           rounded="2xl"
           bgClassName="bg-gray-300"
-          linkText="Change photo"
+          linkText="Change your photo"
           onChange={(file) => setPhotoFile(file)}
         />
         <FieldError errors={state?.errors?.eventPhoto} />
