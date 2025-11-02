@@ -37,6 +37,7 @@ export default async function EditEventPage({
     eventId: ev?.eventId ?? -1,
     name: ev?.name ?? "Untitled Event",
     capacity: ev?.capacity ?? 0,
+    cost: ev?.cost ?? 0,
     userId: ev?.userId ?? "-",
     date: ev?.date ?? null, // 'YYYY-MM-DD'
     time: toHHmm(ev?.time) ?? "00:00", // ตัดให้เหลือ 'HH:mm'

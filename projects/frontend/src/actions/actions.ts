@@ -26,7 +26,7 @@ export type EventActionState = {
 export async function fetchMe() {
   try {
     await setOpenApiCookieHeader();
-    const me = await UserService.userControllerGetMe();
+    const me = await UserService.userControllerGetUser();
     return { ok: true, data: me };
   } catch (err: any) {
     console.error("Error fetching user info:", err);

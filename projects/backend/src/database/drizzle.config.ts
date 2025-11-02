@@ -5,8 +5,8 @@ import { config } from 'dotenv';
 config({ path: ENV_PATHS.ROOT });
 
 export default defineConfig({
-  //schema: './schema/*',
-  schema: './src/database/schema/*',
+  schema: './schema/*',
+  // schema: './src/database/schema/*',
   out: './migrations',
   dialect: 'postgresql',
   dbCredentials: {

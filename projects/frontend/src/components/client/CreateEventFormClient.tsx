@@ -151,13 +151,26 @@ export default function CreateEventFormClient() {
           <FieldError errors={state?.errors?.eventTime} />
         </div>
       </div>
-
-      <LocationInput
-        name="eventLocation"
-        label="Location"
-        defaultValue={f.eventLocation}
-      />
-      <FieldError errors={state?.errors?.eventLocation} />
+      <div className="mb-3 grid grid-cols-5 gap-3">
+        <div className="col-span-5 sm:col-span-3">
+          <LocationInput
+            name="eventLocation"
+            label="Location"
+            defaultValue={f.eventLocation}
+          />
+          <FieldError errors={state?.errors?.eventLocation} />
+        </div>
+        <div className="col-span-5 sm:col-span-2">
+          <FormInput
+            name="eventCost"
+            type="text"
+            label="Cost"
+            className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
+            defaultValue={f.eventCost}
+          />
+          <FieldError errors={state?.errors?.eventCost} />
+        </div>
+      </div>
 
       <div className="mt-3">
         <CategoryMultiSelect name="categories" />
