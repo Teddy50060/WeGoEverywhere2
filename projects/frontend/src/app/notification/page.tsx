@@ -1,87 +1,75 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { FiArrowLeft } from "react-icons/fi";
 import { Navbar } from "@/components/navbar/Navbar";
+import { NotificationCard,Notification } from "@/components/notification/notificationCard";
 
-interface Notification {
-  id: number;
-  type: "EVENT" | "UNREAD_EVENT" | "SYSTEM" | "USER";
-  title: string;
-  detail: string;
-  avatar: string;
-  read?: boolean;
-}
 
+// Mock data ที่ตรงกับ schema
 const mockNotifications: Notification[] = [
   {
     id: 1,
-    type: "EVENT",
-    title: "[EVENT_NAME]",
-    detail: "detail...",
-    avatar: "/images/avatar-placeholder.png",
+    userId: 1,
+    title: "New Event Available",
+    fromService: "event",
+    message: "Check out the latest event in your area!",
     read: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 2,
-    type: "UNREAD_EVENT",
-    title: "[UNREAD_EVENT]",
-    detail: "detail...",
-    avatar: "/images/avatar-placeholder.png",
+    userId: 1,
+    title: "Unread Event Notification",
+    fromService: "event",
+    message: "Don't miss this upcoming event",
     read: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 3,
-    type: "SYSTEM",
-    title: "[SYSTEM]",
-    detail: "detail...",
-    avatar: "/images/avatar-placeholder.png",
+    userId: 1,
+    title: "System Update",
+    fromService: "system",
+    message: "Your profile has been updated successfully",
     read: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 4,
-    type: "USER",
+    userId: 1,
     title: "Ammy C.",
-    detail: "hello ...",
-    avatar: "/images/avatar-placeholder.png",
+    fromService: "user",
+    message: "hello ...",
     read: true,
-  },
-  {
-    id: 5,
-    type: "USER",
-    title: "Ammy C.",
-    detail: "hello ...",
-    avatar: "/images/avatar-placeholder.png",
-    read: true,
-  },
-  {
-    id: 6,
-    type: "USER",
-    title: "Ammy C.",
-    detail: "hello ...",
-    avatar: "/images/avatar-placeholder.png",
-    read: true,
-  },
-  {
-    id: 7,
-    type: "EVENT",
-    title: "[EVENT_NAME]",
-    detail: "detail...",
-    avatar: "/images/avatar-placeholder.png",
-    read: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
 export default function NotificationPage() {
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const loadMore = () => {
-    // Simulate loading more notifications
+  // TODO: Replace with actual API call
+  useEffect(() => {
+    // Simulate API call
+    setNotifications(mockNotifications);
+   
+  }, []);
+
+  const loadMore = async () => {
+    // TODO: Replace with actual API call for pagination
+   
+
+    // Mock pagination
     if (page >= 2) {
       setHasMore(false);
       return;
@@ -90,24 +78,35 @@ export default function NotificationPage() {
     const moreNotifications: Notification[] = [
       {
         id: notifications.length + 1,
-        type: "USER",
+        userId: 1,
         title: "John D.",
-        detail: "New message...",
-        avatar: "/images/avatar-placeholder.png",
+        fromService: "user",
+        message: "New message...",
         read: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         id: notifications.length + 2,
-        type: "EVENT",
-        title: "[NEW_EVENT]",
-        detail: "detail...",
-        avatar: "/images/avatar-placeholder.png",
+        userId: 1,
+        title: "New Event",
+        fromService: "event",
+        message: "Another event notification",
         read: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
     ];
 
     setNotifications([...notifications, ...moreNotifications]);
     setPage(page + 1);
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    // TODO: Implement notification click handler
+   
+    
+    console.log("Notification clicked:", notification);
   };
 
   return (
@@ -135,31 +134,12 @@ export default function NotificationPage() {
                 {/* Notifications List */}
                 <div>
                   {notifications.map((notification, index) => (
-                    <div
+                    <NotificationCard
                       key={notification.id}
-                      className={`flex items-center gap-4 px-4 py-3 ${
-                        index < notifications.length - 1 ? "border-b border-gray-200" : ""
-                      } ${
-                        !notification.read ?   "bg-white":"bg-gray-50"
-                      } hover:bg-gray-50 transition-colors cursor-pointer`}
-                    >
-                      <div className="w-14 h-14 relative flex-shrink-0">
-                        <Image
-                          src={notification.avatar}
-                          alt={notification.title}
-                          fill
-                          className="rounded-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-base truncate">
-                          {notification.title}
-                        </h3>
-                        <p className="text-gray-400 text-sm truncate">
-                          {notification.detail}
-                        </p>
-                      </div>
-                    </div>
+                      notification={notification}
+                      showBorder={index < notifications.length - 1}
+                      onClick={handleNotificationClick}
+                    />
                   ))}
                 </div>
               </section>
@@ -169,9 +149,10 @@ export default function NotificationPage() {
                 <div className="flex justify-center px-8 pb-6">
                   <button
                     onClick={loadMore}
-                    className="h-11 w-full rounded-full bg-[#C5E99B] border-2 border-black text-base font-semibold hover:bg-[#b5d98b] transition-colors"
+                    disabled={loading}
+                    className="h-11 w-full rounded-full bg-[#C5E99B] border-2 border-black text-base font-semibold hover:bg-[#b5d98b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Load more
+                    {loading ? "Loading..." : "Load more"}
                   </button>
                 </div>
               ) : (
