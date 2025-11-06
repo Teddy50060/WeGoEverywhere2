@@ -113,41 +113,37 @@ export default function NotificationPage() {
   return (
     <div className="relative w-full max-w-[393px] mx-auto min-h-screen bg-[#FFF8F0] flex flex-col">
       <main className="flex-1 py-1 font-alt pb-24">
-        <div className="mx-auto w-full px-2">
-          {/* Back + Title pill */}
-          <div className="mt-10 mb-4 relative z-10">
+        <div className="mx-auto w-full">
+          {/* Back Button + Title */}
+          <div className="mt-1 mb-6 flex items-center gap-4 px-4">
             <button
               aria-label="Back"
               onClick={() => router.back()}
-              className="absolute left-0 top-1/2 -translate-y-[60%] z-20 w-10 h-10 rounded-full bg-[#EB6223] flex items-center justify-center shadow hover:scale-105 transition"
+              className="w-10 h-10 rounded-full bg-[#EB6223] flex items-center justify-center shadow hover:scale-105 transition flex-shrink-0"
             >
               <FiArrowLeft className="text-[#000000]" size={17} />
             </button>
-            <div className="flex justify-center">
-              <div className="absolute -bottom-6 z-10 px-10 py-3 rounded-[60px] bg-[#FFDCD5] shadow-[0_6px_0_rgba(0,0,0,0.07)]">
-                <span className="text-2xl font-semibold text-[#1f1f1f]">
-                  Notifications
-                </span>
-              </div>
-            </div>
+            <h1 className="text-2xl font-semibold text-[#1f1f1f]">
+              Notifications
+            </h1>
           </div>
 
           {/* Notifications Card */}
           {notifications.length > 0 ? (
             <>
-              <section className="relative z-0 mx-4 bg-white rounded-t-[60px] shadow mb-6">
+              <section className="relative z-0 bg-white shadow-md mb-6 overflow-hidden">
                 {/* Notifications List */}
-                <div className="pt-12">
+                <div>
                   {notifications.map((notification, index) => (
                     <div
                       key={notification.id}
-                      className={`flex items-center gap-4 p-4 ${
+                      className={`flex items-center gap-4 px-4 py-3 ${
                         index < notifications.length - 1 ? "border-b border-gray-200" : ""
                       } ${
                         !notification.read ? "bg-gray-50" : "bg-white"
                       } hover:bg-gray-50 transition-colors cursor-pointer`}
                     >
-                      <div className="w-16 h-16 relative flex-shrink-0">
+                      <div className="w-14 h-14 relative flex-shrink-0">
                         <Image
                           src={notification.avatar}
                           alt={notification.title}
@@ -156,8 +152,12 @@ export default function NotificationPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-800 truncate">{notification.title}</h3>
-                        <p className="text-gray-500 text-sm truncate">{notification.detail}</p>
+                        <h3 className="font-semibold text-gray-900 text-base truncate">
+                          {notification.title}
+                        </h3>
+                        <p className="text-gray-400 text-sm truncate">
+                          {notification.detail}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -169,7 +169,7 @@ export default function NotificationPage() {
                 <div className="flex justify-center px-8 pb-6">
                   <button
                     onClick={loadMore}
-                    className="h-11 w-full rounded-full bg-[#C5E99B] text-sm font-semibold hover:bg-[#b5d98b] transition-colors"
+                    className="h-11 w-full rounded-full bg-[#C5E99B] border-2 border-black text-base font-semibold hover:bg-[#b5d98b] transition-colors"
                   >
                     Load more
                   </button>
