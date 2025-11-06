@@ -140,7 +140,7 @@ export default function NotificationPage() {
                       className={`flex items-center gap-4 px-4 py-3 ${
                         index < notifications.length - 1 ? "border-b border-gray-200" : ""
                       } ${
-                        !notification.read ? "bg-gray-50" : "bg-white"
+                        !notification.read ?   "bg-white":"bg-gray-50"
                       } hover:bg-gray-50 transition-colors cursor-pointer`}
                     >
                       <div className="w-14 h-14 relative flex-shrink-0">
