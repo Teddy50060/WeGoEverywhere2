@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Navbar } from "@/components/navbar/Navbar";
 import { getAllEvents } from "@/actions/actions";
+import EventDeniedToastOnce from "@/components/system/EventDeniedToastOnce";
 
 type EventApi = {
   eventId: number;
@@ -19,6 +20,8 @@ export default async function EventPage() {
 
   return (
     <>
+      <EventDeniedToastOnce />
+
       <div className="flex justify-center mt-4 font-black text-5xl">
         Event Page
       </div>

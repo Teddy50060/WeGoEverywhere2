@@ -28,7 +28,7 @@ export const eventFormSchema = z
       z.number().int().min(1, "Capacity cannot be 0")
     ),
     cost: z
-      .preprocess(toNumberOr(0), z.number().min(0, "Cost must be >= 0"))
+      .preprocess(toNumberOr(0), z.number().min(0, "Cost must be at least 0"))
       .transform((n) => Number(n.toFixed(2))),
     status: z.string().default("active"),
     rating: z.preprocess(toNumberOr(0), z.number().min(0)).default(0),
