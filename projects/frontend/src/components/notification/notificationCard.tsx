@@ -49,14 +49,18 @@ export function NotificationCard({
   const avatar = getAvatarFromService(notification.fromService);
   const isRead = notification.read ?? false;
 
-  return (
+return (
     <div
       onClick={() => onClick?.(notification)}
       className={`flex items-center gap-4 px-4 py-3 ${
         showBorder ? "border-b border-gray-200" : ""
       } ${
         !isRead ? "bg-white" : "bg-gray-50"
-      } hover:bg-gray-50 transition-colors cursor-pointer`}
+      } hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
+        // --- THIS IS THE FIX ---
+        // If it's read, make it 60% opaque.
+        isRead ? "opacity-60" : "opacity-100"
+      }`}
     >
       <div className="w-14 h-14 relative flex-shrink-0">
         <Image

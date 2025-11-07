@@ -1,29 +1,35 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react"; // 1. Import useEffect
 import { FiArrowLeft } from "react-icons/fi";
 import { Navbar } from "@/components/navbar/Navbar";
-import { NotificationCard, Notification } from "@/components/notification/notificationCard";
+import {
+  NotificationCard,
+  Notification,
+} from "@/components/notification/notificationCard";
 
-// --- 1. IMPORT THE LIVE NOTIFICATION CONTEXT ---
+// 2. Import the hook to get your live data
 import { useNotifications } from "@/components/notification/NotificationContext";
 
 export default function NotificationPage() {
   const router = useRouter();
 
-  // --- 2. GET REAL DATA FROM THE CONTEXT ---
-  // We get the live list, the loadMore function, and the markRead function
-  const { notifications, loadMore, markRead } = useNotifications();
+  // 3. Get the REAL data and functions from your global context
+  const { notifications, loadMore, markRead, reloadNotifications } =
+    useNotifications();
 
-  // --- 3. ALL THE OLD MOCK DATA AND FAKE FUNCTIONS ARE DELETED ---
-  // (No more mockNotifications, useState, useEffect, or fetchNotifications)
+  // 4. This is the refresh logic
+  // It runs once every time the page is opened
+  useEffect(() => {
+    reloadNotifications();
+  }, []); // The empty array [] is very important
 
   const handleNotificationClick = async (notification: Notification) => {
-    // 4. MARK AS READ USING THE REAL FUNCTION
+    // 5. Call the REAL markRead function
     if (!notification.read) {
       markRead(notification.id);
     }
-    // You can also add logic here to navigate the user
     console.log("Notification clicked:", notification);
   };
 
@@ -45,12 +51,12 @@ export default function NotificationPage() {
             </h1>
           </div>
 
-          {/* --- 5. CHECK FOR EMPTY STATE (USING REAL DATA) --- */}
+          {/* 6. Check the REAL notifications array */}
           {notifications.length > 0 ? (
             <>
               <section className="relative z-0 bg-white shadow-md mb-6 overflow-hidden">
+                {/* 7. Map over the REAL notifications */}
                 <div>
-                  {/* --- 6. MAP OVER THE REAL NOTIFICATIONS --- */}
                   {notifications.map((notification, index) => (
                     <NotificationCard
                       key={notification.id}
@@ -65,7 +71,7 @@ export default function NotificationPage() {
               {/* Load More Button */}
               <div className="flex justify-center px-8 pb-6">
                 <button
-                  onClick={loadMore} // --- 7. USE THE REAL loadMore FUNCTION ---
+                  onClick={loadMore} // 8. Call the REAL loadMore
                   className="h-11 w-full rounded-full bg-[#C5E99B] border-2 border-black text-base font-semibold hover:bg-[#b5d98b] transition-colors"
                 >
                   Load more
@@ -73,10 +79,9 @@ export default function NotificationPage() {
               </div>
             </>
           ) : (
-            /* Empty State - No notifications yet */
+            /* Empty State */
             <section className="relative z-0 mx-4 bg-white rounded-[60px] shadow py-16">
               <div className="flex flex-col items-center justify-center px-8">
-                {/* ... (Your empty state "No notifications yet" UI) ... */}
                 <div className="text-center">
                   <div className="mb-4">
                     <svg
