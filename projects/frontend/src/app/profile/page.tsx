@@ -10,6 +10,8 @@ import { FiBell } from "react-icons/fi";
 import { AuthService, UserService } from "@/lib/api";
 import { useEffect, useState } from "react";
 
+import NotificationBell from "@/components/notification/NotificationBell";
+
 
 export default function ProfilePage() {
     const [user, setUser] = useState<any>({});
@@ -84,12 +86,9 @@ export default function ProfilePage() {
           <h1 className="text-[28px] font-bold leading-[1.05] tracking-tight text-[#2E2E2E]">
             Your Profile
           </h1>
-          <button
-            aria-label="Notifications"
-            className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/70 shadow"
-          >
-            <FiBell className="text-[#2E2E2E]" size={20} />
-          </button>
+          <div className="mt-1">
+            <NotificationBell />
+          </div>
         </div>
 
         {/* Profile pill */}
