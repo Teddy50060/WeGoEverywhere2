@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ConfirmProvider } from "@/components/popup/ConfirmProvider";
 import { Toaster } from "react-hot-toast";
 import Link from "next/link";
+import NotificationListener from "@/components/notification/NotificationListener";
 
 const urbanist = Urbanist({
   variable: "--font-urbanist",
@@ -37,6 +38,7 @@ export default function RootLayout({
       >
         <ConfirmProvider>
           {/* Make Phone at the middle */}
+          <NotificationListener /> 
           <div className="min-h-dvh flex items-center justify-center p-2 bg-black">
             {/* Phone Frame */}
             <div

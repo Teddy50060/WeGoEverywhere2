@@ -16,7 +16,7 @@ import { forwardRef } from '@nestjs/common';
   ],
   controllers: [],
   exports: [
-    NotificationService,
+    NotificationService,NotificationGateway,
   ],
 })
 export class NotificationModule {}

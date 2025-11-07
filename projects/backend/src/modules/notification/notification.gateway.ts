@@ -71,6 +71,8 @@ export class NotificationGateway {
       client.emit('error', 'Invalid userId');
       return;
     }
+    
+    console.log(`[Gateway] Connected user ${userId}`);
 
     this.notificationService.getNotifs(userId, payload.limit, payload.offset)
       .then((notifs) => {
@@ -104,6 +106,7 @@ export class NotificationGateway {
       const sockets: Socket[] = Array.from(this.server.sockets.sockets.values())
         .filter(s => s.data.user?.sub === notif.userId);
 
+      console.log(`[Gateway] Emitting to user ${notif.userId}`, notif);
       sockets.forEach(s => s.emit('new_notification', notif));
     }
   }

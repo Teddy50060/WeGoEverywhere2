@@ -10,7 +10,7 @@ import { EventRepository } from './event.repository';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import { UserService } from '../users/users.service';
-import { NotificationService } from '@backend/src/modules/notification/notification.service'
+import { NotificationGateway } from '@backend/src/modules/notification/notification.gateway'
 
 function sanitizeFilename(name: string) {
   return name.replace(/[^\\w.\\-]+/g, '_');
@@ -22,7 +22,7 @@ export class EventService {
     private readonly eventRepo: EventRepository,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   async unjoinEvent(eventId: number, userId: number) {
@@ -35,7 +35,7 @@ export class EventService {
     const eventOwnerId = event.userId;
     try{
       const joined = await this.eventRepo.joinEvent(eventId, userId);
-      await this.notificationService.broadcastNotification(
+      await this.notificationGateway.broadcastNotification(
           [eventOwnerId!]
         ,{
           title : "User have join your event",
@@ -169,8 +169,8 @@ export class EventService {
       const updated = await this.eventRepo.update(id, updateEventDto);
       const eventName = (await this.eventRepo.findById(id)).name;
       const participants = await this.eventRepo.getParticipation(id);
-      if(updateEventDto.status = "deleted"){
-        await this.notificationService.broadcastNotification(
+      if(updateEventDto.status == "deleted"){
+        await this.notificationGateway.broadcastNotification(
             participants
           ,{
             title : `${eventName} is cancelled`,
@@ -180,7 +180,7 @@ export class EventService {
           });
       }
       else{
-        await this.notificationService.broadcastNotification(
+        await this.notificationGateway.broadcastNotification(
           participants
         ,{
           title : `${eventName} updated`,

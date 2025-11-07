@@ -6,7 +6,6 @@ import { DatabaseModule } from '../../database/database.module';
 import { EventRepository } from './event.repository';
 import { forwardRef } from '@nestjs/common';
 import { UsersModule } from '../users/users.module';
-import { NotificationService } from '../notification/notification.service';
 import { NotificationModule } from '@backend/src/modules/notification/notification.module';
 
 @Module({
