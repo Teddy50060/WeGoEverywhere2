@@ -97,6 +97,14 @@ export const eventApi = {
 
 // Helper function to convert backend event to UI format
 export const convertEventToUIFormat = (event: Event): Event => {
+  // Prepend API base URL if imagePath exists and is not already absolute
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  let coverUrl = '/images/event_default.png';
+  if (event.imagePath) {
+    coverUrl = event.imagePath.startsWith('http')
+      ? event.imagePath
+      : `${baseUrl}${event.imagePath}`;
+  }
   return {
     ...event,
     title: event.name,
@@ -104,8 +112,7 @@ export const convertEventToUIFormat = (event: Event): Event => {
     location: event.place || 'TBD',
     description: event.detail,
     categories: event.categories,
-    // coverUrl: you may want to keep a default image or use event.imagePath if available
-    coverUrl: event.imagePath || '/images/event_default.png',
+    coverUrl,
     // currentParticipants now comes directly from backend (joined table count)
   };
 };

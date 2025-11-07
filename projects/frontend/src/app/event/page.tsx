@@ -55,7 +55,28 @@ export default async function EventPage() {
         Link to EventPage
       </div>
 
-      <Navbar />
+      {/* <div className="flex flex-col items-center mt-4 text-lg font-medium">
+        {events.length === 0 ? (
+          <div className="text-gray-500">ยังไม่มีอีเวนต์</div>
+        ) : (
+          events.map((ev) => (
+            <Link
+              href={`/event/${ev.eventId}`}
+              key={ev.eventId}
+              className="mb-2"
+            >
+              <div key={ev.eventId}>
+                {ev.name} ({ev.eventId})
+              </div>
+            </Link>
+          ))
+        )}
+      </div> */}
+
+      {/* Sticky bottom Navbar, consistent across all pages */}
+      <footer className="sticky bottom-0 w-full z-50 bg-transparent max-w-[393px] mx-auto">
+        <Navbar />
+      </footer>
     </>
   );
 }

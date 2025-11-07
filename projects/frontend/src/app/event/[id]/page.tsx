@@ -156,11 +156,16 @@ export default function EventDetailPage() {
         </div>
 
         {/* Category Tag */}
-        {event.categories && (
-          <div className="mb-6">
-            <span className="bg-[#E8C5C5] rounded-full px-4 py-2 text-sm font-medium text-black border border-black">
-              {event.categories}
-            </span>
+        {event.categories && event.categories.length > 0 && (
+          <div className="mb-6 flex flex-wrap gap-2">
+            {event.categories.map((cat: string, idx: number) => (
+              <span
+                key={idx}
+                className="bg-[#E8C5C5] rounded-full px-4 py-2 text-sm font-medium text-black border border-black"
+              >
+                {cat}
+              </span>
+            ))}
           </div>
         )}
 
@@ -266,8 +271,8 @@ export default function EventDetailPage() {
         </button>
       </div>
 
-      {/* Navbar at bottom with same positioning as other pages */}
-      <footer className="sticky bottom-[-6px] px-1 pb-[env(safe-area-inset-bottom)] z-50">
+      {/* Sticky bottom Navbar, consistent across all pages */}
+      <footer className="sticky bottom-0 w-full z-50 bg-transparent max-w-[393px] mx-auto">
         <Navbar />
       </footer>
     </div>
