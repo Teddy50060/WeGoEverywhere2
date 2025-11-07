@@ -84,9 +84,16 @@ export default function Home() {
     return 'General';
   };
 
-  // Filter out deleted and inactive events
+  // Filter out deleted, inactive, and past events (same strategy as upcomingEvents)
   const filteredEvents = events
+    .map(convertEventToUIFormat)
     .filter(event => event.status !== 'deleted' && event.status !== 'inactive')
+    .filter(event => {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      const eventDate = new Date(event.date);
+      return eventDate >= currentDate;
+    })
     .filter(event => {
       const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                            (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
