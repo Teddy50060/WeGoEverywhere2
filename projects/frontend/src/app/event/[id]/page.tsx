@@ -120,7 +120,7 @@ export default function EventDetailPage() {
       <div className="mb-2 flex items-center gap-2">
         <button
           onClick={() => router.push("/")}
-          className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white"
+          className="flex items-center justify-center w-12 h-12 rounded-full bg-[#E8C5C5] hover:bg-orange-300 text-black border border-black"
           aria-label="Back to Home"
         >
           {/* Left arrow icon (SVG) */}
