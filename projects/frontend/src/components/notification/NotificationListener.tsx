@@ -1,47 +1,55 @@
 'use client';
 
-import { useNotifications } from '../notification/NotificationContext'; // Adjust path
+import { useNotifications } from '@/components/notification/NotificationContext';
+import { NotificationCard, Notification } from './notificationCard'; // Make sure Notification is imported
 
 export default function NotificationList() {
-  // Get all state and functions from the global hook!
+  // Get all the functions from the context
   const { notifications, notifCount, markRead, loadMore } = useNotifications();
 
-  return (
-    <div className="p-4 w-80 text-black"> {/* Set text to black for readability */}
-      <h3 className="mb-2 font-bold">Unread notifications: {notifCount}</h3>
+  // --- 1. ADD THIS CLICK HANDLER ---
+  // (This is the logic that was missing)
+  const handleCardClick = (notification: Notification) => {
+    // Only mark as read if it's not already read
+    if (!notification.read) {
+      markRead(notification.id);
+    }
+    
+    // TODO: You could add navigation logic here
+    // e.g., router.push(`/events/${notification.eventId}`);
+    console.log("Clicked notification in popover");
+  };
 
-      <div className="max-h-96 overflow-y-auto"> {/* Make list scrollable */}
+  return (
+    <div className="w-80 text-black"> 
+      <h3 className="mb-2 font-bold px-4 pt-4 text-gray-900">
+        Unread notifications: {notifCount}
+      </h3>
+
+      <div className="max-h-96 overflow-y-auto"> 
         {notifications.length === 0 && (
-          <p className="text-gray-500">No new notifications.</p>
+          <p className="text-gray-500 px-4 py-3">No new notifications.</p>
         )}
 
         {notifications.map((n) => (
-          <div
+          <NotificationCard
             key={n.id}
-            className="border border-gray-300 rounded p-2 mb-2"
-            style={{ opacity: n.read ? 0.5 : 1 }}
-          >
-            <p className="font-bold">{n.title}</p>
-            <p className="text-sm">{n.message}</p>
-
-            {!n.read && (
-              <button
-                onClick={() => markRead(n.id)}
-                className="mt-1 px-2 py-1 text-xs bg-blue-500 text-white rounded"
-              >
-                Mark read
-              </button>
-            )}
-          </div>
+            notification={n}
+            // --- 2. PASS THE HANDLER TO THE CARD ---
+            onClick={handleCardClick} 
+            showBorder={true}
+          />
         ))}
       </div>
 
-      <button
-        onClick={loadMore}
-        className="mt-2 w-full px-3 py-1 bg-green-500 text-white rounded"
-      >
-        Load more
-      </button>
+      <div className="p-2 border-t border-gray-200">
+        <button
+          onClick={loadMore}
+          className="w-full px-3 py-1 bg-green-500 text-white rounded"
+        >
+          Load more
+        </button>
+      </div>
     </div>
   );
 }

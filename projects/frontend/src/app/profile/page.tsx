@@ -9,11 +9,13 @@ import toast from "react-hot-toast";
 import { FiBell } from "react-icons/fi";
 import { AuthService, UserService } from "@/lib/api";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import NotificationBell from "@/components/notification/NotificationBell";
 
 
 export default function ProfilePage() {
+    const router = useRouter();
     const [user, setUser] = useState<any>({});
 
     // ✅ ดึงข้อมูล user ทันทีเมื่อเข้าเพจ
@@ -86,9 +88,13 @@ export default function ProfilePage() {
           <h1 className="text-[28px] font-bold leading-[1.05] tracking-tight text-[#2E2E2E]">
             Your Profile
           </h1>
-          <div className="mt-1">
-            <NotificationBell />
-          </div>
+          <button
+            aria-label="Notifications"
+            onClick={() => router.push('/notification')}
+            className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow hover:bg-gray-200 transition"
+          >
+            <FiBell className="text-[#2E2E2E]" size={20} />
+          </button>
         </div>
 
         {/* Profile pill */}
