@@ -140,7 +140,9 @@ export default function ProfilePage() {
       </div>
       
     </main>
-          <Navbar />
+      <footer className="sticky bottom-0 w-full z-50 bg-transparent max-w-[393px] mx-auto">
+        <Navbar />
+      </footer>
      
     </div>
     
