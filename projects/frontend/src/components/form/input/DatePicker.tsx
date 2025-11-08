@@ -180,6 +180,8 @@ export const Calendar28 = (props: Calendar28Props) => {
             <Calendar
               mode="single"
               captionLayout="dropdown"
+              fromYear={1900}
+              toYear={2100}
               selected={date}
               month={month}
               onMonthChange={setMonth}
