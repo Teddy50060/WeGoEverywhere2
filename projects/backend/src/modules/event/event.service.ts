@@ -68,6 +68,10 @@ export class EventService {
         ...dto,
         imagePath: publicPath,
       });
+      // Auto-join the creator as a participant
+      if (created && created.eventId && dto.userId) {
+        await this.eventRepo.joinEvent(created.eventId, dto.userId);
+      }
       return created;
     } catch (e) {
       await fs.rm(fsPath, { force: true });
@@ -143,7 +147,12 @@ export class EventService {
   }
 
   async createEvent(createEventDto: CreateEventDto) {
-    return this.eventRepo.create(createEventDto);
+    const created = await this.eventRepo.create(createEventDto);
+    // Auto-join the creator as a participant
+    if (created && created.eventId && createEventDto.userId) {
+      await this.eventRepo.joinEvent(created.eventId, createEventDto.userId);
+    }
+    return created;
   }
 
   async updateEvent(id: number, updateEventDto: UpdateEventDto) {
