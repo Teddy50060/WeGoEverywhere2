@@ -145,6 +145,28 @@ export class EventService {
         } catch {}
       }
 
+    const eventName = (await this.eventRepo.findById(id)).name;
+    const participants = await this.eventRepo.getParticipation(id);
+    
+    if(dto.status == "deleted"){
+      await this.notificationGateway.broadcastNotification(
+          participants
+        ,{
+          title : `${eventName} is cancelled`,
+          fromService: 'event',
+          message : `${eventName} have cancelled.`,
+        });
+    }
+    else{
+      await this.notificationGateway.broadcastNotification(
+          participants
+        ,{
+          title : `${eventName} updated`,
+          fromService: 'event',
+          message : `${eventName} has new info.`,
+        });
+    }
+
       return updated;
     } catch (e) {
       if (newFsPath) {
