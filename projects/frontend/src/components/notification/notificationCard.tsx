@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 export interface Notification {
   id: number;
@@ -48,6 +50,7 @@ export function NotificationCard({
 }: NotificationCardProps) {
   const avatar = getAvatarFromService(notification.fromService);
   const isRead = notification.read ?? false;
+  const timeAgo = dayjs(notification.createdAt).fromNow();
 
 // return (
 //     <div
@@ -109,6 +112,7 @@ return (
       <p className="text-gray-500 text-sm mt-1 line-clamp-2 leading-snug">
         {notification.message}
       </p>
+      <span className="text-gray-400 text-xs mt-1 block">{timeAgo}</span>
     </div>
   </div>
 );
