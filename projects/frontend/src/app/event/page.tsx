@@ -4,24 +4,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Navbar } from "@/components/navbar/Navbar";
-import { getAllEvents } from "@/actions/actions";
+import { eventApi, convertEventToUIFormat, type Event } from "@/lib/api/eventApi";
 import { UserService } from "@/lib/api";
 import toast from "react-hot-toast";
-
-type EventApi = {
-  eventId: number;
-  name: string;
-  status: string;
-  date: string;
-  time?: string;
-  imageUrl?: string;
-  creatorId?: number;
-};
+import { Calendar, MapPin, Users } from "lucide-react";
 
 export default function EventPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"created" | "attending" | "history">("created");
-  const [events, setEvents] = useState<EventApi[]>([]);
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [joinedEvents, setJoinedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>({});
 
@@ -35,8 +27,15 @@ export default function EventPage() {
       const userData = await UserService.userControllerGetUser();
       setUser(userData);
 
-      const eventsData = (await getAllEvents()) as EventApi[];
-      setEvents(eventsData);
+      // Fetch all events
+      const eventsData = await eventApi.getAllEvents();
+      const uiFormattedEvents = eventsData.map(convertEventToUIFormat);
+      setAllEvents(uiFormattedEvents);
+
+      // Fetch user's joined events
+      const joinedEventsData = await eventApi.getUserJoinedEvents();
+      const uiFormattedJoinedEvents = joinedEventsData.map(convertEventToUIFormat);
+      setJoinedEvents(uiFormattedJoinedEvents);
     } catch (error: any) {
       console.error("Failed to load data:", error);
       toast.error("Cannot load data");
@@ -46,34 +45,101 @@ export default function EventPage() {
   };
 
   const filterEvents = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
 
-    return events.filter((event) => {
-      const eventDate = new Date(event.date);
-      
-      if (activeTab === "history") {
-        return eventDate < today;
-      } else {
-        return eventDate >= today;
-      }
-    }).filter((event) => {
-      if (activeTab === "created") {
-        // TODO: Filter by user's created events
-        return true;
-      } else if (activeTab === "attending") {
-        // TODO: Filter by user's joined events
-        return true;
-      }
-      return true;
-    });
+    let events: Event[] = [];
+
+    // Select events based on active tab
+    if (activeTab === "created") {
+      // Filter events created by the current user
+      events = allEvents.filter((event) => event.userId === user.userId);
+    } else if (activeTab === "attending") {
+      // Show joined events (exclude created events)
+      events = joinedEvents.filter((event) => event.userId !== user.userId);
+    } else if (activeTab === "history") {
+      // History can be from both created and joined
+      const createdEvents = allEvents.filter((event) => event.userId === user.userId);
+      const allHistoryEvents = [...createdEvents, ...joinedEvents];
+      // Remove duplicates by eventId
+      events = Array.from(new Map(allHistoryEvents.map(e => [e.eventId, e])).values());
+    }
+
+    return events
+      // Always filter out deleted events
+      .filter((event) => event.status !== 'deleted')
+      .filter((event) => {
+        // Combine date and time for accurate comparison
+        const [hours, minutes] = event.time.split(':').map(Number);
+        const eventDateTime = new Date(event.date);
+        eventDateTime.setHours(hours, minutes, 0, 0);
+        
+        if (activeTab === "history") {
+          // Show past events (date + time has passed)
+          return eventDateTime < now;
+        } else {
+          // Show upcoming events (date + time is in the future)
+          return eventDateTime >= now;
+        }
+      })
+      .sort((a, b) => {
+        const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+        if (dateComparison !== 0) return dateComparison;
+        return a.time.localeCompare(b.time);
+      });
   };
 
-  const handleEventClick = (eventId: number) => {
+  const handleEventClick = (eventId: number | string) => {
     if (activeTab === "created") {
       router.push(`/event/${eventId}/edit`);
     } else {
       router.push(`/event/${eventId}`);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const getCategoriesColor = (categories: string[] | string) => {
+    const colors: Record<string, string> = {
+      'Entertainment': 'from-pink-300 to-pink-500',
+      'Education': 'from-blue-300 to-blue-500',
+      'Health': 'from-green-300 to-green-500',
+      'Lifestyle': 'from-orange-300 to-orange-500',
+      'Technology': 'from-cyan-300 to-cyan-500',
+      'Environment': 'from-emerald-300 to-emerald-500',
+      'General': 'from-gray-300 to-gray-500',
+    };
+    const cat = Array.isArray(categories) ? categories[0] : categories;
+    return colors[cat] || 'from-gray-300 to-gray-500';
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return {
+          bg: 'bg-[#C5E99B]',
+          text: 'Active'
+        };
+      case 'inactive':
+        return {
+          bg: 'bg-[#FFB3B3]',
+          text: 'Inactive'
+        };
+      default:
+        return {
+          bg: 'bg-gray-300',
+          text: status
+        };
     }
   };
 
@@ -153,61 +219,76 @@ export default function EventPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
-            {filteredEvents.map((event) => (
-              <div
-                key={event.eventId}
-                onClick={() => handleEventClick(event.eventId)}
-                className="cursor-pointer hover:scale-[1.02] transition-transform"
-              >
-                {/* Event Card */}
-                <div className="rounded-[20px] overflow-hidden shadow-md bg-white">
-                  {/* Image */}
-                  <div className="w-full h-32 bg-[#FFFACD] relative">
-                    {event.imageUrl && (
-                      <Image
-                        src={event.imageUrl}
-                        alt={event.name}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-3 bg-[#E6E6FA]">
-                    {/* Status Badge */}
+          <div className="w-full max-w-[350px] mx-auto grid grid-cols-2 gap-4">
+            {filteredEvents.map((event) => {
+              const statusBadge = getStatusBadge(event.status);
+              
+              return (
+                <div
+                  key={event.eventId}
+                  className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleEventClick(event.eventId)}
+                >
+                  {/* Image with gradient background */}
+                  <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoriesColor(event.categories ?? 'General')}`}>
+                    <div className="absolute inset-0 bg-black bg-opacity-5"></div>
+                    <img
+                      src={event.coverUrl}
+                      alt={event.title || event.name}
+                      className="absolute inset-0 w-full h-full object-cover z-10"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    
+                    {/* Status Badge for Created tab */}
                     {activeTab === "created" && (
-                      <div className="mb-2">
+                      <div className="absolute top-2 left-2 z-20">
                         <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                            event.status === "published"
-                              ? "bg-[#C5E99B] text-black"
-                              : "bg-[#FFB3B3] text-black"
-                          }`}
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusBadge.bg} text-black`}
                         >
-                          {event.status === "published" ? "publish" : "Unpublish"}
+                          {statusBadge.text}
                         </span>
                       </div>
                     )}
+                  </div>
 
-                    {/* Date */}
-                    <p className="text-sm text-gray-700 mb-1">
-                      Date: {new Date(event.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                    </p>
+                  {/* Event Info */}
+                  <div className="bg-[#D4DDFF] rounded-t-[18px] p-3">
+                    <div className="space-y-1">
+                      {/* Date and Time */}
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-gray-600" />
+                        <span className="font-inter font-normal text-[8px] text-black">
+                          {formatDate(event.date)} • {formatTime(event.time)}
+                        </span>
+                      </div>
 
-                    {/* Event Name */}
-                    <p className="text-base font-semibold text-gray-900 truncate">
-                      Event name: {event.name}
-                    </p>
+                      {/* Event Title */}
+                      <h3 className="font-inter font-medium text-[10px] leading-[12px] text-black line-clamp-2 min-h-[24px] max-h-[24px] overflow-hidden flex items-start">
+                        {event.title || event.name}
+                      </h3>
+
+                      {/* Location */}
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-gray-600" />
+                        <span className="font-inter font-normal text-[8px] text-gray-700 truncate">
+                          {event.location || event.place || 'TBD'}
+                        </span>
+                      </div>
+
+                      {/* Participants */}
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3 text-gray-600" />
+                        <span className="font-inter font-normal text-[8px] text-gray-700">
+                          {event.currentParticipants}/{event.capacity}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
