@@ -17,6 +17,7 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
+  const [isEventPast, setIsEventPast] = useState(false);
 
   useEffect(() => {
     const fetchEventAndOrganizer = async () => {
@@ -25,6 +26,13 @@ export default function EventDetailPage() {
         const eventData = await eventApi.getEventById(parseInt(eventId));
         const formattedEvent = convertEventToUIFormat(eventData);
         setEvent(formattedEvent);
+
+        // Check if event has passed
+        const now = new Date();
+        const eventDate = new Date(formattedEvent.date);
+        const [hours, minutes] = formattedEvent.time.split(':').map(Number);
+        eventDate.setHours(hours, minutes, 0, 0);
+        setIsEventPast(eventDate < now);
 
         // Try to get organizer information
         if (eventData.userId) {
@@ -92,9 +100,15 @@ export default function EventDetailPage() {
   const handleRegisterToggle = async () => {
     if (!event) return;
     
-    const loadingToast = toast.loading(
-      hasJoined ? 'Processing...' : 'Processing...'
-    );
+    // Prevent registration/unregistration if event has passed
+    if (isEventPast) {
+      toast.error('This event has already ended.', { 
+        duration: 3000 
+      });
+      return;
+    }
+    
+    const loadingToast = toast.loading('Processing...');
     
     try {
       if (hasJoined) {
@@ -288,13 +302,20 @@ export default function EventDetailPage() {
       <div className="-mt-10 space-y-3 mb-20">
         <button
           onClick={handleRegisterToggle}
+          disabled={isEventPast}
           className={`w-full font-bold py-3 px-6 rounded-full border border-black transition-colors shadow-sm ${
-            hasJoined
+            isEventPast
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : hasJoined
               ? 'bg-red-200 text-red-700 hover:bg-red-300'
               : 'bg-[#9BE28C] hover:bg-green-400 text-green-900'
           }`}
         >
-          {hasJoined ? "Cancel Registration" : "Register for Event"}
+          {isEventPast 
+            ? "Event Ended" 
+            : hasJoined 
+            ? "Cancel Registration" 
+            : "Register for Event"}
         </button>
         <button
           onClick={() => toast.success('Report submitted successfully!', { 
