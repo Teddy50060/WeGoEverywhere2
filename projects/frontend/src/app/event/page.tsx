@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Navbar } from "@/components/navbar/Navbar";
 import { getAllEvents } from "@/actions/actions";
+import EventDeniedToastOnce from "@/components/system/EventDeniedToastOnce";
 
 type EventApi = {
   eventId: number;
@@ -19,6 +20,8 @@ export default async function EventPage() {
 
   return (
     <>
+      <EventDeniedToastOnce />
+
       <div className="flex justify-center mt-4 font-black text-5xl">
         Event Page
       </div>
@@ -70,7 +73,10 @@ export default async function EventPage() {
         )}
       </div> */}
 
-      <Navbar />
+      {/* Sticky bottom Navbar, consistent across all pages */}
+      <footer className="sticky bottom-0 w-full z-50 bg-transparent max-w-[393px] mx-auto">
+        <Navbar />
+      </footer>
     </>
   );
 }
