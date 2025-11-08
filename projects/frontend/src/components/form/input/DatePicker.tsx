@@ -177,17 +177,19 @@ export const Calendar28 = (props: Calendar28Props) => {
             alignOffset={-8}
             sideOffset={10}
           >
-            <Calendar
-              mode="single"
-              captionLayout="dropdown"
-              fromYear={1900}
-              toYear={2100}
-              selected={date}
-              month={month}
-              onMonthChange={setMonth}
-              onSelect={handleSelect}
-              initialFocus
-            />
+              <Calendar
+                mode="single"
+                captionLayout="dropdown"
+                fromYear={new Date().getFullYear()}
+                toYear={new Date().getFullYear() + 2}
+                fromDate={new Date()}
+                toDate={(() => { const d = new Date(); d.setFullYear(d.getFullYear() + 2); return d; })()}
+                selected={date}
+                month={month}
+                onMonthChange={setMonth}
+                onSelect={handleSelect}
+                initialFocus
+              />
           </PopoverContent>
         </Popover>
       </div>
