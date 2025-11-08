@@ -109,20 +109,6 @@ export default function EventPage() {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const getCategoriesColor = (categories: string[] | string) => {
-    const colors: Record<string, string> = {
-      'Entertainment': 'from-pink-300 to-pink-500',
-      'Education': 'from-blue-300 to-blue-500',
-      'Health': 'from-green-300 to-green-500',
-      'Lifestyle': 'from-orange-300 to-orange-500',
-      'Technology': 'from-cyan-300 to-cyan-500',
-      'Environment': 'from-emerald-300 to-emerald-500',
-      'General': 'from-gray-300 to-gray-500',
-    };
-    const cat = Array.isArray(categories) ? categories[0] : categories;
-    return colors[cat] || 'from-gray-300 to-gray-500';
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -229,13 +215,12 @@ export default function EventPage() {
                   className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => handleEventClick(event.eventId)}
                 >
-                  {/* Image with gradient background */}
-                  <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoriesColor(event.categories ?? 'General')}`}>
-                    <div className="absolute inset-0 bg-black bg-opacity-5"></div>
+                  {/* Image container - gradient removed since coverUrl is required */}
+                  <div className="relative h-[80px] w-full bg-gray-200">
                     <img
                       src={event.coverUrl}
                       alt={event.title || event.name}
-                      className="absolute inset-0 w-full h-full object-cover z-10"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}
