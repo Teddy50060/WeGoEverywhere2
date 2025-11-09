@@ -53,7 +53,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "uuid": "^13.0.0",
-    "zod": "^4.1.7"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
