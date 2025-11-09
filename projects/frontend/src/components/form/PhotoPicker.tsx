@@ -76,6 +76,8 @@ export default function PhotoPicker({
     onChange?.(null, null);
   };
 
+  // Use dummy image if no file selected or uploaded
+  const dummyUrl = "/images/profile_image.png"; // adjust path if needed
   const displayUrl = localUrl || value || null;
 
   return (
@@ -100,7 +102,11 @@ export default function PhotoPicker({
               className="h-full w-full object-cover"
             />
           ) : (
-            <Upload className="text-gray-700" />
+            <img
+              src={dummyUrl}
+              alt="Dummy profile"
+              className="h-full w-full object-cover opacity-60"
+            />
           )}
         </button>
 

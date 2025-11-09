@@ -44,4 +44,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsDateString()
   signupDate?: string;
+  
+  @ApiPropertyOptional({ example: '/uploads/profile/user1.jpg' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  profilePicture?: string;
 }
