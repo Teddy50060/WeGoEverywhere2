@@ -6,6 +6,7 @@ import { CalendarDays, MapPin } from "lucide-react";
 import { eventApi, convertEventToUIFormat, type Event } from "@/lib/api/eventApi";
 import { userApi, type User } from "@/lib/api/userApi";
 import { Navbar } from "@/components/navbar/Navbar";
+import toast from 'react-hot-toast';
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -16,14 +17,22 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
+  const [isEventPast, setIsEventPast] = useState(false);
 
   useEffect(() => {
-  const fetchEventAndOrganizer = async () => {
+    const fetchEventAndOrganizer = async () => {
       try {
         setLoading(true);
         const eventData = await eventApi.getEventById(parseInt(eventId));
         const formattedEvent = convertEventToUIFormat(eventData);
         setEvent(formattedEvent);
+
+        // Check if event has passed
+        const now = new Date();
+        const eventDate = new Date(formattedEvent.date);
+        const [hours, minutes] = formattedEvent.time.split(':').map(Number);
+        eventDate.setHours(hours, minutes, 0, 0);
+        setIsEventPast(eventDate < now);
 
         // Try to get organizer information
         if (eventData.userId) {
@@ -88,6 +97,63 @@ export default function EventDetailPage() {
     });
   };
 
+  const handleRegisterToggle = async () => {
+    if (!event) return;
+    
+    // Prevent registration/unregistration if event has passed
+    if (isEventPast) {
+      toast.error('This event has already ended.', { 
+        duration: 3000 
+      });
+      return;
+    }
+    
+    const loadingToast = toast.loading('Processing...');
+    
+    try {
+      if (hasJoined) {
+        await eventApi.unjoinEvent(event.eventId);
+        setHasJoined(false);
+        
+        toast.success(
+          'Event unregistration successful!',
+          { 
+            id: loadingToast,
+            duration: 3000,
+          }
+        );
+      } else {
+        await eventApi.joinEvent(event.eventId);
+        setHasJoined(true);
+        
+        toast.success(
+          'Event registration successful!',
+          { 
+            id: loadingToast,
+            duration: 3000,
+          }
+        );
+      }
+      
+      // Refresh event data to update participant count
+      const updatedEvent = await eventApi.getEventById(event.eventId);
+      setEvent(convertEventToUIFormat(updatedEvent));
+      
+    } catch (err) {
+      console.error('Registration error:', err);
+      
+      toast.error(
+        hasJoined 
+          ? 'Failed to unregister from event.'
+          : 'Failed to register for event.',
+        { 
+          id: loadingToast,
+          duration: 3000,
+        }
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -108,17 +174,18 @@ export default function EventDetailPage() {
             onClick={() => router.push('/')}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
           >
-            Back to Home
+            Return to Home
           </button>
         </div>
       </div>
     );
   }
+
   return (
     <div className="relative w-full max-w-[393px] mx-auto min-h-screen bg-white p-4">
       {/* Breadcrumb - Outside the border */}
       <div className="mb-2">
-        <span className="text-gray-600 text-sm">Events/Event Detail</span>
+        <span className="text-gray-600 text-sm">Events / Event Details</span>
       </div>
 
       {/* Main Card with Black Border */}
@@ -156,11 +223,16 @@ export default function EventDetailPage() {
         </div>
 
         {/* Category Tag */}
-        {event.categories && (
-          <div className="mb-6">
-            <span className="bg-[#E8C5C5] rounded-full px-4 py-2 text-sm font-medium text-black border border-black">
-              {event.categories}
-            </span>
+        {event.categories && event.categories.length > 0 && (
+          <div className="mb-6 flex flex-wrap gap-2">
+            {event.categories.map((cat: string, idx: number) => (
+              <span
+                key={idx}
+                className="bg-[#E8C5C5] rounded-full px-4 py-2 text-sm font-medium text-black border border-black"
+              >
+                {cat}
+              </span>
+            ))}
           </div>
         )}
 
@@ -182,7 +254,7 @@ export default function EventDetailPage() {
           {/* Event Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Event date
+              Event Date
             </label>
             <div className="relative">
               <input
@@ -204,7 +276,7 @@ export default function EventDetailPage() {
               <input
                 type="text"
                 readOnly
-                value={event.location || event.place || 'Lumpini Park'}
+                value={event.location || event.place || 'To Be Determined'}
                 className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-700"
               />
               <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -214,12 +286,12 @@ export default function EventDetailPage() {
           {/* Details */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Details
+              Event Details
             </label>
             <textarea
               readOnly
               rows={4}
-              value={event.description || event.detail || 'Morning yoga session to relax and energize your day.'}
+              value={event.description || event.detail || 'No additional details provided.'}
               className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 resize-none"
             />
           </div>
@@ -229,45 +301,34 @@ export default function EventDetailPage() {
       {/* Action Buttons - Outside the frame */}
       <div className="-mt-10 space-y-3 mb-20">
         <button
-          onClick={async () => {
-            if (!event) return;
-            try {
-              if (hasJoined) {
-                await eventApi.unjoinEvent(event.eventId);
-                setHasJoined(false);
-              } else {
-                await eventApi.joinEvent(event.eventId);
-                setHasJoined(true);
-              }
-              // Refresh event data to update participant count
-              const updatedEvent = await eventApi.getEventById(event.eventId);
-              setEvent(convertEventToUIFormat(updatedEvent));
-              // Refresh upcoming events on home page if possible
-              if (typeof window !== 'undefined' && window.fetchUserJoinedEvents) {
-                window.fetchUserJoinedEvents();
-              }
-            } catch (err) {
-              alert(hasJoined ? 'Failed to unjoin this event.' : 'Failed to register for this event.');
-            }
-          }}
+          onClick={handleRegisterToggle}
+          disabled={isEventPast}
           className={`w-full font-bold py-3 px-6 rounded-full border border-black transition-colors shadow-sm ${
-            hasJoined
+            isEventPast
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : hasJoined
               ? 'bg-red-200 text-red-700 hover:bg-red-300'
               : 'bg-[#9BE28C] hover:bg-green-400 text-green-900'
           }`}
         >
-          {hasJoined ? "Already registered, Unregister?" : "Register !"}
+          {isEventPast 
+            ? "Event Ended" 
+            : hasJoined 
+            ? "Cancel Registration" 
+            : "Register for Event"}
         </button>
         <button
-          onClick={() => alert('Thank you for your feedback! Our team will review this activity.')}
+          onClick={() => toast.success('Report submitted successfully!', { 
+            duration: 3000 
+          })}
           className="w-full text-gray-500 hover:text-gray-700 font-medium py-2 px-6 transition-colors text-sm text-center underline"
         >
-          Report this activity
+          Report This Event
         </button>
       </div>
 
-      {/* Navbar at bottom with same positioning as other pages */}
-      <footer className="sticky bottom-[-6px] px-1 pb-[env(safe-area-inset-bottom)] z-50">
+      {/* Sticky bottom Navbar, consistent across all pages */}
+      <footer className="sticky bottom-0 w-full z-50 bg-transparent max-w-[393px] mx-auto">
         <Navbar />
       </footer>
     </div>

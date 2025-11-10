@@ -26,7 +26,7 @@ export type EventActionState = {
 export async function fetchMe() {
   try {
     await setOpenApiCookieHeader();
-    const me = await UserService.userControllerGetMe();
+    const me = await UserService.userControllerGetUser();
     return { ok: true, data: me };
   } catch (err: any) {
     console.error("Error fetching user info:", err);
@@ -54,9 +54,7 @@ export const createEventWithZod = async (
     }
 
     const meRes = await fetchMe();
-    if (!meRes.ok || !meRes.data) {
-      return { ok: false, message: "Not authenticated" };
-    }
+
     const raw = meRes.data as any;
     const userId: number | undefined = Number(
       raw?.userId ?? raw?.id ?? raw?.user?.id
@@ -65,14 +63,24 @@ export const createEventWithZod = async (
       return { ok: false, message: "Cannot determine user id" };
     }
 
-    const dto = toCreateDto(parsed.data, userId);
+    const dto: any = toCreateDto(parsed.data, userId);
+
+    const v = formData.get("eventPhoto");
+    let picked: File | null = null;
+    if (v instanceof File && v.size > 0) {
+      const safeName = v.name && v.name !== "undefined" ? v.name : "upload.bin";
+      picked = new File([v], safeName, {
+        type: v.type || "application/octet-stream",
+      });
+    }
+    dto.file = picked ?? null;
+
     console.log("createEventWithZod dto:", dto);
 
     await EventService.eventControllerCreateWithImage(dto);
     return { ok: true, message: "Event created successfully!" };
   } catch (error: any) {
     console.error("createEventWithZod error:", error);
-    const status = error?.status ?? error?.statusCode;
     return {
       ok: false,
       message:
@@ -94,7 +102,6 @@ export const updateEventWithZod = async (
     }
 
     const candidate = formToDbShape(formData);
-
     const parsed = eventFormSchema.safeParse(candidate);
     if (!parsed.success) {
       const fieldErrors = mapErrorsToFormKeys(
@@ -107,8 +114,20 @@ export const updateEventWithZod = async (
       };
     }
 
-    const dto = toUpdateDtoFromForm(formData);
-    console.log("dto =", dto);
+    const dto: any = toUpdateDtoFromForm(formData);
+
+    const v = formData.get("eventPhoto");
+    if (v instanceof File && v.size > 0) {
+      const safeName = v.name && v.name !== "undefined" ? v.name : "upload.bin";
+      const picked = new File([v], safeName, {
+        type: v.type || "application/octet-stream",
+      });
+      dto.file = picked;
+    } else {
+      delete dto.file;
+    }
+
+    console.log("update dto =", dto);
 
     await EventService.eventControllerUpdateEventWithImage(numericId, dto);
 
@@ -117,7 +136,6 @@ export const updateEventWithZod = async (
 
     return { ok: true, message: "Event updated!", next };
   } catch (error: any) {
-    const status = error?.status ?? error?.statusCode;
     return {
       ok: false,
       message:

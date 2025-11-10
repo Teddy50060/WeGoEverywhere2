@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from "@/components/navbar/Navbar";
 import { Search, Mic, MapPin, Users, Calendar } from "lucide-react";
 import Image from "next/image";
+import { OpenAPI } from "@/lib/api";
 import { userApi, type User } from "@/lib/api/userApi";
 import { eventApi, convertEventToUIFormat, type Event } from "@/lib/api/eventApi";
 
@@ -58,6 +59,7 @@ export default function Home() {
       currentDate.setHours(0, 0, 0, 0);
       const uiFormattedJoinedEvents = joinedEventsData
         .map(convertEventToUIFormat)
+        .filter(event => event.status !== 'deleted')
         .filter(event => {
           const eventDate = new Date(event.date);
           return eventDate >= currentDate;
@@ -83,7 +85,9 @@ export default function Home() {
     return 'General';
   };
 
+  // Filter out deleted events
   const filteredEvents = events
+    .filter(event => event.status !== 'deleted')
     .filter(event => {
       const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                            (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -169,11 +173,16 @@ export default function Home() {
                 <div className="w-full h-full bg-gray-200 animate-pulse rounded-full" />
               ) : (
                 <Image
-                  src={user?.profilePicture || '/images/profile_image.png'}
+                  src={user?.profilePicture
+                    ? user.profilePicture.startsWith('http')
+                      ? user.profilePicture
+                      : `${OpenAPI.BASE}${user.profilePicture}`
+                    : '/images/profile_image.png'}
                   alt="User Profile"
                   fill
                   sizes="70px"
                   className="object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/profile_image.png'; }}
                 />
               )}
             </div>
@@ -290,11 +299,7 @@ export default function Home() {
                     console.log('Main grid image loaded successfully:', event.coverUrl);
                   }}
                 />
-                <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center justify-center z-20">
-                  <span className="text-[8px] font-medium text-black">
-                    {(event.price || event.cost || 0) === 0 ? 'Free' : `฿${event.price || event.cost}`}
-                  </span>
-                </div>
+                {/* Price badge removed as requested */}
               </div>
               <div className="bg-[#D4DDFF] rounded-t-[18px] p-3">
                 <div className="space-y-1">
@@ -326,8 +331,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Navbar at bottom with same positioning as other pages */}
-      <footer className="mt-auto sticky bottom-0 w-full px-1 pb-[env(safe-area-inset-bottom)] z-50">
+      {/* Sticky bottom Navbar, consistent across all pages */}
+      <footer className="sticky bottom-0 w-full z-50 bg-transparent max-w-[393px] mx-auto">
         <Navbar />
       </footer>
     </div>

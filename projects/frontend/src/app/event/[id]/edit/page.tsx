@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/navbar/Navbar";
 import EditEventFormClient from "@/components/client/EditEventFormClient";
-import { getEventById } from "@/actions/actions";
-import { notFound } from "next/navigation";
+import { fetchMe, getEventById } from "@/actions/actions";
+import { notFound, redirect } from "next/navigation";
 
 function toHHmm(raw?: string | null): string | null {
   if (!raw) return null;
@@ -31,22 +31,40 @@ export default async function EditEventPage({
 
   if (!ev) notFound();
 
+  let currentUserIdNum: number | null = null;
+  try {
+    const meRes = await fetchMe();
+    const raw = (meRes as any)?.data ?? (meRes as any);
+    const candidate = raw?.userId ?? raw?.id ?? raw?.user?.id;
+    const n = Number(candidate);
+    currentUserIdNum = Number.isFinite(n) ? n : null;
+  } catch {
+    currentUserIdNum = null;
+  }
+
+  const eventOwnerIdNum = Number(ev?.userId);
+  if (
+    !Number.isFinite(eventOwnerIdNum) ||
+    eventOwnerIdNum !== currentUserIdNum
+  ) {
+    redirect("/event?denied=1");
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
   const event = {
     eventId: ev?.eventId ?? -1,
     name: ev?.name ?? "Untitled Event",
     capacity: ev?.capacity ?? 0,
+    cost: ev?.cost ?? 0,
     userId: ev?.userId ?? "-",
-    date: ev?.date ?? null, // 'YYYY-MM-DD'
-    time: toHHmm(ev?.time) ?? "00:00", // ตัดให้เหลือ 'HH:mm'
+    date: ev?.date ?? null,
+    time: toHHmm(ev?.time) ?? "00:00",
     place: ev?.place ?? "-",
     detail: ev?.detail ?? "-",
     status: ev?.status ?? "publish",
     categories: ev?.categories ?? [],
-    imagePath: ev?.imagePath
-      ? `${baseUrl}${ev.imagePath}` // ✅ ใช้รูปจริงจาก backend
-      : null,
+    imagePath: ev?.imagePath ? `${baseUrl}${ev.imagePath}` : null,
   };
 
   return (

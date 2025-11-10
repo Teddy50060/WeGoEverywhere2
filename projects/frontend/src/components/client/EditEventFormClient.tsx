@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useRef, useMemo, useState } from "react";
+import { useActionState, useRef, useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import EventPhotoPicker from "@/components/form/EventPhotoPicker";
 import { FormInput } from "@/components/form/input/FormInput";
@@ -28,6 +28,7 @@ type EventView = {
   eventId: number;
   name: string;
   capacity: number;
+  cost?: number;
   joined?: number;
   userId: number | string;
   date: string | null; // 'YYYY-MM-DD'
@@ -47,9 +48,27 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
   const didSubmitDeleteRef = useRef(false);
   const lastDeleteToastSigRef = useRef<string | null>(null);
 
-  // จัดการรูป: ใช้ state จับไฟล์ใหม่ + ตัวนับเพื่อรีเซ็ต input file ให้กลับไปแสดงรูปเดิม
+  // จัดการรูป: เก็บไฟล์ใหม่ + พรีวิวจาก object URL
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [resetPickerSig, setResetPickerSig] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // เมื่อผู้ใช้เลือกไฟล์ใหม่ ให้ทำ object URL สำหรับพรีวิว
+  useEffect(() => {
+    if (!photoFile) {
+      // ไม่มีไฟล์ใหม่ ให้กลับไปใช้รูปเดิม (ผ่าน event.imagePath)
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+      return;
+    }
+    const url = URL.createObjectURL(photoFile);
+    setPreviewUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoFile]);
 
   type Category = (typeof CATEGORY_OPTIONS)[number];
 
@@ -91,20 +110,12 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
         message: undefined,
       };
 
-      // ถ้าไม่ผ่านและรอบนี้มีเลือกรูปใหม่ → รีเซ็ตให้กลับไปแสดงรูปเดิม
-      if (!nextState.ok && photoFile) {
-        setPhotoFile(null);
-        setResetPickerSig((s) => s + 1); // เปลี่ยน key -> remount -> แสดงรูปเดิมผ่าน value
-      }
-
+      // ✅ ถ้าอัปเดตล้มเหลว → "อย่า" รีเซ็ตรูป ปล่อยให้พรีวิวไฟล์ใหม่ค้างไว้
+      // ✅ ถ้าอัปเดตสำเร็จ เดี๋ยวเราจะเปลี่ยนหน้า /event อยู่แล้ว
       return nextState;
     } catch (err) {
       console.error(err);
-      // error จริง: ถ้าเคยเลือกรูปใหม่ก็รีเซ็ตกลับรูปเดิมเช่นกัน
-      if (photoFile) {
-        setPhotoFile(null);
-        setResetPickerSig((s) => s + 1);
-      }
+      // ✅ error จริงก็ยังคงพรีวิวไฟล์ใหม่ไว้เช่นกัน
       return {
         ok: false,
         errors: {},
@@ -162,6 +173,9 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
     successText: "Event updated successfully!",
     errorText: "Failed to update event.",
     onSuccess: () => {
+      // อัปเดตสำเร็จแล้ว เปลี่ยนหน้า (รูปจะ “เปลี่ยนไปเลย” ตามข้อมูลใหม่จากแบ็กเอนด์)
+      // ถ้าอยากเคลียร์ state ด้วยก็ทำได้ แต่จะเปลี่ยนหน้าอยู่แล้วจึงไม่จำเป็น
+      // setPhotoFile(null); setPreviewUrl(null);
       router.push("/event");
     },
   });
@@ -179,11 +193,11 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
       <div className="font-alt relative rounded-3xl border border-black/10 bg-[var(--color-brand-secondary)] p-4 shadow text-sm">
         <form ref={formRef} id="updateForm" action={formAction} noValidate>
           <input type="hidden" name="id" value={event.eventId} />
+
           <div className="mb-4">
             <EventPhotoPicker
-              key={`picker-${resetPickerSig}`} // เปลี่ยน key เพื่อรีเซ็ต input file
               name="eventPhoto"
-              value={event.imagePath} // รีเซ็ตแล้วจะกลับมาแสดงรูปเดิม
+              value={previewUrl ?? event.imagePath ?? ""}
               linkText="Change your photo"
               size={208}
               width={280}
@@ -214,7 +228,6 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
               />
               <FieldError errors={state?.errors?.eventDate} />
             </div>
-
             <div className="col-span-5 sm:col-span-2">
               <TimePicker
                 name="eventTime"
@@ -226,7 +239,6 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
               <FieldError errors={state?.errors?.eventTime} />
             </div>
           </div>
-
           <LocationInput
             name="eventLocation"
             label="Location"
@@ -234,7 +246,6 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
             className="!bg-[var(--color-brand-background)] rounded-2xl border border-gray-300 text-sm text-gray-700"
           />
           <FieldError errors={state?.errors?.eventLocation} />
-
           <div className="mt-3">
             <CategoryMultiSelect
               name="categories"

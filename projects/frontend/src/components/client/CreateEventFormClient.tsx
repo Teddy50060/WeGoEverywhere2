@@ -111,7 +111,7 @@ export default function CreateEventFormClient() {
           size={208}
           rounded="2xl"
           bgClassName="bg-gray-300"
-          linkText="Change photo"
+          linkText="Change your photo"
           onChange={(file) => setPhotoFile(file)}
         />
         <FieldError errors={state?.errors?.eventPhoto} />
@@ -151,14 +151,12 @@ export default function CreateEventFormClient() {
           <FieldError errors={state?.errors?.eventTime} />
         </div>
       </div>
-
       <LocationInput
         name="eventLocation"
         label="Location"
         defaultValue={f.eventLocation}
       />
       <FieldError errors={state?.errors?.eventLocation} />
-
       <div className="mt-3">
         <CategoryMultiSelect name="categories" />
       </div>

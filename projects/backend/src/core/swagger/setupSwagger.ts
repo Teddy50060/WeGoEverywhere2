@@ -1,6 +1,7 @@
 import { INestApplication } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { extraSwaggerModels } from "./extra-models";
 
 export function setupSwagger(app: INestApplication, configService: ConfigService): void{
   const config = new DocumentBuilder()
@@ -19,6 +20,8 @@ export function setupSwagger(app: INestApplication, configService: ConfigService
     .addSecurityRequirements('bearer')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    extraModels: extraSwaggerModels,
+  });
   SwaggerModule.setup('v1/api', app, document);
 }

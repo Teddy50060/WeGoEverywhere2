@@ -22,19 +22,19 @@ import { CATEGORY_OPTIONS, type CategoryOption } from "@/utils/schemas";
 function colorOf(category: string) {
   switch (category) {
     case "Entertainment":
-      return "bg-rose-100 text-rose-700 border-rose-200"; // ❤️ แดงพาสเทล
+      return "bg-rose-100 text-rose-700 border-rose-200";
     case "Education":
-      return "bg-orange-100 text-orange-700 border-orange-200"; // 🧡 ส้มพาสเทล
+      return "bg-orange-100 text-orange-700 border-orange-200";
     case "Health":
-      return "bg-amber-100 text-amber-800 border-amber-200"; // 💛 เหลืองพาสเทล
+      return "bg-amber-100 text-amber-800 border-amber-200";
     case "Lifestyle":
-      return "bg-emerald-100 text-emerald-700 border-emerald-200"; // 💚 เขียวพาสเทล
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
     case "Technology":
-      return "bg-sky-100 text-sky-700 border-sky-200"; // 💙 ฟ้าพาสเทล
+      return "bg-sky-100 text-sky-700 border-sky-200";
     case "Environment":
-      return "bg-violet-100 text-violet-700 border-violet-200"; // 💜 ม่วงพาสเทล
+      return "bg-violet-100 text-violet-700 border-violet-200";
     default:
-      return "bg-zinc-100 text-zinc-700 border-zinc-200"; // เทาอ่อน fallback
+      return "bg-zinc-100 text-zinc-700 border-zinc-200";
   }
 }
 
@@ -61,12 +61,11 @@ export default function CategoryMultiSelect({
   const [isTall, setIsTall] = React.useState(false);
   const btnRef = React.useRef<HTMLButtonElement>(null);
 
-  // ✅ ตรวจจับความสูงแบบเรียลไทม์
   React.useEffect(() => {
     if (!btnRef.current) return;
     const observer = new ResizeObserver(([entry]) => {
       const height = entry.contentRect.height;
-      setIsTall(height > 60); // ถ้าสูงเกิน ~2 แถว ให้ลดความโค้ง
+      setIsTall(height > 60);
     });
     observer.observe(btnRef.current);
     return () => observer.disconnect();
@@ -90,7 +89,6 @@ export default function CategoryMultiSelect({
 
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          {/* ปุ่ม: ปรับ rounded ตามความสูง */}
           <Button
             ref={btnRef}
             type="button"
@@ -114,22 +112,31 @@ export default function CategoryMultiSelect({
                   <Badge
                     key={cat}
                     className={cn(
-                      "px-2 py-1 border rounded-full text-xs whitespace-nowrap",
+                      "px-2 py-1 border rounded-full text-xs whitespace-nowrap flex items-center",
                       colorOf(cat)
                     )}
                   >
                     {cat}
-                    <button
-                      type="button"
+                    <span
+                      role="button"
+                      tabIndex={0}
                       aria-label={`Remove ${cat}`}
-                      className="ml-2 grid place-items-center rounded-full hover:bg-black/5"
+                      title={`Remove ${cat}`}
+                      className="ml-2 grid place-items-center rounded-full hover:bg-black/5 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         clear(cat);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          clear(cat);
+                        }
+                      }}
                     >
                       <X className="size-3" />
-                    </button>
+                    </span>
                   </Badge>
                 ))
               )}
@@ -172,7 +179,6 @@ export default function CategoryMultiSelect({
                         disabled && "opacity-50"
                       )}
                     >
-                      {/* วงกลมขอบ + จุดตรงกลางเมื่อเลือก */}
                       <div
                         className={cn(
                           "mr-2 flex items-center justify-center min-w-[1rem] min-h-[1rem] rounded-full border-2 leading-none",

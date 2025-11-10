@@ -11,6 +11,7 @@ export const users = pgTable('users', {
   bio: text('bio'),
   birthdate: date('birthdate').notNull(),
   sex: varchar('sex', { length: 10 }),
+  profilePicture: varchar('profile_picture', { length: 255 }),
   signupTime: time('signup_time').default(sql`CURRENT_TIME`),
   signupDate: date('signup_date').default(sql`CURRENT_DATE`),
   
@@ -39,6 +40,7 @@ export const USER_COLUMNS = {
   BIO: 'bio',
   BIRTHDATE: 'birthdate',
   SEX: 'sex',
+  PROFILE_PICTURE: 'profilePicture',
   SIGNUP_TIME: 'signupTime',
   SIGNUP_DATE: 'signupDate',
 } as const;
