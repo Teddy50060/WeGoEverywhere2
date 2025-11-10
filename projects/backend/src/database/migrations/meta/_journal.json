@@ -71,6 +71,13 @@
       "when": 1761214616538,
       "tag": "0010_Notification",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1762761376764,
+      "tag": "0011_broken_meltdown",
+      "breakpoints": true
     }
   ]
 }
