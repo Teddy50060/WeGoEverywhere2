@@ -59,7 +59,7 @@ export default function Home() {
       currentDate.setHours(0, 0, 0, 0);
       const uiFormattedJoinedEvents = joinedEventsData
         .map(convertEventToUIFormat)
-        .filter(event => event.status !== 'deleted')
+        .filter(event => event.status !== 'deleted' && event.status !== 'inactive')
         .filter(event => {
           const eventDate = new Date(event.date);
           return eventDate >= currentDate;
@@ -110,7 +110,7 @@ export default function Home() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const formatTime = (timeString: string) => {
