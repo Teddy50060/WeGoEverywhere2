@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from "@/components/navbar/Navbar";
 import { Search, Mic, MapPin, Users, Calendar } from "lucide-react";
 import Image from "next/image";
+import { OpenAPI } from "@/lib/api";
 import { userApi, type User } from "@/lib/api/userApi";
 import { eventApi, convertEventToUIFormat, type Event } from "@/lib/api/eventApi";
 
@@ -179,11 +180,16 @@ export default function Home() {
                 <div className="w-full h-full bg-gray-200 animate-pulse rounded-full" />
               ) : (
                 <Image
-                  src={user?.profilePicture || '/images/profile_image.png'}
+                  src={user?.profilePicture
+                    ? user.profilePicture.startsWith('http')
+                      ? user.profilePicture
+                      : `${OpenAPI.BASE}${user.profilePicture}`
+                    : '/images/profile_image.png'}
                   alt="User Profile"
                   fill
                   sizes="70px"
                   className="object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/images/profile_image.png'; }}
                 />
               )}
             </div>

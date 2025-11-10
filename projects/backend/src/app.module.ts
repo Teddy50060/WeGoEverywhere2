@@ -8,6 +8,7 @@ import { JwtGuard } from './core/auth/jwt/access-jwt/jwt.guard';
 import { EventsModule } from './modules/event/event.module'; // <-- 1. Import EventsModule
 import { ConsentModule } from './modules/consent/consent.module';
 import { UploadModule } from './modules/upload/upload.module'
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { UploadModule } from './modules/upload/upload.module'
     AuthModule,
     EventsModule,
     ConsentModule,
-    UploadModule
+    UploadModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

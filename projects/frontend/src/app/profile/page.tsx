@@ -4,6 +4,7 @@ import {Navbar} from "@/components/navbar/Navbar";
 import { ConfirmProvider, useConfirm } from "@/components/popup/ConfirmProvider";
 import { toastError, toastSuccess } from "@/lib/toast";
 import Image from "next/image";
+import { OpenAPI } from "@/lib/api";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { FiBell } from "react-icons/fi";
@@ -96,13 +97,19 @@ export default function ProfilePage() {
         <div className="mt-6 flex items-center gap-3">
         {/* avatar */}
         <div className="relative h-[96px] w-[96px] rounded-full ring-4 ring-white shadow-lg overflow-hidden bg-white shrink-0">
-            <Image
-            src="/images/profile_image.png"
+          <Image
+            src={user?.profilePicture
+              ? user.profilePicture.startsWith('http')
+                ? user.profilePicture
+                : `${OpenAPI.BASE}${user.profilePicture}`
+              : "/images/profile_image.png"
+            }
             alt="profile"
             fill
             sizes="96px"
             className="object-cover"
-            />
+            onError={(e) => { (e.target as HTMLImageElement).src = "/images/profile_image.png"; }}
+          />
         </div>
 
         {/* pill */}
