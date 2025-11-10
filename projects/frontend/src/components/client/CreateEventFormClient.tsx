@@ -188,8 +188,8 @@ export default function CreateEventFormClient() {
             name="eventStatus"
             label="Status"
             options={[
-              { value: "publish", label: "Publish" },
-              { value: "unpublish", label: "Unpublish" },
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
             ]}
             defaultValue={(f.eventStatus as string) ?? "unpublish"}
           />
