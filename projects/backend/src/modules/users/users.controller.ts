@@ -69,7 +69,10 @@ export class UserController{
         @UseInterceptors(FileInterceptor('file', {
             storage: diskStorage({
                 destination: (req, file, cb) => {
-                    cb(null, path.join(__dirname, '../../../uploads/profile'));
+                    const uploadPath = path.join(__dirname, '../../../uploads/profile');
+                    const fs = require('fs');
+                    fs.mkdirSync(uploadPath, { recursive: true });
+                    cb(null, uploadPath);
                 },
                 filename: (req, file, cb) => {
                     const ext = path.extname(file.originalname);

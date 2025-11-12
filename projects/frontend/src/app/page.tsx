@@ -17,7 +17,7 @@ import { eventApi, convertEventToUIFormat, type Event } from "@/lib/api/eventApi
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
@@ -59,7 +59,7 @@ export default function Home() {
       currentDate.setHours(0, 0, 0, 0);
       const uiFormattedJoinedEvents = joinedEventsData
         .map(convertEventToUIFormat)
-        .filter(event => event.status !== 'deleted')
+        .filter(event => event.status !== 'deleted' && event.status !== 'inactive')
         .filter(event => {
           const eventDate = new Date(event.date);
           return eventDate >= currentDate;
@@ -85,14 +85,21 @@ export default function Home() {
     return 'General';
   };
 
-  // Filter out deleted events
+  // Filter out deleted, inactive, and past events (same strategy as upcomingEvents)
   const filteredEvents = events
-    .filter(event => event.status !== 'deleted')
+    .map(convertEventToUIFormat)
+    .filter(event => event.status !== 'deleted' && event.status !== 'inactive')
+    .filter(event => {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+      const eventDate = new Date(event.date);
+      return eventDate >= currentDate;
+    })
     .filter(event => {
       const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                            (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
-      const eventCategory = getPrimaryCategory(event.categories);
-      const matchesFilter = !selectedFilter || eventCategory === selectedFilter;
+  const eventCategories = (Array.isArray(event.categories) ? event.categories : [event.categories]).filter((cat): cat is string => typeof cat === 'string');
+  const matchesFilter = selectedFilters.length === 0 || selectedFilters.every(sel => eventCategories.includes(sel));
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
@@ -103,7 +110,7 @@ export default function Home() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const formatTime = (timeString: string) => {
@@ -265,10 +272,14 @@ export default function Home() {
               {filterTags.map((tag) => (
                 <button
                   key={tag}
-                  onClick={() => setSelectedFilter(selectedFilter === tag ? null : tag)}
+                  onClick={() => {
+                    setSelectedFilters(selectedFilters.includes(tag)
+                      ? selectedFilters.filter(t => t !== tag)
+                      : [...selectedFilters, tag]);
+                  }}
                   className={`flex-shrink-0 px-4 py-2 rounded-[30px] transition-colors ${
-                    selectedFilter === tag 
-                      ? 'bg-[#EB6223] text-white' 
+                    selectedFilters.includes(tag)
+                      ? 'bg-[#EB6223] text-white'
                       : 'bg-[#D4CDCD] text-black'
                   }`}
                 >

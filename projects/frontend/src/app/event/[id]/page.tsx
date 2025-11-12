@@ -183,9 +183,19 @@ export default function EventDetailPage() {
 
   return (
     <div className="relative w-full max-w-[393px] mx-auto min-h-screen bg-white p-4">
-      {/* Breadcrumb - Outside the border */}
-      <div className="mb-2">
-        <span className="text-gray-600 text-sm">Events / Event Details</span>
+      {/* Back Button */}
+      <div className="mb-2 flex items-center gap-2">
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center justify-center w-12 h-12 rounded-full bg-[#E8C5C5] hover:bg-orange-300 text-black border border-black"
+          aria-label="Back to Home"
+        >
+          {/* Left arrow icon (SVG) */}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-7 h-7">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span className="text-gray-600 text-sm">Events/Event Detail</span>
       </div>
 
       {/* Main Card with Black Border */}
