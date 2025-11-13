@@ -54,15 +54,19 @@ function ProfileSetupPage() {
       case 'firstName':
         if (!value) return "First name is required";
         if (value.length > 50) return "First name must be 50 characters or less";
+        if (!/^[ก-ฮA-Za-z\s]+$/.test(value)) return "First name can only contain letters and spaces";
         return null;
       
       case 'lastName':
         if (!value) return "Last name is required";
         if (value.length > 50) return "Last name must be 50 characters or less";
+        if (!/^[ก-ฮA-Za-z\s]+$/.test(value)) return "Last name can only contain letters and spaces";
         return null;
       
       case 'telephoneNumber':
         if (value && value.length > 20) return "Phone number must be 20 characters or less";
+        if (value && !/^[0-9+\-\s()]+$/.test(value)) return "Phone number can only contain numbers, spaces, +, -, and parentheses";
+        if (value && value.replace(/[^0-9]/g, '').length < 10) return "Phone number must contain at least 10 digits";
         return null;
       
       case 'bio':
@@ -302,8 +306,24 @@ function ProfileSetupPage() {
             }
           }}
         >
-          <FormInput name="firstName" type="text" label="First name" placeholder="Enter your first name"  className="bg-white border border-black" pattern="[ก-ฮA-Za-z\s]+" required />
-          <FormInput name="lastName"  type="text" label="Last name" placeholder="Enter your last name" className="bg-white border border-black" pattern="[ก-ฮA-Za-z\s]+" required/>
+          <FormInput 
+            name="firstName" 
+            type="text" 
+            label="First name" 
+            placeholder="Enter your first name"  
+            className="bg-white border border-black" 
+            pattern="[ก-ฮA-Za-z\s]+" 
+            required 
+          />
+          <FormInput 
+            name="lastName"  
+            type="text" 
+            label="Last name" 
+            placeholder="Enter your last name" 
+            className="bg-white border border-black" 
+            pattern="[ก-ฮA-Za-z\s]+" 
+            required
+          />
 
           {/* Birth date + ปุ่มไอคอนเปิดปฏิทิน */}
           <div className="mb-0">
@@ -346,7 +366,14 @@ function ProfileSetupPage() {
               ]}
           />
 
-          <FormInput name="telephoneNumber" type="tel" label="Phone Number (Optional)" placeholder="Enter your phone number" pattern="[0-9]*" className="bg-white border border-black" />
+          <FormInput 
+            name="telephoneNumber" 
+            type="tel" 
+            label="Phone Number (Optional)" 
+            placeholder="Enter your phone number (e.g., +66 12 345 6789)" 
+            pattern="[0-9+\-\s()]+" 
+            className="bg-white border border-black" 
+          />
           <FormInput name="bio"  type="text" label="Bio (Optional)" placeholder="Tell us about yourself" className="bg-white border border-black" />
 
           <button
