@@ -1,0 +1,81 @@
+@startuml
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+}
+
+rectangle "<<Application>>\nWeGoEveryWhere" as App
+
+' ============================================================
+' AUTH MODULE
+' ============================================================
+
+rectangle "<<Resource>>\nLogin\n+ POST" as Login
+App --> Login : <<path>> /auth/login
+
+rectangle "<<Resource>>\nRegister\n+ POST" as Register
+App --> Register : <<path>> /auth/register
+
+rectangle "<<Resource>>\nForgotPassword\n+ POST" as ForgotPassword
+App --> ForgotPassword : <<path>> /auth/forgot-password
+
+rectangle "<<Resource>>\nResetPassword\n+ POST" as ResetPassword
+App --> ResetPassword : <<path>> /auth/reset-password
+
+rectangle "<<Resource>>\nRefreshJwt\n+ POST" as RefreshJwt
+App --> RefreshJwt : <<path>> /auth/refresh-jwt-token
+
+rectangle "<<Resource>>\nLogout\n+ POST" as Logout
+App --> Logout : <<path>> /auth/logout
+
+rectangle "<<Resource>>\nLogoutAll\n+ POST" as LogoutAll
+App --> LogoutAll : <<path>> /auth/logout-all
+
+rectangle "<<Resource>>\nGithubAuth\n+ GET" as GithubAuth
+App --> GithubAuth : <<path>> /auth/github
+
+rectangle "<<Resource>>\nGithubCallback\n+ GET" as GithubCallback
+App --> GithubCallback : <<path>> /auth/callback
+
+rectangle "<<Resource>>\nRegisterOauth\n+ POST" as RegisterOauth
+App --> RegisterOauth : <<path>> /auth/registerOauth
+
+rectangle "<<Resource>>\nAuthMethod\n+ GET" as AuthMethod
+App --> AuthMethod : <<path>> /auth/method
+
+
+' ============================================================
+' REPRESENTATIONS (From files you provided)
+' ============================================================
+
+' ---------- AuthResponse ----------
+rectangle "<<Representation>>\nAuthResponse\n- success\n- userId\n- firstName\n- lastName\n- email\n- accessToken" as AuthResponse
+
+Login --> AuthResponse : <<use>>
+Register --> AuthResponse : <<use>>
+GithubAuth --> AuthResponse : <<use>>
+GithubCallback --> AuthResponse : <<use>>
+RegisterOauth --> AuthResponse : <<use>>
+
+
+' ---------- StatusResponse ----------
+rectangle "<<Representation>>\nStatusResponse\n- message" as StatusResponse
+
+ForgotPassword --> StatusResponse : <<use>>
+ResetPassword --> StatusResponse : <<use>>
+Logout --> StatusResponse : <<use>>
+LogoutAll --> StatusResponse : <<use>>
+
+
+' ---------- RefreshJwtResponse ----------
+rectangle "<<Representation>>\nRefreshJwtResponse\n- accessToken" as RefreshJwtResponse
+
+RefreshJwt --> RefreshJwtResponse : <<use>>
+
+
+' ---------- MethodResponse ----------
+rectangle "<<Representation>>\nMethodResponse\n- method" as MethodResponse
+
+AuthMethod --> MethodResponse : <<use>>
+
+@enduml
