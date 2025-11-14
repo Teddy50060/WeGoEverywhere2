@@ -193,4 +193,19 @@ rectangle "<<Representation>>\nUser\n- userId\n- firstName\n- lastName\n- email\
 
 EventOrganizer --> UserModel : <<use>>
 
+' =============================
+' UPLOAD RESOURCES
+' =============================
+
+rectangle "<<Resource>>\nUploadSingleFile\n+ POST" as UploadSingleFile
+App --> UploadSingleFile : <<path>> /upload/upload_single_file
+
+' =============================
+' UPLOAD REPRESENTATIONS
+' =============================
+
+rectangle "<<Representation>>\nUploadResponse\n- filename\n- url" as UploadResponse
+UploadSingleFile --> UploadResponse : <<use>>
+
+
 @enduml
