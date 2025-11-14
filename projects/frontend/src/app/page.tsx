@@ -22,6 +22,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const displayedUpcomingEvents = upcomingEvents;
   const router = useRouter();
 
   // Navigate to event detail page
@@ -98,8 +99,8 @@ export default function Home() {
     .filter(event => {
       const matchesSearch = (event.title || event.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                            (event.description || event.detail || '').toLowerCase().includes(searchQuery.toLowerCase());
-  const eventCategories = (Array.isArray(event.categories) ? event.categories : [event.categories]).filter((cat): cat is string => typeof cat === 'string');
-  const matchesFilter = selectedFilters.length === 0 || selectedFilters.every(sel => eventCategories.includes(sel));
+      const eventCategories = (Array.isArray(event.categories) ? event.categories : [event.categories]).filter((cat): cat is string => typeof cat === 'string');
+      const matchesFilter = selectedFilters.length === 0 || selectedFilters.every(sel => eventCategories.includes(sel));
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
@@ -159,7 +160,7 @@ export default function Home() {
   }, []);
 
   return (
-  <div className="relative w-full max-w-[393px] mx-auto min-h-screen bg-white flex flex-col">
+    <div className="relative w-full max-w-[393px] mx-auto min-h-screen bg-white flex flex-col">
       {/* Custom Header Banner for Home Page - Sticky */}
       <div className="sticky top-0 z-50 bg-brand-primary">
         <header className="bg-[var(--color-brand-secondary)] rounded-b-[50px] px-3 py-5 overflow-hidden">
@@ -173,7 +174,6 @@ export default function Home() {
                 EveryWhere
               </span>
             </h1>
-
             {/* Profile Picture */}
             <div className="relative h-[70px] w-[70px] rounded-full ring-3 ring-white shadow-lg overflow-hidden bg-white shrink-0">
               {loading ? (
@@ -203,7 +203,7 @@ export default function Home() {
       </div>
 
       {/* Main Content - Centered and Responsive */}
-      <div className="flex flex-col items-center px-4 pt-4 pb-20">
+      <div className="flex-1 flex flex-col items-center px-4 pt-4 pb-20">
         {/* Up Coming Event Section */}
         <div className="w-full max-w-[350px] bg-[#FFFBF0] border border-black rounded-[18px] p-4 mb-6">
           <h2 className="font-inter font-bold text-[17px] leading-[22px] text-black mb-4">
@@ -211,9 +211,9 @@ export default function Home() {
           </h2>
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
-              {upcomingEvents.map((event) => (
+              {displayedUpcomingEvents.map((event) => (
                 <div key={event.eventId} className="flex-shrink-0 w-[110px] cursor-pointer hover:opacity-90 transition-opacity" onClick={() => handleEventClick(event.eventId)}>
-                  <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoriesColor(event.categories ?? 'General')}`}>
+                  <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoriesColor(event.categories ?? 'General')}`}> 
                     <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                     <img
                       src={event.coverUrl}
@@ -296,7 +296,7 @@ export default function Home() {
         <div className="w-full max-w-[350px] grid grid-cols-2 gap-4">
           {filteredEvents.map((event) => (
             <div key={event.eventId} className="bg-[#FFF3D2] rounded-[18px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleEventClick(event.eventId)}>
-              <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoriesColor(event.categories ?? 'General')}`}>
+              <div className={`relative h-[80px] w-full bg-gradient-to-br ${getCategoriesColor(event.categories ?? 'General')}`}> 
                 <div className="absolute inset-0 bg-black bg-opacity-5"></div>
                 <img
                   src={event.coverUrl}
