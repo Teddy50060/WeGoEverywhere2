@@ -54,13 +54,13 @@ function ProfileSetupPage() {
       case 'firstName':
         if (!value) return "First name is required";
         if (value.length > 50) return "First name must be 50 characters or less";
-        if (!/^[ก-ฮA-Za-z\s]+$/.test(value)) return "First name can only contain letters and spaces";
+        if (!/^[ก-ฮA-Za-z]+$/.test(value)) return "First name can only contain letters (no spaces)";
         return null;
-      
+
       case 'lastName':
         if (!value) return "Last name is required";
         if (value.length > 50) return "Last name must be 50 characters or less";
-        if (!/^[ก-ฮA-Za-z\s]+$/.test(value)) return "Last name can only contain letters and spaces";
+        if (!/^[ก-ฮA-Za-z]+$/.test(value)) return "Last name can only contain letters (no spaces)";
         return null;
       
       case 'telephoneNumber':
@@ -370,12 +370,9 @@ function ProfileSetupPage() {
           <FormInput 
             name="telephoneNumber"
             type="tel"
-            inputMode="tel"
             label="Telephone"
             placeholder="Phone Number (Optional)"
             pattern="^0[689][0-9]{7,8}$"
-            title="Starting with 06, 08, or 09 and up to 10 digits (e.g. 0812345678)"
-            maxLength={10}
             className="bg-white border border-black"
           />
           <FormInput name="bio"  type="text" label="Bio (Optional)" placeholder="Tell us about yourself" className="bg-white border border-black" />
