@@ -26,6 +26,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+
   const router = useRouter();
 
   // Navigate to event detail page
@@ -203,7 +204,6 @@ export default function Home() {
                 EveryWhere
               </span>
             </h1>
-
             {/* Profile Picture */}
             <div className="relative h-[70px] w-[70px] rounded-full ring-3 ring-white shadow-lg overflow-hidden bg-white shrink-0">
               {loading ? (
@@ -239,7 +239,7 @@ export default function Home() {
       </div>
 
       {/* Main Content - Centered and Responsive */}
-      <div className="flex flex-col items-center px-4 pt-4 pb-20">
+      <div className="flex-1 flex flex-col items-center px-4 pt-4 pb-20">
         {/* Up Coming Event Section */}
         <div className="w-full max-w-[350px] bg-[#FFFBF0] border border-black rounded-[18px] p-4 mb-6">
           <h2 className="font-inter font-bold text-[17px] leading-[22px] text-black mb-4">
