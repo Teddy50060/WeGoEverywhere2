@@ -51,6 +51,7 @@ export default function EventPhotoPicker({
 }: EventPhotoPickerProps) {
   const fileRef = React.useRef<HTMLInputElement | null>(null);
   const [localUrl, setLocalUrl] = React.useState<string | null>(null);
+  const [fileError, setFileError] = React.useState<string | null>(null);
 
   const displayUrl = localUrl || value || null;
   const roundedClass = roundedToClass(rounded);
@@ -60,7 +61,18 @@ export default function EventPhotoPicker({
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const f = e.target.files?.[0] ?? null;
     if (!f) {
-      // เคลียร์ไฟล์ → กลับไปใช้ค่าเดิม
+      setLocalUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      setFileError(null);
+      onChange?.(null, null);
+      return;
+    }
+    // File size check (2MB limit)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (f.size > maxSize) {
+      setFileError('Image size must be less than 2MB.');
       setLocalUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
@@ -68,6 +80,7 @@ export default function EventPhotoPicker({
       onChange?.(null, null);
       return;
     }
+    setFileError(null);
     const url = URL.createObjectURL(f);
     setLocalUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
@@ -127,6 +140,9 @@ export default function EventPhotoPicker({
         >
           {linkText}
         </button>
+        {fileError && (
+          <div className="mt-2 text-red-500 text-xs font-medium">{fileError}</div>
+        )}
       </div>
 
       {/* ฟิลด์ที่ส่งไปกับฟอร์ม */}
