@@ -99,57 +99,37 @@ export default function EventDetailPage() {
 
   const handleRegisterToggle = async () => {
     if (!event) return;
-    
     // Prevent registration/unregistration if event has passed
     if (isEventPast) {
-      toast.error('This event has already ended.', { 
-        duration: 3000 
-      });
+      toast.error('This event has already ended.', { duration: 3000 });
       return;
     }
-    
+    // Prevent registration if event is full
+    if (!hasJoined && event.currentParticipants >= event.capacity) {
+      toast.error('Event is full.', { duration: 3000 });
+      return;
+    }
     const loadingToast = toast.loading('Processing...');
-    
     try {
       if (hasJoined) {
         await eventApi.unjoinEvent(event.eventId);
         setHasJoined(false);
-        
-        toast.success(
-          'Event unregistration successful!',
-          { 
-            id: loadingToast,
-            duration: 3000,
-          }
-        );
+        toast.success('Event unregistration successful!', { id: loadingToast, duration: 3000 });
       } else {
         await eventApi.joinEvent(event.eventId);
         setHasJoined(true);
-        
-        toast.success(
-          'Event registration successful!',
-          { 
-            id: loadingToast,
-            duration: 3000,
-          }
-        );
+        toast.success('Event registration successful!', { id: loadingToast, duration: 3000 });
       }
-      
       // Refresh event data to update participant count
       const updatedEvent = await eventApi.getEventById(event.eventId);
       setEvent(convertEventToUIFormat(updatedEvent));
-      
     } catch (err) {
       console.error('Registration error:', err);
-      
       toast.error(
-        hasJoined 
+        hasJoined
           ? 'Failed to unregister from event.'
           : 'Failed to register for event.',
-        { 
-          id: loadingToast,
-          duration: 3000,
-        }
+        { id: loadingToast, duration: 3000 }
       );
     }
   };
@@ -310,23 +290,33 @@ export default function EventDetailPage() {
 
       {/* Action Buttons - Outside the frame */}
       <div className="-mt-10 space-y-3 mb-20">
-        <button
-          onClick={handleRegisterToggle}
-          disabled={isEventPast}
-          className={`w-full font-bold py-3 px-6 rounded-full border border-black transition-colors shadow-sm ${
-            isEventPast
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : hasJoined
-              ? 'bg-red-200 text-red-700 hover:bg-red-300'
-              : 'bg-[#9BE28C] hover:bg-green-400 text-green-900'
-          }`}
-        >
-          {isEventPast 
-            ? "Event Ended" 
-            : hasJoined 
-            ? "Cancel Registration" 
-            : "Register for Event"}
-        </button>
+        {/* Registration Button Logic */}
+        {(!hasJoined && event.currentParticipants >= event.capacity) ? (
+          <button
+            disabled
+            className="w-full font-bold py-3 px-6 rounded-full border border-black bg-gray-300 text-gray-500 cursor-not-allowed shadow-sm"
+          >
+            This event is full.
+          </button>
+        ) : (
+          <button
+            onClick={handleRegisterToggle}
+            disabled={isEventPast}
+            className={`w-full font-bold py-3 px-6 rounded-full border border-black transition-colors shadow-sm ${
+              isEventPast
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : hasJoined
+                ? 'bg-red-200 text-red-700 hover:bg-red-300'
+                : 'bg-[#9BE28C] hover:bg-green-400 text-green-900'
+            }`}
+          >
+            {isEventPast 
+              ? "Event Ended" 
+              : hasJoined 
+              ? "Cancel Registration" 
+              : "Register for Event"}
+          </button>
+        )}
         <button
           onClick={() => toast.success('Report submitted successfully!', { 
             duration: 3000 
