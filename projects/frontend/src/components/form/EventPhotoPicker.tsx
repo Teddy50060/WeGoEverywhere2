@@ -69,10 +69,10 @@ export default function EventPhotoPicker({
       onChange?.(null, null);
       return;
     }
-    // File size check (2MB limit)
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    // File size check (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (f.size > maxSize) {
-      setFileError('Image size must be less than 2MB.');
+      setFileError('Image size must be less than 10MB.');
       setLocalUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
