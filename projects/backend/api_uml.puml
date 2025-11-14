@@ -1,4 +1,4 @@
-@startuml
+@startuml 
 skinparam rectangle {
   BackgroundColor White
   BorderColor Black
@@ -45,11 +45,11 @@ App --> AuthMethod : <<path>> /auth/method
 
 
 ' ============================================================
-' REPRESENTATIONS (From files you provided)
+' AUTH REPRESENTATIONS (FIXED)
 ' ============================================================
 
-' ---------- AuthResponse ----------
-rectangle "<<Representation>>\nAuthResponse\n- success\n- userId\n- firstName\n- lastName\n- email\n- accessToken" as AuthResponse
+' ---------- AuthResponse (FIXED full structure) ----------
+rectangle "<<Representation>>\nAuthResponse\n- accessToken\n- refreshToken\n- user.userId\n- user.firstName\n- user.lastName\n- user.email\n- user.profilePicture" as AuthResponse
 
 Login --> AuthResponse : <<use>>
 Register --> AuthResponse : <<use>>
@@ -78,6 +78,7 @@ rectangle "<<Representation>>\nMethodResponse\n- method" as MethodResponse
 
 AuthMethod --> MethodResponse : <<use>>
 
+
 ' ============================================================
 ' CONSENT MODULE
 ' ============================================================
@@ -90,9 +91,6 @@ App --> CheckConsent : <<path>> /api/consent/check/{userId}
 
 rectangle "<<Resource>>\nAcceptConsent\n+ POST" as AcceptConsent
 App --> AcceptConsent : <<path>> /api/consent/accept
-
-
-' ---------- Admin Only ----------
 
 rectangle "<<Resource>>\nCreatePolicy\n+ POST" as CreatePolicy
 App --> CreatePolicy : <<path>> /api/consent/admin/policy
@@ -114,7 +112,7 @@ App --> ActivatePolicy : <<path>> /api/consent/admin/policy/{version}/activate
 
 
 ' ============================================================
-' REPRESENTATIONS
+' CONSENT REPRESENTATIONS
 ' ============================================================
 
 rectangle "<<Representation>>\nPolicyResponseDto\n- id\n- content\n- version\n- isActive\n- createdAt" as PolicyResponseDto
@@ -141,4 +139,58 @@ DeletePolicy --> DeletePolicyResponseDto : <<use>>
 
 rectangle "<<Representation>>\nActivatePolicyResponseDto\n- message\n- activatedVersion" as ActivatePolicyResponseDto
 ActivatePolicy --> ActivatePolicyResponseDto : <<use>>
+
+
+' =============================
+' EVENT RESOURCES / PATHS
+' =============================
+
+rectangle "<<Resource>>\nEvents\n+ GET\n+ POST" as Events
+App --> Events : <<path>> /events
+
+rectangle "<<Resource>>\nEventsWithImage\n+ POST" as EventsWithImage
+Events --> EventsWithImage : <<path>> /withImage
+
+rectangle "<<Resource>>\nEvent\n+ GET\n+ PATCH\n+ DELETE" as Event
+Events --> Event : <<path>> /{id}
+
+rectangle "<<Resource>>\nEventWithImage\n+ PATCH" as EventWithImage
+Events --> EventWithImage : <<path>> /withImage/{id}
+
+rectangle "<<Resource>>\nJoinEvent\n+ POST\n+ DELETE" as JoinEvent
+Event --> JoinEvent : <<path>> /join
+
+rectangle "<<Resource>>\nUserJoinedEvents\n+ GET" as UserJoinedEvents
+Events --> UserJoinedEvents : <<path>> /user/joined
+
+rectangle "<<Resource>>\nEventOrganizer\n+ GET" as EventOrganizer
+Event --> EventOrganizer : <<path>> /organizer
+
+
+' =============================
+' EVENT REPRESENTATIONS
+' =============================
+
+rectangle "<<Representation>>\nEvent\n- eventId\n- cost\n- name\n- date\n- time\n- place\n- capacity\n- detail\n- rating\n- categories[]\n- imagePath\n- status\n- userId" as EventModel
+
+Event --> EventModel : <<use>>
+Events --> EventModel : <<use>>
+EventsWithImage --> EventModel : <<use>>
+EventWithImage --> EventModel : <<use>>
+
+rectangle "<<Representation>>\nEventWithParticipants\n- eventId\n- cost\n- name\n- date\n- time\n- place\n- capacity\n- detail\n- rating\n- categories[]\n- imagePath\n- status\n- userId\n- currentParticipants" as EventWithParticipants
+
+Event --> EventWithParticipants : <<use>>
+Events --> EventWithParticipants : <<use>>
+UserJoinedEvents --> EventWithParticipants : <<use>>
+
+rectangle "<<Representation>>\nJoinResponse\n- message" as JoinResponse
+JoinEvent --> JoinResponse : <<use>>
+
+
+' ---- Organizer response (User) (FIXED) ----
+rectangle "<<Representation>>\nUser\n- userId\n- firstName\n- lastName\n- email\n- role\n- profilePicture" as UserModel
+
+EventOrganizer --> UserModel : <<use>>
+
 @enduml
