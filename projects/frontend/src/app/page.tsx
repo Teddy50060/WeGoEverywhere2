@@ -22,7 +22,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
-  const displayedUpcomingEvents = upcomingEvents;
+
   const router = useRouter();
 
   // Navigate to event detail page
@@ -211,7 +211,7 @@ export default function Home() {
           </h2>
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
-              {displayedUpcomingEvents.map((event) => (
+              {upcomingEvents.map((event) => (
                 <div key={event.eventId} className="flex-shrink-0 w-[110px] cursor-pointer hover:opacity-90 transition-opacity" onClick={() => handleEventClick(event.eventId)}>
                   <div className={`relative w-full h-[90px] rounded-[18px] mb-2 overflow-hidden bg-gradient-to-br ${getCategoriesColor(event.categories ?? 'General')}`}> 
                     <div className="absolute inset-0 bg-black bg-opacity-5"></div>
