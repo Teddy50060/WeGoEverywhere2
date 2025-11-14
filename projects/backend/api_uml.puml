@@ -207,5 +207,37 @@ App --> UploadSingleFile : <<path>> /upload/upload_single_file
 rectangle "<<Representation>>\nUploadResponse\n- filename\n- url" as UploadResponse
 UploadSingleFile --> UploadResponse : <<use>>
 
+' ============================================================
+' USERS MODULE
+' ============================================================
+
+rectangle "<<Resource>>\nUsers\n+ GET" as Users
+App --> Users : <<path>> /users
+
+rectangle "<<Resource>>\nUser\n+ GET\n+ DELETE" as User
+Users --> User : <<path>> /me  'delete uses /me
+
+rectangle "<<Resource>>\nUserById\n+ GET" as UserById
+Users --> UserById : <<path>> /{id}
+
+rectangle "<<Resource>>\nEditUser\n+ PATCH" as EditUser
+Users --> EditUser : <<path>> /edit
+
+rectangle "<<Resource>>\nUploadProfilePicture\n+ POST" as UploadProfilePicture
+Users --> UploadProfilePicture : <<path>> /profile-picture
+
+
+' --- Representations ---
+
+rectangle "<<Representation>>\nUserResponseDto\n- userId\n- firstName\n- lastName\n- email\n- role\n- profilePicture" as UserResponseDto
+
+Users --> UserResponseDto : <<use>>
+User --> UserResponseDto : <<use>>
+UserById --> UserResponseDto : <<use>>
+EditUser --> UserResponseDto : <<use>>
+
+' Profile picture upload returns a user too
+UploadProfilePicture --> UserResponseDto : <<use>>
+
 
 @enduml
