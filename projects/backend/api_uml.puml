@@ -78,4 +78,67 @@ rectangle "<<Representation>>\nMethodResponse\n- method" as MethodResponse
 
 AuthMethod --> MethodResponse : <<use>>
 
+' ============================================================
+' CONSENT MODULE
+' ============================================================
+
+rectangle "<<Resource>>\nGetCurrentPolicy\n+ GET" as GetCurrentPolicy
+App --> GetCurrentPolicy : <<path>> /api/consent/current-policy
+
+rectangle "<<Resource>>\nCheckConsent\n+ GET" as CheckConsent
+App --> CheckConsent : <<path>> /api/consent/check/{userId}
+
+rectangle "<<Resource>>\nAcceptConsent\n+ POST" as AcceptConsent
+App --> AcceptConsent : <<path>> /api/consent/accept
+
+
+' ---------- Admin Only ----------
+
+rectangle "<<Resource>>\nCreatePolicy\n+ POST" as CreatePolicy
+App --> CreatePolicy : <<path>> /api/consent/admin/policy
+
+rectangle "<<Resource>>\nPolicyHistory\n+ GET" as PolicyHistory
+App --> PolicyHistory : <<path>> /api/consent/policies/history
+
+rectangle "<<Resource>>\nGetPolicyByVersion\n+ GET" as GetPolicyByVersion
+App --> GetPolicyByVersion : <<path>> /api/consent/policy/{version}
+
+rectangle "<<Resource>>\nUpdatePolicy\n+ PUT" as UpdatePolicy
+App --> UpdatePolicy : <<path>> /api/consent/admin/policy/{version}
+
+rectangle "<<Resource>>\nDeletePolicy\n+ DELETE" as DeletePolicy
+App --> DeletePolicy : <<path>> /api/consent/admin/policy/{version}
+
+rectangle "<<Resource>>\nActivatePolicy\n+ POST" as ActivatePolicy
+App --> ActivatePolicy : <<path>> /api/consent/admin/policy/{version}/activate
+
+
+' ============================================================
+' REPRESENTATIONS
+' ============================================================
+
+rectangle "<<Representation>>\nPolicyResponseDto\n- id\n- content\n- version\n- isActive\n- createdAt" as PolicyResponseDto
+GetCurrentPolicy --> PolicyResponseDto : <<use>>
+GetPolicyByVersion --> PolicyResponseDto : <<use>>
+
+rectangle "<<Representation>>\nConsentCheckResponseDto\n- needsConsent\n- latestVersion\n- userAcceptedVersion" as ConsentCheckResponseDto
+CheckConsent --> ConsentCheckResponseDto : <<use>>
+
+rectangle "<<Representation>>\nAcceptConsentResponseDto\n- message\n- acceptedVersion" as AcceptConsentResponseDto
+AcceptConsent --> AcceptConsentResponseDto : <<use>>
+
+rectangle "<<Representation>>\nCreatePolicyResponseDto\n- id\n- version\n- message" as CreatePolicyResponseDto
+CreatePolicy --> CreatePolicyResponseDto : <<use>>
+
+rectangle "<<Representation>>\nPolicyHistoryResponseDto\n- policies[]" as PolicyHistoryResponseDto
+PolicyHistory --> PolicyHistoryResponseDto : <<use>>
+
+rectangle "<<Representation>>\nUpdatePolicyResponseDto\n- message\n- updatedVersion" as UpdatePolicyResponseDto
+UpdatePolicy --> UpdatePolicyResponseDto : <<use>>
+
+rectangle "<<Representation>>\nDeletePolicyResponseDto\n- message" as DeletePolicyResponseDto
+DeletePolicy --> DeletePolicyResponseDto : <<use>>
+
+rectangle "<<Representation>>\nActivatePolicyResponseDto\n- message\n- activatedVersion" as ActivatePolicyResponseDto
+ActivatePolicy --> ActivatePolicyResponseDto : <<use>>
 @enduml
