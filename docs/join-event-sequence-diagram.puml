@@ -1,7 +1,6 @@
-@startuml
-title Sequence Diagram — Join Event (Final, Based on Actual Frontend Code)
+@startuml 
+title Sequence Diagram — Join Event
 
-/' === Participants === '/
 actor User
 participant UI as "EventDetailPage"
 participant API as "EventApi"
@@ -10,16 +9,8 @@ participant S as "EventService"
 participant R as "EventRepository"
 database DB as "Database"
 
-/' ========================================================
-    User presses "Register for Event"
-   ======================================================== '/
-
 User -> UI : tapRegisterButton()
 activate UI
-
-/' ========================================================
-    SCENARIO 1 — EVENT ALREADY PASSED  (UI blocks)
-   ======================================================== '/
 
 opt [eventDateTime < now]
     UI -> UI : toast.error("This event has already ended.")
@@ -28,21 +19,12 @@ opt [eventDateTime < now]
     return
 end
 
-/' ========================================================
-    SCENARIO 2 — EVENT FULL  (UI blocks)
-   ======================================================== '/
-
 opt [!hasJoined AND currentParticipants >= capacity]
     UI -> UI : toast.error("Event is full.")
     UI --> User : disable button
     deactivate UI
     return
 end
-
-/' ========================================================
-    SCENARIO 3 — USER MAY JOIN EVENT
-    joinEvent API call is allowed
-   ======================================================== '/
 
 UI -> API : joinEvent(eventId)
 activate API
@@ -56,7 +38,7 @@ activate S
 S -> R : checkIfJoined(eventId, userId)
 activate R
 
-R -> DB : SELECT * FROM joined\nWHERE eventId=userId
+R -> DB : SELECT * FROM joined WHERE eventId=userId
 activate DB
 DB --> R
 deactivate DB
@@ -74,7 +56,7 @@ alt [user already joined]
     API --> UI : resolve()
     deactivate API
 
-    UI -> UI : setHasJoined(true)\n// UI shows cancel button
+    UI -> UI : setHasJoined(true)
 else [first time joining]
     R -> DB : INSERT INTO joined(eventId, userId)
     activate DB
@@ -96,11 +78,6 @@ else [first time joining]
     UI -> UI : toast.success("Event registration successful!")
     UI -> UI : setHasJoined(true)
 end
-
-/' ========================================================
-    SCENARIO 4 — REFRESH EVENT DETAILS  
-    (Frontend always refreshes after join)
-   ======================================================== '/
 
 UI -> API : getEventById(eventId)
 activate API
