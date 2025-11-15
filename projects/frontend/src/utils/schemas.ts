@@ -38,7 +38,22 @@ export const eventFormSchema = z
     }, z.array(z.enum(CATEGORY_OPTIONS)).min(1, "Pick at least 1 category")),
     file: z
       .any()
-      .transform((v) => (v instanceof File && v.size > 0 ? v : null)),
+      .refine((v) => v instanceof File && v.size > 0, "Event photo is required")
+      .refine((v) => {
+        if (!(v instanceof File)) return false;
+        const validTypes = [
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "image/webp",
+        ];
+        return validTypes.includes(v.type);
+      }, "Only JPEG, PNG, or WebP images are allowed")
+      .refine((v) => {
+        if (!(v instanceof File)) return false;
+        // Max 5MB
+        return v.size <= 10 * 1024 * 1024;
+      }, "Image must be smaller than 5MB"),
     userId: z.number().optional(),
   })
   .refine(
