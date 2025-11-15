@@ -1,4 +1,9 @@
-import { Controller, Get, Patch, Param, Body, ParseIntPipe , Post, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, ParseIntPipe , Post, Delete, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import { ApiConsumes } from '@nestjs/swagger';
+import { v4 as uuidv4 } from 'uuid';
 import { Public } from '@backend/src/shared/decorators/public.decorator';
 import { UserService } from './users.service';
 import { UpdateUserDto } from './users.dto'; // <-- Import the DTO
@@ -54,4 +59,46 @@ export class UserController{
     async getMe(@GetUserId() userId: number) {
       return this.userService.getPublicProfileById(userId);
     }
+
+        /**
+         * Upload user profile picture
+         * POST /users/profile-picture
+         */
+        @UseGuards(JwtGuard)
+        @Post('profile-picture')
+        @UseInterceptors(FileInterceptor('file', {
+            storage: diskStorage({
+                destination: (req, file, cb) => {
+                    const uploadPath = path.join(__dirname, '../../../uploads/profile');
+                    const fs = require('fs');
+                    fs.mkdirSync(uploadPath, { recursive: true });
+                    cb(null, uploadPath);
+                },
+                filename: (req, file, cb) => {
+                    const ext = path.extname(file.originalname);
+                    const filename = uuidv4() + ext;
+                    cb(null, filename);
+                },
+            }),
+            limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.startsWith('image/')) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }))
+        @ApiConsumes('multipart/form-data')
+        async uploadProfilePicture(
+            @GetUserId() userId: number,
+            @UploadedFile() file: Express.Multer.File
+        ) {
+            if (!file) {
+                return { statusCode: 400, message: 'No file uploaded' };
+            }
+            // Save relative path to DB
+            const relativePath = `/uploads/profile/${file.filename}`;
+            await this.userService.update(userId, { profilePicture: relativePath });
+            return { profilePicture: relativePath };
+        }
 }

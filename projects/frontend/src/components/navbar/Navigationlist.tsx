@@ -10,15 +10,20 @@ export const Navigationlist = () => {
   return (
     <div className="font-alt flex justify-center items-stretch w-full">
       {navLinks.map(({ href, label, icon: Icon }) => {
+        // Always link Events tab to /event
+        const linkHref = href === "/event" ? "/event" : href;
+        // Home icon is active on / and on event detail pages
+        const isEventDetail = pathname.startsWith("/event/") && pathname !== "/event" && pathname !== "/event/create";
         const isActive =
           href === "/event"
-            ? pathname.startsWith("/event") &&
-              !pathname.startsWith("/event/create")
-            : pathname === href;
+            ? pathname === "/event"
+            : href === "/" && isEventDetail
+              ? true
+              : pathname === href;
         return (
           <Link
             key={href}
-            href={href}
+            href={linkHref}
             className={`flex-1 flex flex-col items-center py-2 rounded-md transition-colors
               ${
                 isActive

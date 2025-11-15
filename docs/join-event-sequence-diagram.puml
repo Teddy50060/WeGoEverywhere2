@@ -1,0 +1,119 @@
+@startuml 
+title Sequence Diagram — Join Event
+
+actor User
+participant UI as "EventDetailPage"
+participant API as "EventApi"
+participant C as "EventController"
+participant S as "EventService"
+participant R as "EventRepository"
+database DB as "Database"
+
+User -> UI : tapRegisterButton()
+activate UI
+
+opt [eventDateTime < now]
+    UI -> UI : toast.error("This event has already ended.")
+    UI --> User : disable button\nlabel = "Event Ended"
+    deactivate UI
+    return
+end
+
+opt [!hasJoined AND currentParticipants >= capacity]
+    UI -> UI : toast.error("Event is full.")
+    UI --> User : disable button
+    deactivate UI
+    return
+end
+
+UI -> API : joinEvent(eventId)
+activate API
+
+API -> C : POST /events/{id}/join
+activate C
+
+C -> S : joinEvent(eventId, userId)
+activate S
+
+S -> R : checkIfJoined(eventId, userId)
+activate R
+
+R -> DB : SELECT * FROM joined WHERE eventId=userId
+activate DB
+DB --> R
+deactivate DB
+
+alt [user already joined]
+    R --> S : "ALREADY JOINED"
+    deactivate R
+
+    S --> C : 200 OK { message: "Already joined" }
+    deactivate S
+
+    C --> API : 200 OK
+    deactivate C
+
+    API --> UI : resolve()
+    deactivate API
+
+    UI -> UI : setHasJoined(true)
+else [first time joining]
+    R -> DB : INSERT INTO joined(eventId, userId)
+    activate DB
+    DB --> R
+    deactivate DB
+    
+    R --> S : "joined successfully"
+    deactivate R
+    
+    S --> C : 200 OK { message: "Joined successfully" }
+    deactivate S
+    
+    C --> API : 200 OK
+    deactivate C
+    
+    API --> UI : resolve()
+    deactivate API
+    
+    UI -> UI : toast.success("Event registration successful!")
+    UI -> UI : setHasJoined(true)
+end
+
+UI -> API : getEventById(eventId)
+activate API
+
+API -> C : GET /events/{id}
+activate C
+
+C -> S : getEventById(id)
+activate S
+
+S -> R : findEventWithParticipants(id)
+activate R
+
+R -> DB : SELECT * FROM event WHERE id
+activate DB
+DB --> R
+deactivate DB
+
+R -> DB : SELECT count(*) FROM joined WHERE eventId=id
+activate DB
+DB --> R
+deactivate DB
+
+R --> S : event + updated currentParticipants
+deactivate R
+
+S --> C : event json
+deactivate S
+
+C --> API : 200 OK
+deactivate C
+
+API --> UI : updated event
+deactivate API
+
+UI --> User : show updated participant count\nshow "Cancel Registration"
+deactivate UI
+
+@enduml

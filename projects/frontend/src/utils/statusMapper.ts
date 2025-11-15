@@ -2,19 +2,19 @@
 export function uiFromApiStatus(apiStatus?: string): string {
   switch (apiStatus) {
     case "active":
-      return "publish";
+      return "active";
     case "inactive":
-      return "unpublish";
+      return "inactive";
     default:
-      return "publish"; 
+      return "active"; 
   }
 }
 
 export function apiFromUiStatus(uiStatus?: string): string | undefined {
   switch (uiStatus) {
-    case "publish":
+    case "active":
       return "active";
-    case "unpublish":
+    case "inactive":
       return "inactive";
     default:
       return undefined;

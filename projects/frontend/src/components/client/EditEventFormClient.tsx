@@ -1,4 +1,3 @@
-// /components/client/EditEventFormClient.tsx
 "use client";
 
 import * as React from "react";
@@ -110,12 +109,9 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
         message: undefined,
       };
 
-      // ✅ ถ้าอัปเดตล้มเหลว → "อย่า" รีเซ็ตรูป ปล่อยให้พรีวิวไฟล์ใหม่ค้างไว้
-      // ✅ ถ้าอัปเดตสำเร็จ เดี๋ยวเราจะเปลี่ยนหน้า /event อยู่แล้ว
       return nextState;
     } catch (err) {
       console.error(err);
-      // ✅ error จริงก็ยังคงพรีวิวไฟล์ใหม่ไว้เช่นกัน
       return {
         ok: false,
         errors: {},
@@ -173,9 +169,6 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
     successText: "Event updated successfully!",
     errorText: "Failed to update event.",
     onSuccess: () => {
-      // อัปเดตสำเร็จแล้ว เปลี่ยนหน้า (รูปจะ “เปลี่ยนไปเลย” ตามข้อมูลใหม่จากแบ็กเอนด์)
-      // ถ้าอยากเคลียร์ state ด้วยก็ทำได้ แต่จะเปลี่ยนหน้าอยู่แล้วจึงไม่จำเป็น
-      // setPhotoFile(null); setPreviewUrl(null);
       router.push("/event");
     },
   });
@@ -282,8 +275,8 @@ export default function EditEventFormClient({ event }: { event: EventView }) {
                 name="eventStatus"
                 label="Status"
                 options={[
-                  { value: "publish", label: "Publish" },
-                  { value: "unpublish", label: "Unpublish" },
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
                 ]}
                 defaultValue={
                   (f.eventStatus as string) ?? uiFromApiStatus(event.status)
