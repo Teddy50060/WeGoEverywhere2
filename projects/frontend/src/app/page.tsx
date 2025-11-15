@@ -60,16 +60,17 @@ export default function Home() {
   const fetchUserJoinedEvents = async () => {
     try {
       const joinedEventsData = await eventApi.getUserJoinedEvents();
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
+      const now = new Date();
       const uiFormattedJoinedEvents = joinedEventsData
         .map(convertEventToUIFormat)
         .filter(
           (event) => event.status !== "deleted" && event.status !== "inactive"
         )
         .filter((event) => {
-          const eventDate = new Date(event.date);
-          return eventDate >= currentDate;
+          const [hours, minutes] = event.time.split(":").map(Number);
+          const eventDateTime = new Date(event.date);
+          eventDateTime.setHours(hours, minutes, 0, 0);
+          return eventDateTime >= now;
         })
         .sort((a, b) => {
           const dateComparison =
@@ -107,10 +108,13 @@ export default function Home() {
       (event) => event.status !== "deleted" && event.status !== "inactive"
     )
     .filter((event) => {
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
-      const eventDate = new Date(event.date);
-      return eventDate >= currentDate;
+      const now = new Date();
+
+      const [hours, minutes] = event.time.split(":").map(Number);
+      const eventDateTime = new Date(event.date);
+      eventDateTime.setHours(hours, minutes, 0, 0);
+
+      return eventDateTime >= now;
     })
     .filter((event) => {
       const matchesSearch =
