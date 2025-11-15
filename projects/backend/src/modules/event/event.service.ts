@@ -40,8 +40,7 @@ export class EventService {
         ,{
           title : "User have join your event",
           fromService: 'event',
-          message : `${user?.firstName} ${user?.lastName} joined your event "${event.name}".`,
-
+          message : `${user?.firstName} ${user?.lastName} joined ${event.name}.`,
         });
       return joined;
     }catch(error){
