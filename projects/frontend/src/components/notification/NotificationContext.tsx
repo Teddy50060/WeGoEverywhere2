@@ -15,13 +15,14 @@ import { toast } from 'react-hot-toast';
 
 import { Notification } from '@/components/notification/notificationCard'; // Adjust path
 
-// 1. Define the context type with all functions
+// 1. Define the context type with all functions AND hasMore
 interface NotificationContextType {
   notifications: Notification[];
   notifCount: number;
   markRead: (notificationId: number) => void;
   loadMore: () => void;
-  reloadNotifications: () => void; // For resetting the page
+  reloadNotifications: () => void;
+  hasMore: boolean; // <-- ADD THIS
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -33,16 +34,15 @@ interface NotificationPayload {
   offset: number;
 }
 
+// Define your page size as a constant
+const PAGE_LIMIT = 10;
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifCount, setNotifCount] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(true); // <-- 2. ADD THIS STATE
   const socketRef = useRef<Socket | null>(null);
-
-  // --- THIS IS THE NEW HACK ---
-  // This ref remembers the 'offset' we just requested
   const offsetRef = useRef<number>(0);
-  // ----------------------------
-
   const pathname = usePathname();
 
   useEffect(() => {
@@ -53,17 +53,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     socket.on('connect', () => {
       console.log('Connected to notification server');
-      getNotifications(10, 0); // Load initial data
+      getNotifications(PAGE_LIMIT, 0); // Load initial data
     });
 
-    // ... (socket.on('notification_count'), socket.on('new_notification'), etc.)
-    // Your 'new_notification' listener with the pop-up blocker is perfect.
-    
     socket.on('new_notification', (notif: Notification) => {
       setNotifications((prev) => [notif, ...prev]);
       setNotifCount((prev) => prev + 1);
-      const blockedPaths = ['/login', '/notification']; 
-      const isOnBlockedPage = blockedPaths.some(path => pathname.startsWith(path));
+      const blockedPaths = ['/login', '/notification'];
+      const isOnBlockedPage = blockedPaths.some((path) =>
+        pathname.startsWith(path)
+      );
       if (!isOnBlockedPage) {
         toast.success(notif.title || 'New Notification!', {
           icon: '🔔',
@@ -80,16 +79,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // --- 2. THIS IS THE MODIFIED LISTENER ---
-    // It now receives the simple array from the backend
+    // --- 3. THIS LISTENER IS UPDATED ---
     socket.on('notifications_page', (notifs: Notification[]) => {
-      // Check our ref to see what we just asked for
       if (offsetRef.current === 0) {
-        // This was a RELOAD (page 1). Replace the list.
+        // This was a RELOAD
         setNotifications(notifs);
+        // Reset 'hasMore'. We assume there's more *unless* the first page
+        // already has less than the limit.
+        setHasMore(notifs.length === PAGE_LIMIT);
       } else {
-        // This was a LOAD MORE (page 2+). Append to the list.
+        // This was a LOAD MORE
         setNotifications((prev) => [...prev, ...notifs]);
+        // If the page we just got has less than the limit, we're at the end.
+        if (notifs.length < PAGE_LIMIT) {
+          setHasMore(false);
+        }
       }
     });
     // ----------------------------------------
@@ -114,7 +118,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // --- 3. THIS IS THE MODIFIED 'getNotifications' ---
   const getNotifications = (limit: number, offset: number) => {
     // We set the ref *right before* we ask the server
     offsetRef.current = offset;
@@ -123,19 +126,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   };
 
   const loadMore = () => {
-    getNotifications(10, notifications.length);
+    // Only try to load more if we think there is more
+    if (hasMore) {
+      getNotifications(PAGE_LIMIT, notifications.length);
+    }
   };
 
   const reloadNotifications = () => {
-    getNotifications(10, 0); // This will set offsetRef.current = 0
+    getNotifications(PAGE_LIMIT, 0); // This will set offsetRef.current = 0
   };
 
+  // --- 4. EXPOSE 'hasMore' IN THE VALUE ---
   const value = {
     notifications,
     notifCount,
     markRead,
     loadMore,
     reloadNotifications,
+    hasMore, // <-- ADD THIS
   };
 
   return (

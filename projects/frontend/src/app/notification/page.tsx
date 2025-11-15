@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react"; // 1. Import useEffect
+import { useEffect } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import { Navbar } from "@/components/navbar/Navbar";
 import {
@@ -9,24 +9,20 @@ import {
   Notification,
 } from "@/components/notification/notificationCard";
 
-// 2. Import the hook to get your live data
 import { useNotifications } from "@/components/notification/NotificationContext";
 
 export default function NotificationPage() {
   const router = useRouter();
 
-  // 3. Get the REAL data and functions from your global context
-  const { notifications, loadMore, markRead, reloadNotifications } =
+  // 3. Get the new 'hasMore' state from your hook
+  const { notifications, loadMore, markRead, reloadNotifications, hasMore } =
     useNotifications();
 
-  // 4. This is the refresh logic
-  // It runs once every time the page is opened
   useEffect(() => {
     reloadNotifications();
   }, []); // The empty array [] is very important
 
   const handleNotificationClick = async (notification: Notification) => {
-    // 5. Call the REAL markRead function
     if (!notification.read) {
       markRead(notification.id);
     }
@@ -68,13 +64,17 @@ export default function NotificationPage() {
                 </div>
               </section>
 
-              {/* Load More Button */}
+              {/* Load More Button - UPDATED SECTION */}
               <div className="flex justify-center px-8 pb-6">
                 <button
-                  onClick={loadMore} // 8. Call the REAL loadMore
-                  className="h-11 w-full rounded-full bg-[#C5E99B] border-2 border-black text-base font-semibold hover:bg-[#b5d98b] transition-colors"
+                  onClick={loadMore}
+                  // 9. Disable the button when hasMore is false
+                  disabled={!hasMore}
+                  className="h-11 w-full rounded-full bg-[#C5E99B] border-2 border-black text-base font-semibold hover:bg-[#b5d98b] transition-colors 
+                             disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed" // 10. Added disabled styles
                 >
-                  Load more
+                  {/* 11. Conditionally change the text */}
+                  {hasMore ? "Load more" : "🎉 You are up to date"}
                 </button>
               </div>
             </>
