@@ -65,10 +65,12 @@ test('login with email & password', async ({ page }) => {
   
   // กรอกข้อมูลที่ถูกต้อง
   await page.fill('input[name="email"]', 'you@example.com');
+  await page.waitForTimeout(200);
   await page.fill('input[name="password"]', 'Password_Test55');
   
   // รอให้ปุ่ม Log In ปรากฏ
   await page.waitForSelector('button[type="submit"]'); // รอให้ปุ่ม submit ปรากฏ
+  await page.waitForTimeout(200);
   
   // กดปุ่ม Log In
   await page.click('button[type="submit"]'); // กดปุ่ม submit (Log In)
