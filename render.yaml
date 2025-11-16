@@ -1,0 +1,82 @@
+services:
+  # Backend Service
+  - type: web
+    name: wegoeverywhere-backend
+    env: node
+    region: singapore
+    plan: free
+    branch: develop
+    buildCommand: cd projects/backend && npm install && npm run build
+    startCommand: cd projects/backend && npm run start:prod
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wegoeverywhere-db
+          property: connectionString
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: wegoeverywhere-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: wegoeverywhere-db
+          property: port
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: wegoeverywhere-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: wegoeverywhere-db
+          property: password
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: wegoeverywhere-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_TIME
+        value: 15m
+      - key: REFRESH_JWT_SECRET
+        generateValue: true
+      - key: REFRESH_JWT_EXPIRATION_TIME
+        value: 7d
+      - key: GITHUB_OAUTH_CLIENT_ID
+        sync: false
+      - key: GITHUB_OAUTH_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_OAUTH_CALLBACK_URL
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_SECURE
+        value: false
+      - key: SMTP_USER
+        value: wegoeverywhere@gmail.com
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAIL_FROM
+        value: wegoeverywhere@gmail.com
+      - key: EMAIL_FROM_NAME
+        value: WeGoEveryWhere
+      - key: SWAGGER_TITLE
+        value: WeGoEverywhere API
+      - key: SWAGGER_DESCRIPTION
+        value: Activity Management Platform API
+      - key: SWAGGER_VERSION
+        value: 1.0.0
+
+databases:
+  # PostgreSQL Database
+  - name: wegoeverywhere-db
+    plan: free
+    databaseName: wego_everywhere_db
+    user: admin
+    region: singapore
