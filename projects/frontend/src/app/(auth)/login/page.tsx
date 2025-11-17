@@ -74,8 +74,12 @@ export default function LoginPage() {
           try {
             // Optional: show a loading toast while calling API
             tId = toast.loading("Signing in...");
+            const result = await AuthService.authControllerLogin(loginDto);
 
-            await AuthService.authControllerLogin(loginDto);
+            // Save token to localStorage
+            if (result.accessToken) {
+              localStorage.setItem('accessToken', result.accessToken);
+            }
 
             toast.dismiss(tId);
             toast.success("Login successful", { duration: 2500 });

@@ -309,6 +309,11 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): C
                 };
 
                 catchErrorCodes(options, result);
+                if (result.status === 401 && typeof window !== 'undefined') {
+                    localStorage.removeItem('accessToken');
+                    window.location.href = '/login';
+                    return;
+                }
 
                 resolve(result.body);
             }

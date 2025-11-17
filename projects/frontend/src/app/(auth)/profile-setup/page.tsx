@@ -244,18 +244,21 @@ function ProfileSetupPage() {
 
               if (result.success) {
                 // Upload profile picture if selected
+                if (result.accessToken) {
+                  localStorage.setItem('accessToken', result.accessToken);
+                }
                 if (profileFile) {
                   const formDataPic = new FormData();
                   formDataPic.append("file", profileFile);
-                  let token = null;
-                  if (typeof window !== "undefined") {
-                    token = localStorage.getItem("access_token") || null;
-                  }
+                  // let token = null;
+                  // if (typeof window !== "undefined") {
+                  //   token = localStorage.getItem("access_token") || null;
+                  // }
                   const uploadRes = await fetch(`${OpenAPI.BASE}/users/profile-picture`, {
                     method: "POST",
                     body: formDataPic,
                     credentials: "include",
-                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                    // headers: token ? { Authorization: `Bearer ${token}` } : undefined,
                   });
                   if (!uploadRes.ok) {
                     toast.error("Profile created, but failed to upload profile picture");
