@@ -26,6 +26,7 @@ export async function middleware(req: NextRequest) {
   // ถ้าไม่ใช่ public asset, public path, api, และไม่ใช่ refresh API → redirect
   if (!isPublicAsset && !isPublicPath && !isRefreshApi) {
     const accessToken = req.cookies.get("jwt")?.value;
+    console.log(accessToken);
     let valid = false;
     if (accessToken) {
       const res = await fetch(`${req.nextUrl.origin}/api/auth/verify`, {

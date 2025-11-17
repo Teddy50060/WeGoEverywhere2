@@ -6,6 +6,7 @@ import { ConfirmProvider } from "@/components/popup/ConfirmProvider";
 import { Toaster } from "react-hot-toast";
 import Link from "next/link";
 import { NotificationProvider } from "@/components/notification/NotificationContext";
+import { ClientInit } from './client-init';
 
 const urbanist = Urbanist({
   variable: "--font-urbanist",
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body
         className={`${urbanist.variable} antialiased min-h-dvh bg-black text-white`}
       >
+        <ClientInit />
         <NotificationProvider>
           <ConfirmProvider>
             {/* Make Phone at the middle */}
