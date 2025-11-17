@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     res.cookies.set("jwt", data.accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 15 * 60, // 15 นาที
     });
 

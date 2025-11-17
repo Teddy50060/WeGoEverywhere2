@@ -92,13 +92,13 @@ export class AuthController {
       res.cookie('jwt', accessToken, { 
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 15 * ONE_MINUTE,
       });
       res.cookie('refresh_jwt', refreshToken, { 
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: ONE_WEEK,
       });
       const frontendUrl = this.configService.get('app.frontendUrl') || 'http://localhost:3000';
@@ -109,13 +109,13 @@ export class AuthController {
       res.cookie('jwt', accessToken, { 
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 15 * ONE_MINUTE,
       });
       res.cookie('refresh_jwt', refreshToken, { 
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: ONE_WEEK,
       });
       const frontendUrl = this.configService.get('app.frontendUrl');
@@ -133,7 +133,7 @@ export class AuthController {
     res.cookie('jwt', accessToken, { 
       httpOnly: true,
       secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 15 * ONE_MINUTE,
     });
     return { accessToken };
@@ -192,7 +192,7 @@ export class AuthController {
     res.cookie('refresh_jwt', newRefresh, {
       httpOnly: true,
       secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
@@ -201,7 +201,7 @@ export class AuthController {
     res.cookie('jwt', accessToken, {
       httpOnly: true,
       secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 1000 * 60 * 15,
     });
 
@@ -244,13 +244,13 @@ export class AuthController {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: 1000 * 60 * 15,
       });
       res.cookie('refresh_jwt', refreshToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: ONE_WEEK,
       });
 
@@ -321,13 +321,13 @@ export class AuthController {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: 15 * ONE_MINUTE, // 15 นาที
       });
       res.cookie('refresh_jwt', refreshToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: ONE_WEEK,
       });
 
@@ -460,13 +460,13 @@ export class AuthController {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: 1000 * 60 * 15,
       });
       res.cookie('refresh_jwt', refreshToken, {
         httpOnly: true,
         secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: ONE_WEEK,
       });
 
