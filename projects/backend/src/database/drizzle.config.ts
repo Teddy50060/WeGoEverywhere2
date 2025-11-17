@@ -1,12 +1,13 @@
 import { defineConfig } from 'drizzle-kit';
 import { ENV_PATHS } from '@consts/env_paths';
 import { config } from 'dotenv';
+import * as path from 'path';
 
 config({ path: ENV_PATHS.ROOT });
 
 export default defineConfig({
-  schema: './schema/*',
-  out: './migrations',
+  schema: path.join(__dirname, './schema/*'),
+  out: path.join(__dirname, './migrations'),
   dialect: 'postgresql',
   dbCredentials: {
     host: process.env.POSTGRES_HOST || 'localhost',
