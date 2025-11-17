@@ -45,13 +45,17 @@ export default function ProfilePage() {
         if (!ok) return;
 
         try {
-            
-            await AuthService.authControllerLogout();
-
-            toast.success('Successfully Sign out')
-            window.location.href = '/login';
-        } catch {
-            toast.error("Unsuccessfully, try again.")
+          // Call backend to revoke refresh token
+          await AuthService.authControllerLogout();
+        } catch (error) {
+          console.error("Logout error:", error);
+          // Continue with logout even if backend call fails
+        } finally {
+          // CRITICAL: Clear the access token from localStorage
+          localStorage.removeItem('accessToken');
+          
+          toast.success('Successfully signed out');
+          window.location.href = '/login';
         }
     };
 

@@ -312,7 +312,7 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): C
                 if (result.status === 401 && typeof window !== 'undefined') {
                     localStorage.removeItem('accessToken');
                     window.location.href = '/login';
-                    return;
+                    throw new Error('Session expired');
                 }
 
                 resolve(result.body);
