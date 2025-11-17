@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import Link from "next/link";
 import { NotificationProvider } from "@/components/notification/NotificationContext";
 import { ClientInit } from './client-init';
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const urbanist = Urbanist({
   variable: "--font-urbanist",
@@ -38,6 +39,9 @@ export default function RootLayout({
         className={`${urbanist.variable} antialiased min-h-dvh bg-black text-white`}
       >
         <ClientInit />
+        <ProtectedRoute>
+          {children}
+        </ProtectedRoute>
         <NotificationProvider>
           <ConfirmProvider>
             {/* Make Phone at the middle */}
