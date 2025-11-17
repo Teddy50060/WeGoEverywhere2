@@ -1,0 +1,83 @@
+{
+  "version": "6",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1757590613513,
+      "tag": "0001_sweet_wilson_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1757597214726,
+      "tag": "0002_stiff_nebula",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1757673799074,
+      "tag": "0003_fancy_silverclaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1757869704723,
+      "tag": "0004_clear_spencer_smythe",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1757880782540,
+      "tag": "0005_fixed_iceman",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1759054001185,
+      "tag": "0006_puzzling_the_leader",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1760460596907,
+      "tag": "0007_illegal_crusher_hogan",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1760733427530,
+      "tag": "0008_illegal_the_call",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1760980620483,
+      "tag": "0009_optimal_morbius",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1761214616538,
+      "tag": "0010_Notification",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1762761376764,
+      "tag": "0011_broken_meltdown",
+      "breakpoints": true
+    }
+  ]
+}
