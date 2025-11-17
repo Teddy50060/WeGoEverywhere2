@@ -91,13 +91,13 @@ export class AuthController {
       const refreshToken = this.authService.signRefreshJwt(req.user.id);
       res.cookie('jwt', accessToken, { 
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: 15 * ONE_MINUTE,
       });
       res.cookie('refresh_jwt', refreshToken, { 
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: ONE_WEEK,
       });
@@ -108,13 +108,13 @@ export class AuthController {
       const refreshToken = this.authService.signRefreshJwt(existingUser.userId);
       res.cookie('jwt', accessToken, { 
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: 15 * ONE_MINUTE,
       });
       res.cookie('refresh_jwt', refreshToken, { 
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: ONE_WEEK,
       });
@@ -132,7 +132,7 @@ export class AuthController {
     const accessToken = await this.authService.refreshAccessToken(userId, userEmail);
     res.cookie('jwt', accessToken, { 
       httpOnly: true,
-      secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+      secure: true,
       sameSite: 'none',
       maxAge: 15 * ONE_MINUTE,
     });
@@ -191,7 +191,7 @@ export class AuthController {
     // set new refresh cookie
     res.cookie('refresh_jwt', newRefresh, {
       httpOnly: true,
-      secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+      secure: true,
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
@@ -200,7 +200,7 @@ export class AuthController {
     const accessToken = this.authService.signJwt(userId);
     res.cookie('jwt', accessToken, {
       httpOnly: true,
-      secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+      secure: true,
       sameSite: 'none',
       maxAge: 1000 * 60 * 15,
     });
@@ -243,13 +243,13 @@ export class AuthController {
       // 6) Set cookie
       res.cookie('jwt', accessToken, {
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: 1000 * 60 * 15,
       });
       res.cookie('refresh_jwt', refreshToken, {
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: ONE_WEEK,
       });
@@ -320,13 +320,13 @@ export class AuthController {
       // 5) set cookie
       res.cookie('jwt', accessToken, {
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: 15 * ONE_MINUTE, // 15 นาที
       });
       res.cookie('refresh_jwt', refreshToken, {
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: ONE_WEEK,
       });
@@ -459,13 +459,13 @@ export class AuthController {
       // 6) Set cookie
       res.cookie('jwt', accessToken, {
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: 1000 * 60 * 15,
       });
       res.cookie('refresh_jwt', refreshToken, {
         httpOnly: true,
-        secure: this.configService.get<boolean>('auth.jwt.cookies_secure'),
+        secure: true,
         sameSite: 'none',
         maxAge: ONE_WEEK,
       });
