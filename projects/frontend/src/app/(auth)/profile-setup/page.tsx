@@ -141,7 +141,7 @@ function ProfileSetupPage() {
               const registrationData = JSON.parse(sessionStorage.getItem('registrationData') || '{}');
 
 
-              const res = await fetch(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001', {
+              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/method`, {
                 method: 'GET',
                 credentials: 'include', // สำคัญ! ให้ browser ส่ง cookie httpOnly
               });
