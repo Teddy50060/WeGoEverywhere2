@@ -1,9 +1,8 @@
 import { defineConfig } from 'drizzle-kit';
-import { ENV_PATHS } from '@consts/env_paths';
 import { config } from 'dotenv';
 import * as path from 'path';
 
-config({ path: ENV_PATHS.ROOT });
+config();
 
 export default defineConfig({
   schema: path.join(__dirname, './schema/*'),

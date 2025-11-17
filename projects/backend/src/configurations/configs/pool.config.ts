@@ -1,8 +1,7 @@
 import { PoolConfig } from 'pg';
 import { config } from 'dotenv';
-import { ENV_PATHS } from "@consts/env_paths";
 
-config({ path: ENV_PATHS.ROOT });
+config();
 
 export const poolConfig: PoolConfig = {
     host: process.env.POSTGRES_HOST || 'localhost',
@@ -21,3 +20,11 @@ export const poolConfig: PoolConfig = {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
 };
+
+console.log('🔍 Database Config:', {
+  host: poolConfig.host,
+  port: poolConfig.port,
+  user: poolConfig.user,
+  database: poolConfig.database,
+  from: 'POSTGRES_DB env var: ' + process.env.POSTGRES_DB,
+});
