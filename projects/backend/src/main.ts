@@ -22,6 +22,7 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://localhost:3001',
       'https://wegoeverywhere-backend-wtdx.onrender.com',
+      'https://we-go-everywhere2.vercel.app'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // cookie
