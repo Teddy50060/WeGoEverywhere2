@@ -79,7 +79,7 @@ export default function LoginPage() {
 
             toast.dismiss(tId);
             toast.success("Login successful", { duration: 2500 });
-            window.location.href = "http://localhost:3000/";
+            window.location.href = "/";
           } catch (err: any) {
             // Try to read status/message from various shapes
             if (tId) toast.dismiss(tId); 
@@ -170,7 +170,7 @@ export default function LoginPage() {
             }}
           />
 
-          <GoogleButton onClick={() => {window.open("http://localhost:3001/auth/github");}} />
+          <GoogleButton onClick={() => {window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/github`);}} />
         </div>
 
         <Link

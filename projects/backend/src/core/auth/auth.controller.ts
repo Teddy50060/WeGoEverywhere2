@@ -101,7 +101,8 @@ export class AuthController {
         sameSite: 'lax',
         maxAge: ONE_WEEK,
       });
-      return res.redirect('http://localhost:3000/consent');
+      const frontendUrl = this.configService.get('app.frontendUrl') || 'http://localhost:3000';
+      return res.redirect('${frontendUrl}/consent');
     }else{
       const accessToken = this.authService.signJwt(existingUser.userId);
       const refreshToken = this.authService.signRefreshJwt(existingUser.userId);
@@ -117,7 +118,8 @@ export class AuthController {
         sameSite: 'lax',
         maxAge: ONE_WEEK,
       });
-      return res.redirect('http://localhost:3000/');
+      const frontendUrl = this.configService.get('app.frontendUrl');
+      return res.redirect(frontendUrl);
     }
   }
   @Public()
