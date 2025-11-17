@@ -76,6 +76,7 @@ export default function ProfilePage() {
     } catch {
         
     }
+    localStorage.removeItem('accessToken');
     toast.success('Successfully Delete');
     window.location.href = '/login';
 } catch {
