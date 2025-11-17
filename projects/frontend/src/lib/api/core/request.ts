@@ -208,11 +208,8 @@ export const sendRequest = async (
         body: body ?? formData,
         method: options.method,
         signal: controller.signal,
+        credentials: config.WITH_CREDENTIALS ? (config.CREDENTIALS || 'include') : 'same-origin',
     };
-
-    if (config.WITH_CREDENTIALS) {
-        request.credentials = config.CREDENTIALS;
-    }
 
     onCancel(() => controller.abort());
 
